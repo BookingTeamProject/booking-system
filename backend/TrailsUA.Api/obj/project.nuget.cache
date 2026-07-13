@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "/bTLclwLmIU=",
+  "success": true,
+  "projectFilePath": "C:\\Shared\\Projects\\Booking_System\\booking-system\\backend\\TrailsUA.Api\\TrailsUA.Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\gleb\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.9\\microsoft.aspnetcore.openapi.10.0.9.nupkg.sha512",
+    "C:\\Users\\gleb\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "У пакета \"Microsoft.OpenApi\" 2.0.0 есть известная уязвимость https://github.com/advisories/GHSA-v5pm-xwqc-g5wc (уровень серьезности: высокий уровень)",
+      "projectPath": "C:\\Shared\\Projects\\Booking_System\\booking-system\\backend\\TrailsUA.Api\\TrailsUA.Api.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Shared\\Projects\\Booking_System\\booking-system\\backend\\TrailsUA.Api\\TrailsUA.Api.csproj",
+      "libraryId": "Microsoft.OpenApi",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}
