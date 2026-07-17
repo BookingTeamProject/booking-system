@@ -1,0 +1,26 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "backend" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Скачивание кода
+        uses: actions/checkout@v3
+
+      - name: Установка .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Восстановление зависимостей
+        run: dotnet restore backend/TrailsUA.Api/TrailsUA.Api.csproj
+
+      - name: Сборка проекта
+        run: dotnet build backend/TrailsUA.Api/TrailsUA.Api.csproj --configuration Release --no-restore
+
+      - name: Запуск тестов
+        run: dotnet test backend/TrailsUA.Api/TrailsUA.Api.csproj --no-build --verbosity normal
