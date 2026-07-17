@@ -24,3 +24,15 @@ jobs:
 
       - name: Запуск тестов
         run: dotnet test backend/TrailsUA.Api/TrailsUA.Api.csproj --no-build --verbosity normal
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /path/to/your/app
+            git pull origin main
+            dotnet publish backend/TrailsUA.Api/TrailsUA.Api.csproj -c Release -o out
+            sudo systemctl restart trailsua
