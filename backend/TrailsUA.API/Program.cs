@@ -1,7 +1,8 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using TrailsUA.API.Middleware;
 using TrailsUA.Infrastructure.Data;
 using TrailsUA.Infrastructure.Services;
 
@@ -46,6 +47,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Подключение глобальной обработки ошибок
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 // Настройка Swagger для тестирования эндпоинтов в браузере
 if (app.Environment.IsDevelopment())
 {
@@ -59,7 +63,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Подключаем маршруты наших контроллеров (включая AuthController)
+// Подключаем маршруты контроллеров (включая AuthController)
 app.MapControllers();
 
 app.Run();
