@@ -1,0 +1,6 @@
+@TrailsUA.API_HostAddress = http://localhost:5238
+
+GET {{TrailsUA.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
