@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="TrailsUA.API/TrailsUA.API.csproj" />
+  <Project Path="TrailsUA.Domain/TrailsUA.Domain.csproj" />
+  <Project Path="TrailsUA.Infrastructure/TrailsUA.Infrastructure.csproj" />
+</Solution>
