@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TrailsUA.Infrastructure.Data;
 using TrailsUA.Infrastructure.Services;
+using TrailsUA.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // 3. Регистрируем сервис авторизации
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRouteService, RouteService>();
 
 // 4. Настраиваем JWT аутентификацию
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
