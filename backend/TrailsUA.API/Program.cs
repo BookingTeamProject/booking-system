@@ -17,8 +17,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 3. Регистрируем сервис авторизации
+// 3. Регистрируем сервисы
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRouteService, RouteService>();
 
 // 4. Настраиваем JWT аутентификацию
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
