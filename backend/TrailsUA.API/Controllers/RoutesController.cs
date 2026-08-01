@@ -20,5 +20,21 @@ namespace TrailsUA.API.Controllers
             var routeId = _routeService.Create(dto);
             return Ok(new { Id = routeId, Message = "Маршрут створено" });
         }
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var routes = _routeService.GetAll();
+            return Ok(routes);
+        }
+        [HttpGet("{id}")]
+        public IActionResult GetById(Guid id)
+        {
+            var route = _routeService.GetById(id);
+            if (route == null)
+            {
+                return NotFound(new { Message = "Маршрут не знайдено" });
+            }
+            return Ok(route);
+        }
     }
 }
