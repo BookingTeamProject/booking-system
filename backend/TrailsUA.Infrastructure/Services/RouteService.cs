@@ -14,7 +14,6 @@ public class RouteService : IRouteService
         _context = context;
     }
 
-    // Получение списка с ПОИСКОМ и ФИЛЬТРАЦИЕЙ
     public async Task<List<RouteDto>> GetAllRoutesAsync(string? search, Guid? categoryId, decimal? maxPrice)
     {
         var query = _context.Routes
@@ -24,20 +23,17 @@ public class RouteService : IRouteService
             .Include(r => r.Images)
             .AsQueryable();
 
-        // Поиск по названию или описанию
         if (!string.IsNullOrWhiteSpace(search))
         {
             var searchLower = search.ToLower();
             query = query.Where(r => r.Title.ToLower().Contains(searchLower) || r.Description.ToLower().Contains(searchLower) || r.Location.ToLower().Contains(searchLower));
         }
 
-        // Фильтр по категории
         if (categoryId.HasValue)
         {
             query = query.Where(r => r.CategoryId == categoryId.Value);
         }
 
-        // Фильтр по максимальной цене
         if (maxPrice.HasValue)
         {
             query = query.Where(r => r.Price <= maxPrice.Value);
@@ -74,7 +70,7 @@ public class RouteService : IRouteService
             AuthorId = authorId
         };
 
-        if (dto.ImageUrls.Any())
+        if (dto.ImageUrls != null && dto.ImageUrls.Any())
         {
             foreach (var url in dto.ImageUrls)
             {
@@ -112,8 +108,8 @@ public class RouteService : IRouteService
             CreatedAt = r.CreatedAt,
             CategoryName = r.Category?.Name ?? "Общая",
             AuthorName = $"{r.Author?.FirstName} {r.Author?.LastName}".Trim(),
-            AverageRating = r.Reviews.Any() ? Math.Round(r.Reviews.Average(rev => rev.Rating), 1) : 0,
-            ImageUrls = r.Images.Select(img => img.Url).ToList()
+            AverageRating = r.Reviews != null && r.Reviews.Any() ? Math.Round(r.Reviews.Average(rev => rev.Rating), 1) : 0,
+            ImageUrls = r.Images != null ? r.Images.Select(img => img.Url).ToList() : new List<string>()
         };
     }
 }

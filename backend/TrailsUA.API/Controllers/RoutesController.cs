@@ -8,16 +8,15 @@ namespace TrailsUA.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class RouteController : ControllerBase
+public class RoutesController : ControllerBase
 {
     private readonly IRouteService _routeService;
 
-    public RouteController(IRouteService routeService)
+    public RoutesController(IRouteService routeService)
     {
         _routeService = routeService;
     }
 
-    // GET /api/route?search=горы&categoryId=...&maxPrice=500 (ПОИСК И ФИЛЬТРАЦИЯ)
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] Guid? categoryId, [FromQuery] decimal? maxPrice)
     {
@@ -25,7 +24,6 @@ public class RouteController : ControllerBase
         return Ok(routes);
     }
 
-    // GET /api/route/{id}
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -34,7 +32,6 @@ public class RouteController : ControllerBase
         return Ok(route);
     }
 
-    // POST /api/route (Только для авторизованных Арендодателей/Лендлордов и Админов)
     [Authorize(Roles = "Landlord,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateRouteDto dto)
@@ -47,7 +44,6 @@ public class RouteController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = route.Id }, route);
     }
 
-    // DELETE /api/route/{id}
     [Authorize(Roles = "Landlord,Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
@@ -57,7 +53,7 @@ public class RouteController : ControllerBase
             return Unauthorized();
 
         var result = await _routeService.DeleteRouteAsync(id, userId);
-        if (!result) return BadRequest(new { message = "Не удалось удалить маршрут (возможно, вы не автор)" });
+        if (!result) return BadRequest(new { message = "Не удалось удалить маршрут" });
 
         return Ok(new { message = "Маршрут успешно удален" });
     }
