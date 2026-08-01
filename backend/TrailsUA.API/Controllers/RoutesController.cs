@@ -36,5 +36,15 @@ namespace TrailsUA.API.Controllers
             }
             return Ok(route);
         }
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
+        {
+            var success = _routeService.Delete(id);
+            if (!success)
+            {
+                return NotFound(new { Message = "Маршрут не знайдено" });
+            }
+            return Ok(new { Message = "Маршрут видалено" });
+        }
     }
 }

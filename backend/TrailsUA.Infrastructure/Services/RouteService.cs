@@ -41,5 +41,20 @@ namespace TrailsUA.Infrastructure.Services
         {
             return _context.Routes.FirstOrDefault(r => r.Id == id);
         }
+        public bool Delete(Guid id)
+        {
+            var route = _context.Routes.FirstOrDefault(r => r.Id == id);
+
+            if (route == null)
+            {
+                return false;
+            }
+
+            _context.Routes.Remove(route);
+            _context.SaveChanges();
+
+            return true;
+        }
+
     }
 }
