@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Внимательно проверяем заглавные буквы API
 COPY ["backend/TrailsUA.API/TrailsUA.API.csproj", "backend/TrailsUA.API/"]
 RUN dotnet restore "backend/TrailsUA.API/TrailsUA.API.csproj"
 
