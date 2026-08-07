@@ -1,0 +1,79 @@
+// ER Diagram for Trails UA Database
+
+Table users {
+  id uuid [pk]
+  email varchar [unique, not null]
+  password_hash varchar
+  first_name varchar [not null]
+  last_name varchar [not null]
+  phone_number varchar
+  avatar_url varchar
+  google_id varchar
+  role integer [not null, note: '0: User, 1: Landlord, 2: Admin']
+  refresh_token varchar
+  refresh_token_expiry_time timestamp
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+Table categories {
+  id uuid [pk]
+  name varchar [not null]
+  description varchar
+  icon_url varchar
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+Table routes {
+  id uuid [pk]
+  title varchar [not null]
+  description text [not null]
+  location varchar [not null]
+  distance_km float [not null]
+  duration_hours int [not null]
+  price decimal
+  author_id uuid [ref: > users.id, not null]
+  category_id uuid [ref: > categories.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+Table reviews {
+  id uuid [pk]
+  rating int [not null, note: '1-5']
+  text text [not null]
+  user_id uuid [ref: > users.id, not null]
+  route_id uuid [ref: > routes.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+Table comments {
+  id uuid [pk]
+  text text [not null]
+  user_id uuid [ref: > users.id, not null]
+  route_id uuid [ref: > routes.id, not null]
+  parent_comment_id uuid [ref: > comments.id]
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+Table favorites {
+  user_id uuid [ref: > users.id, not null]
+  route_id uuid [ref: > routes.id, not null]
+  added_at timestamp [not null]
+
+  Indexes {
+    (user_id, route_id) [pk]
+  }
+}
+
+Table images {
+  id uuid [pk]
+  url varchar [not null]
+  is_main boolean [default: false]
+  route_id uuid [ref: > routes.id]
+  created_at timestamp [not null]
+  updated_at timestamp
+}
