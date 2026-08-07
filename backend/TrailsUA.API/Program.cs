@@ -58,6 +58,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseStaticFiles(); // Разрешает раздавать загруженные аватарки из wwwroot
+
 app.UseCors("AllowAll");
 
 // Подключение глобальной обработки ошибок
