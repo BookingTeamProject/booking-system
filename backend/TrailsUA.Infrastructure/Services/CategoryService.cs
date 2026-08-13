@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TrailsUA.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using TrailsUA.Domain.DTOs.Category;
+using TrailsUA.Infrastructure.Data;
+using TrailsUA.Domain.Entities;
+using Microsoft.IdentityModel.Tokens.Experimental;
 
 namespace TrailsUA.Infrastructure.Services;
 
@@ -14,28 +17,80 @@ public class CategoryService : ICategoryService
         _context = context;
     }
 
-    public Task<List<CategoryDto>> GetAllCategoriesAsync()
+    public async Task<List<CategoryDto>> GetAllCategoriesAsync()
     {
-        throw new NotImplementedException();
+        var categories = await _context.Categories.ToListAsync();
+
+        return categories.Select(c => new CategoryDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Description = c.Description,
+            IconUrl = c.IconUrl
+        }).ToList();
     }
 
-    public Task<CategoryDto?> GetCategoryByIdAsync(Guid id)
+    public async Task<CategoryDto?> GetCategoryByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
-    }
+        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+        if (category == null) return null;
 
-    public Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto dto)
-    {
-        throw new NotImplementedException();
+        return new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            IconUrl = category.IconUrl
+        };
     }
-
-    public Task<CategoryDto?> UpdateCategoryAsync(Guid id, UpdateCategoryDto dto)
+    public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto dto)
     {
-        throw new NotImplementedException();
+        var category = new Category
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            IconUrl = dto.IconUrl
+        };
+        _context.Categories.Add(category);
+        await _context.SaveChangesAsync();
+        return new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            IconUrl = category.IconUrl
+        };
     }
-
-    public Task<bool> DeleteCategoryAsync(Guid id)
+    public async Task<CategoryDto?> UpdateCategoryAsync(Guid id, UpdateCategoryDto dto)
     {
-        throw new NotImplementedException();
+        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+        if (category == null) return null;
+
+        category.Name = dto.Name;
+        category.Description = dto.Description;
+        category.IconUrl = dto.IconUrl;
+
+        await _context.SaveChangesAsync();
+        return new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            IconUrl = category.IconUrl
+        };
+    }
+    public async Task<bool> DeleteCategoryAsync(Guid id)
+    {
+        var category = await _context.Categories
+            .Include(c => c.Routes)
+            .FirstOrDefaultAsync(c => c.Id == id);
+        if (category == null) return false;
+
+        if (category.Routes.Any())
+
+            throw new InvalidOperationException("Не можна видалити категорію в якій є маршрути");
+        _context.Categories.Remove(category);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
