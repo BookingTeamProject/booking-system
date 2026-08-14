@@ -26,6 +26,7 @@ public class UserService : IUserService
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber,
             Role = user.Role.ToString(),
             AvatarUrl = user.AvatarUrl
         };
@@ -50,6 +51,7 @@ public class UserService : IUserService
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber,
             Role = user.Role.ToString(),
             AvatarUrl = user.AvatarUrl
         };
