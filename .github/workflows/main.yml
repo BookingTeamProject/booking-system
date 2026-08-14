@@ -24,13 +24,11 @@ jobs:
         with:
           context: .
           file: ./docker/backend/Dockerfile
-          # Отправляем в Docker Hub только если это не просто PR, а вливание в main
           push: ${{ github.event_name == 'push' }}
           tags: ${{ secrets.DOCKER_USERNAME }}/trailsua-api:latest
 
   deploy:
     needs: build
-    # Деплой на сервер запускается ТОЛЬКО при слиянии в ветку main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -44,4 +42,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/trailsua-api:latest
             docker stop trailsua-api || true
             docker rm trailsua-api || true
-            docker run -d --name trailsua-api --restart unless-stopped -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/trailsua-api:latest
+            docker run -d -p 80:8080 --name trailsua-api -e ASPNETCORE_ENVIRONMENT=Development kirll431/trailsua-api:latest
