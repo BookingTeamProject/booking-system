@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import api from '../api/axios';
 
 export const LoginPage: React.FC = () => {
@@ -8,58 +9,67 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Обычный вход по Email
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
       const response = await api.post('/auth/login', { email, password });
-
-      localStorage.setItem('token', response.data.accessToken);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      alert('Вы успешно вошли!');
-      navigate('/');
+      saveSessionAndNavigate(response.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Неверный email или пароль');
     }
+  };
+
+  // Вход через Google
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const response = await api.post('/auth/google', {
+        idToken: credentialResponse.credential
+      });
+      saveSessionAndNavigate(response.data);
+    } catch (err: any) {
+      setError('Не удалось войти через Google');
+    }
+  };
+
+  const saveSessionAndNavigate = (data: any) => {
+    localStorage.setItem('token', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    alert('Вы успешно вошли!');
+    navigate('/profile');
   };
 
   return (
     <div style={containerStyle}>
       <h2 style={{ textAlign: 'center', marginBottom: '24px', color: '#111827' }}>Вход в Trails UA</h2>
       {error && <div style={errorStyle}>{error}</div>}
-      
+
       <form onSubmit={handleSubmit}>
         <div style={fieldStyle}>
           <label style={labelStyle}>Email</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="example@mail.com"
-            required 
-            style={inputStyle} 
-          />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
         </div>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>Пароль</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="••••••••"
-            required 
-            style={inputStyle} 
-          />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={inputStyle} />
         </div>
 
-        <button type="submit" style={buttonStyle}>
-          Войти
-        </button>
+        <button type="submit" style={buttonStyle}>Войти</button>
       </form>
+
+      <div style={{ margin: '20px 0', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>или</div>
+
+      {/* Кнопка Google Входа */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError('Ошибка входа через Google')}
+        />
+      </div>
 
       <p style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
         Нет аккаунта? <Link to="/register" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>Зарегистрироваться</Link>

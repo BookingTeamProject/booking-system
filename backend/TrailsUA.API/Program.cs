@@ -19,7 +19,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // 3. Регистрируем сервисы
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // 4. Настраиваем JWT аутентификацию
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

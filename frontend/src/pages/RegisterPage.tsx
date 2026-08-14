@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import api from '../api/axios';
 
 export const RegisterPage: React.FC = () => {
@@ -24,15 +25,30 @@ export const RegisterPage: React.FC = () => {
         role: Number(role),
       });
 
-      localStorage.setItem('token', response.data.accessToken);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      alert('Регистрация прошла успешно!');
-      navigate('/');
+      saveSessionAndNavigate(response.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Ошибка при регистрации');
     }
+  };
+
+  // Регистрация/Вход через Google
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const response = await api.post('/auth/google', {
+        idToken: credentialResponse.credential
+      });
+      saveSessionAndNavigate(response.data);
+    } catch (err: any) {
+      setError('Не удалось зарегистрироваться через Google');
+    }
+  };
+
+  const saveSessionAndNavigate = (data: any) => {
+    localStorage.setItem('token', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    alert('Успешно!');
+    navigate('/profile');
   };
 
   return (
@@ -70,10 +86,18 @@ export const RegisterPage: React.FC = () => {
           </select>
         </div>
 
-        <button type="submit" style={buttonStyle}>
-          Зарегистрироваться
-        </button>
+        <button type="submit" style={buttonStyle}>Зарегистрироваться</button>
       </form>
+
+      <div style={{ margin: '20px 0', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>или</div>
+
+      {/* Кнопка Google Входа/Регистрации */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError('Ошибка входа через Google')}
+        />
+      </div>
 
       <p style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
         Уже есть аккаунт? <Link to="/login" style={{ color: '#059669', textDecoration: 'none', fontWeight: 600 }}>Войти</Link>
