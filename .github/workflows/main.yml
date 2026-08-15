@@ -42,4 +42,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/trailsua-api:latest
             docker stop trailsua-api || true
             docker rm trailsua-api || true
-            docker run -d -p 80:8080 --name trailsua-api -e ASPNETCORE_ENVIRONMENT=Development kirll431/trailsua-api:latest
+            docker run -d -p 8080:8080 --name trailsua-api -e ASPNETCORE_ENVIRONMENT=Development kirll431/trailsua-api:latest
