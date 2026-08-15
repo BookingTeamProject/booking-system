@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using TrailsUA.Domain.DTOs.Review;
 
-namespace TrailsUA.Infrastructure.Services
+namespace TrailsUA.Infrastructure.Services;
+
+public interface IReviewService
 {
-    internal interface IReviewService
-    {
-    }
+    Task<List<ReviewDto>> GetReviewsByRouteIdAsync(Guid routeId);
+    Task<ReviewDto> AddReviewAsync(Guid userId, CreateReviewDto dto);
 }
