@@ -3,6 +3,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { RoutesCatalog } from './pages/RoutesCatalog';
 import { RouteCreate } from './pages/RouteCreate';
+import { RouteDetails } from './pages/RouteDetails';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/routes/create" element={<RouteCreate />} />
         <Route path="/routes" element={<RoutesCatalog />} />
         <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/routes/:id" element={<RouteDetails />} />
       </Routes>
     </Router>
   );
