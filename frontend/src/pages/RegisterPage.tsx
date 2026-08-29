@@ -4,11 +4,11 @@ import { GoogleLogin } from '@react-oauth/google';
 import api from '../api/axios';
 
 export const RegisterPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [role, setRole] = useState(0);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState(0); // 0: Орендар, 1: Орендодавець
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -25,157 +25,103 @@ export const RegisterPage: React.FC = () => {
         role: Number(role),
       });
 
-      saveSessionAndNavigate(response.data);
+      localStorage.setItem('token', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+
+      alert('Реєстрація успішна!');
+      navigate('/profile');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при регистрации');
+      setError(err.response?.data?.message || 'Помилка при реєстрації');
     }
   };
 
-  // Регистрация/Вход через Google
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      const response = await api.post('/auth/google', {
-        idToken: credentialResponse.credential
-      });
-      saveSessionAndNavigate(response.data);
+      const response = await api.post('/auth/google', { idToken: credentialResponse.credential });
+      localStorage.setItem('token', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      navigate('/profile');
     } catch (err: any) {
-      setError('Не удалось зарегистрироваться через Google');
+      setError('Помилка реєстрації через Google');
     }
-  };
-
-  const saveSessionAndNavigate = (data: any) => {
-    localStorage.setItem('token', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    alert('Успешно!');
-    navigate('/profile');
   };
 
   return (
-    <div style={pageWrapperStyle}>
-      <div style={containerStyle}>
-        <h2 style={{ textAlign: 'center', marginBottom: '24px', color: '#111827' }}>Регистрация Trails UA</h2>
-        {error && <div style={errorStyle}>{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ ...fieldStyle, flex: 1 }}>
-              <label style={labelStyle}>Имя</label>
-              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
-            </div>
-            <div style={{ ...fieldStyle, flex: 1 }}>
-              <label style={labelStyle}>Фамилия</label>
-              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
-            </div>
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@mail.com" required style={inputStyle} />
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Пароль</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={inputStyle} />
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Тип аккаунта</label>
-            <select value={role} onChange={(e) => setRole(Number(e.target.value))} style={selectStyle}>
-              <option value={0}>Турист / Арендатор</option>
-              <option value={1}>Арендодатель (Создание маршрутов)</option>
-            </select>
-          </div>
-
-          <button type="submit" style={buttonStyle}>Зарегистрироваться</button>
-        </form>
-
-        <div style={{ margin: '20px 0', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>или</div>
-
-        {/* Кнопка Google Входа/Регистрации */}
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError('Ошибка входа через Google')}
+    <div style={splitScreenWrapperStyle}>
+      <div style={authCardContainerStyle}>
+        <div style={leftImageContainerStyle}>
+          <img
+            src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80"
+            alt="Cabin"
+            style={coverImageStyle}
           />
         </div>
 
-        <p style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
-          Уже есть аккаунт? <Link to="/login" style={{ color: '#059669', textDecoration: 'none', fontWeight: 600 }}>Войти</Link>
-        </p>
+        <div style={rightFormContainerStyle}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <span style={{ fontSize: '26px' }}>🏔️</span>
+            <h2 style={{ fontSize: '26px', color: '#291C0E', fontWeight: 800, letterSpacing: '1px' }}>РЕЄСТРАЦІЯ</h2>
+          </div>
+
+          {error && <div style={errorAlertStyle}>{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle}>Ім'я</label>
+                <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle}>Прізвище</label>
+                <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={inputStyle} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '12px' }}>
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@gmail.com" required style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: '12px' }}>
+              <label style={labelStyle}>Пароль</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: '18px' }}>
+              <label style={labelStyle}>Оберіть роль</label>
+              <select value={role} onChange={(e) => setRole(Number(e.target.value))} style={selectStyle}>
+                <option value={0}>Орендар (Шукаю житло та тури)</option>
+                <option value={1}>Орендодавець (Здаю житло та маршрути)</option>
+              </select>
+            </div>
+
+            <button type="submit" style={primaryButtonStyle}>Зареєструватись</button>
+          </form>
+
+          <div style={{ textAlign: 'center', margin: '14px 0', color: '#6E473B', fontSize: '13px', fontWeight: 600 }}>або</div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+            <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Помилка Google')} />
+          </div>
+
+          <p style={{ textAlign: 'center', fontSize: '14px', color: '#6E473B' }}>
+            Вже є акаунт? <Link to="/login" style={{ color: '#DC9666', fontWeight: 700, textDecoration: 'none' }}>Увійти</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
-const containerStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '460px',
-  margin: '20px',
-  padding: '32px',
-  backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-};
-
-const fieldStyle: React.CSSProperties = {
-  marginBottom: '16px',
-};
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  marginBottom: '6px',
-  fontSize: '14px',
-  fontWeight: 500,
-  color: '#374151',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  fontSize: '15px',
-  borderRadius: '6px',
-  border: '1px solid #d1d5db',
-  outline: 'none',
-};
-
-const selectStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px 14px',
-  fontSize: '15px',
-  borderRadius: '6px',
-  border: '1px solid #d1d5db',
-  backgroundColor: '#ffffff',
-  outline: 'none',
-};
-
-const buttonStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '12px',
-  marginTop: '8px',
-  backgroundColor: '#059669',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: 600,
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-};
-
-const errorStyle: React.CSSProperties = {
-  backgroundColor: '#fef2f2',
-  color: '#dc2626',
-  padding: '10px',
-  borderRadius: '6px',
-  marginBottom: '16px',
-  fontSize: '14px',
-  textAlign: 'center',
-};
-
-const pageWrapperStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  minHeight: 'calc(100vh - 80px)',
-  padding: '20px',
-};
+const splitScreenWrapperStyle: React.CSSProperties = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 120px)', padding: '30px 20px' };
+const authCardContainerStyle: React.CSSProperties = { display: 'flex', width: '100%', maxWidth: '900px', backgroundColor: '#F4ECE4', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(41, 28, 14, 0.08)', border: '2px solid #E1D4C2' };
+const leftImageContainerStyle: React.CSSProperties = { flex: 1, minHeight: '520px' };
+const coverImageStyle: React.CSSProperties = { width: '100%', height: '100%', objectFit: 'cover' };
+const rightFormContainerStyle: React.CSSProperties = { flex: 1.1, padding: '36px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '12px', fontWeight: 600, color: '#6E473B', marginBottom: '4px' };
+const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #BEB5A9', backgroundColor: '#FFFFFF', fontSize: '13px', outline: 'none' };
+const selectStyle: React.CSSProperties = { width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #BEB5A9', backgroundColor: '#FFFFFF', fontSize: '13px', outline: 'none' };
+const primaryButtonStyle: React.CSSProperties = { width: '100%', padding: '12px', backgroundColor: '#DC9666', color: '#FFFFFF', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(220, 150, 102, 0.3)' };
+const errorAlertStyle: React.CSSProperties = { backgroundColor: '#FEE2E2', color: '#DC2626', padding: '10px', borderRadius: '8px', marginBottom: '14px', fontSize: '13px', textAlign: 'center' };
