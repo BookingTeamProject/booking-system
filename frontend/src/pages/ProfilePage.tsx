@@ -14,25 +14,25 @@ interface UserProfile {
 
 export const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'edit' | 'security'>('info');
+  const [favorites, setFavorites] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'view' | 'edit' | 'security'>('view');
 
-  // Форма изменения данных
+  // Редактирование
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
-  // Форма смены пароля
+  // Пароль
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-
   const navigate = useNavigate();
 
-  // Загружаем профиль при открытии страницы
   useEffect(() => {
     fetchProfile();
+    fetchFavorites();
   }, []);
 
   const fetchProfile = async () => {
@@ -42,13 +42,23 @@ export const ProfilePage: React.FC = () => {
       setFirstName(response.data.firstName || '');
       setLastName(response.data.lastName || '');
       setPhoneNumber(response.data.phoneNumber || '');
-    } catch (err) {
-      setError('Не удалось загрузить профиль. Попробуйте войти заново.');
-      navigate('/login');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        localStorage.clear();
+        navigate('/login');
+      }
     }
   };
 
-  // 1. Обновление личных данных
+  const fetchFavorites = async () => {
+    try {
+      const res = await api.get('/favorite');
+      setFavorites(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
@@ -62,294 +72,219 @@ export const ProfilePage: React.FC = () => {
         avatarUrl: profile?.avatarUrl
       });
       setProfile(response.data);
-      setMessage('Данные успешно обновлены!');
+      setMessage('Дані успішно збережено!');
+      setActiveTab('view');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при обновлении профиля');
+      setError(err.response?.data?.message || 'Помилка оновлення');
     }
   };
 
-  // 2. Смена пароля
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
     setError('');
 
     try {
-      await api.post('/user/change-password', {
-        oldPassword,
-        newPassword
-      });
-      setMessage('Пароль успешно изменён!');
+      await api.post('/user/change-password', { oldPassword, newPassword });
+      setMessage('Пароль успішно змінено!');
       setOldPassword('');
       setNewPassword('');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при смене пароля');
+      setError(err.response?.data?.message || 'Помилка зміни пароля');
     }
   };
 
-  // 3. Загрузка аватара
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-
-    const file = e.target.files[0];
     const formData = new FormData();
-    formData.append('file', file);
-
-    setMessage('');
-    setError('');
+    formData.append('file', e.target.files[0]);
 
     try {
-      const response = await api.post('/user/avatar', formData, {
+      await api.post('/user/avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      fetchProfile(); // Перезагружаем профиль с новым аватаром
-      setMessage('Аватар успешно обновлён!');
+      fetchProfile();
+      setMessage('Аватар оновлено!');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при загрузке аватара');
+      setError('Помилка завантаження фото');
     }
   };
 
-  // Выход из системы
-  const handleLogout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (e) {
-      // Игнорируем ошибки при выходе
-    }
-    localStorage.clear();
-    navigate('/login');
-  };
+  if (!profile) return <div style={{ textAlign: 'center', marginTop: '60px' }}>Завантаження кабінету...</div>;
 
-  if (!profile) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Загрузка профиля...</div>;
+  const isLandlord = profile.role === 'Landlord' || profile.role === '1';
 
   return (
-    <div style={containerStyle}>
-      {/* Шапка карточки профиля */}
-      <div style={headerStyle}>
-        <div style={avatarContainerStyle}>
-          <img
-            src={profile.avatarUrl ? `http://localhost:5238${profile.avatarUrl}` : 'https://via.placeholder.com/100'}
-            alt="Avatar"
-            style={avatarStyle}
-          />
-          <label style={uploadButtonStyle}>
-            📷 Сменить фото
-            <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
-          </label>
-        </div>
+    <div style={{ maxWidth: '1200px', margin: '30px auto', padding: '0 20px 60px 20px' }}>
+      
+      {/* Заголовок */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#111827' }}>{profile.firstName} {profile.lastName}</h2>
-          <p style={{ margin: '4px 0', color: '#6b7280' }}>{profile.email}</p>
-          <span style={roleBadgeStyle}>
-            Роль: {profile.role === 'Landlord' ? 'Арендодатель / Гид' : profile.role === 'Admin' ? 'Администратор' : 'Турист / Арендатор'}
-          </span>
+          <h1 style={{ fontSize: '28px', color: '#291C0E', fontWeight: 800, margin: 0 }}>
+            {isLandlord ? 'Обліковий запис орендодавець' : 'Обліковий запис орендар'}
+          </h1>
+          <p style={{ color: '#6E473B', margin: '4px 0 0 0', fontSize: '14px' }}>
+            Вітаємо, <strong>{profile.firstName}!</strong> Керуйте вашими подорожами та налаштуваннями.
+          </p>
         </div>
-      </div>
 
-      {/* Переключение вкладок */}
-      <div style={tabsStyle}>
-        <button style={activeTab === 'info' ? activeTabStyle : tabStyle} onClick={() => setActiveTab('info')}>
-          👤 Личный кабинет
-        </button>
-        <button style={activeTab === 'edit' ? activeTabStyle : tabStyle} onClick={() => setActiveTab('edit')}>
-          ✏️ Изменение данных
-        </button>
-        <button style={activeTab === 'security' ? activeTabStyle : tabStyle} onClick={() => setActiveTab('security')}>
-          🔒 Настройки и Безопасность
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setActiveTab(activeTab === 'view' ? 'edit' : 'view')} style={outlineBtnStyle}>
+            {activeTab === 'view' ? '✏️ Редагувати профіль' : '👁️ Перегляд'}
+          </button>
+          <button onClick={() => setActiveTab(activeTab === 'security' ? 'view' : 'security')} style={dangerBtnStyle}>
+            🔒 Безпека
+          </button>
+        </div>
       </div>
 
       {message && <div style={successAlertStyle}>{message}</div>}
       {error && <div style={errorAlertStyle}>{error}</div>}
 
-      {/* Вкладка 1: Личный кабинет */}
-      {activeTab === 'info' && (
-        <div style={cardContentStyle}>
-          <h3>Информация об аккаунте</h3>
-          <p><strong>Имя:</strong> {profile.firstName}</p>
-          <p><strong>Фамилия:</strong> {profile.lastName}</p>
-          <p><strong>Email:</strong> {profile.email}</p>
-          <p><strong>Телефон:</strong> {profile.phoneNumber || 'Не указан'}</p>
-          <button onClick={handleLogout} style={logoutButtonStyle}>Выйти из аккаунта</button>
+      {/* Редактирование */}
+      {activeTab === 'edit' && (
+        <div style={cardBoxStyle}>
+          <h3 style={{ marginBottom: '16px', color: '#291C0E' }}>Редагування персональних даних</h3>
+          <form onSubmit={handleUpdateProfile}>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '14px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle}>Ім'я</label>
+                <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle}>Прізвище</label>
+                <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={inputStyle} />
+              </div>
+            </div>
+            <div style={{ marginBottom: '18px' }}>
+              <label style={labelStyle}>Номер телефону</label>
+              <input type="text" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+380..." style={inputStyle} />
+            </div>
+            <button type="submit" style={primaryBtnStyle}>Зберегти зміни</button>
+          </form>
         </div>
       )}
 
-      {/* Вкладка 2: Изменение данных */}
-      {activeTab === 'edit' && (
-        <form onSubmit={handleUpdateProfile} style={cardContentStyle}>
-          <h3>Редактирование профиля</h3>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Имя</label>
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
-          </div>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Фамилия</label>
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={inputStyle} />
-          </div>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Телефон</label>
-            <input type="text" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+380..." style={inputStyle} />
-          </div>
-          <button type="submit" style={saveButtonStyle}>Сохранить изменения</button>
-        </form>
+      {/* Смена пароля */}
+      {activeTab === 'security' && (
+        <div style={cardBoxStyle}>
+          <h3 style={{ marginBottom: '16px', color: '#291C0E' }}>Зміна пароля</h3>
+          <form onSubmit={handleChangePassword}>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={labelStyle}>Поточний пароль</label>
+              <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required style={inputStyle} />
+            </div>
+            <div style={{ marginBottom: '18px' }}>
+              <label style={labelStyle}>Новий пароль</label>
+              <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required style={inputStyle} />
+            </div>
+            <button type="submit" style={primaryBtnStyle}>Оновити пароль</button>
+          </form>
+        </div>
       )}
 
-      {/* Вкладка 3: Настройки и Смена пароля */}
-      {activeTab === 'security' && (
-        <form onSubmit={handleChangePassword} style={cardContentStyle}>
-          <h3>Смена пароля</h3>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Текущий пароль</label>
-            <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required style={inputStyle} />
+      {/* ОСНОВНОЙ ВИД (FIGMA) */}
+      {activeTab === 'view' && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '28px' }}>
+            <div style={cardBoxStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={profile.avatarUrl ? `http://localhost:5238${profile.avatarUrl}` : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
+                    alt="User"
+                    style={{ width: '84px', height: '84px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #DC9666' }}
+                  />
+                  <label style={avatarUploadBadgeStyle} title="Змінити фото">
+                    📷
+                    <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
+                  </label>
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2 style={{ margin: 0, fontSize: '22px', color: '#291C0E' }}>{profile.firstName} {profile.lastName}</h2>
+                    <span style={verifiedBadgeStyle}>✓ Верифікований</span>
+                  </div>
+                  <div style={{ marginTop: '6px', color: '#6E473B', fontSize: '14px' }}>
+                    ⭐ <strong>4.92</strong> (12 відгуків)
+                  </div>
+                </div>
+              </div>
+
+              <div style={statsRowStyle}>
+                <div>
+                  <div style={statsLabelStyle}>{isLandlord ? 'Оголошень' : 'Загалом поїздок'}</div>
+                  <div style={statsValueStyle}>{isLandlord ? '6 активних об\'єктів' : '18 бронювань'}</div>
+                </div>
+                <div>
+                  <div style={statsLabelStyle}>Дата реєстрації</div>
+                  <div style={statsValueStyle}>Серпень 2026</div>
+                </div>
+                <div>
+                  <div style={statsLabelStyle}>Рейтинг</div>
+                  <div style={{ ...statsValueStyle, color: '#059669' }}>{isLandlord ? 'Суперхост' : 'Добрий орендар'}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={cardBoxStyle}>
+              <h3 style={{ fontSize: '17px', margin: '0 0 14px 0', color: '#291C0E' }}>Як зв'язатись зі мною?</h3>
+              <div style={{ marginBottom: '10px' }}>
+                <div style={statsLabelStyle}>Номер телефону</div>
+                <div style={contactValueStyle}>{profile.phoneNumber || '+380 (67) 123-45-67'}</div>
+              </div>
+              <div style={{ marginBottom: '10px' }}>
+                <div style={statsLabelStyle}>Email</div>
+                <div style={contactValueStyle}>{profile.email}</div>
+              </div>
+              <div>
+                <div style={statsLabelStyle}>Опис</div>
+                <div style={{ fontSize: '13px', color: '#6E473B' }}>Завжди на зв'язку для класних подорожей!</div>
+              </div>
+            </div>
           </div>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Новый пароль</label>
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required style={inputStyle} />
+
+          {/* Сохранённые маршруты */}
+          <div style={{ ...cardBoxStyle, marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '18px', margin: 0, color: '#291C0E' }}>Збережені помешкання та маршрути</h3>
+              <span style={{ color: '#DC9666', fontSize: '14px', fontWeight: 700 }}>Усі збережені ({favorites.length})</span>
+            </div>
+
+            {favorites.length === 0 ? (
+              <p style={{ color: '#6E473B', fontSize: '14px' }}>У вас ще немає збережених маршрутів.</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+                {favorites.map((fav) => (
+                  <div key={fav.id} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E1D4C2' }}>
+                    <img src={fav.imageUrls?.[0] || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80'} alt={fav.title} style={{ width: '100%', height: '120px', objectFit: 'cover' }} />
+                    <div style={{ padding: '10px' }}>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: '#291C0E' }}>{fav.title}</div>
+                      <div style={{ color: '#6E473B', fontSize: '12px' }}>📍 {fav.location}</div>
+                      <div style={{ color: '#DC9666', fontWeight: 800, fontSize: '13px', marginTop: '4px' }}>{fav.price ? `₴ ${fav.price}` : 'Безкоштовно'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <button type="submit" style={saveButtonStyle}>Изменить пароль</button>
-        </form>
+        </>
       )}
     </div>
   );
 };
 
-// Стили
-const containerStyle: React.CSSProperties = {
-  maxWidth: '650px',
-  margin: '40px auto',
-  padding: '24px',
-  backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-};
-
-const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '20px',
-  marginBottom: '24px',
-  paddingBottom: '20px',
-  borderBottom: '1px solid #e5e7eb',
-};
-
-const avatarContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '8px',
-};
-
-const avatarStyle: React.CSSProperties = {
-  width: '100px',
-  height: '100px',
-  borderRadius: '50%',
-  objectFit: 'cover',
-  border: '3px solid #2563eb',
-};
-
-const uploadButtonStyle: React.CSSProperties = {
-  fontSize: '12px',
-  color: '#2563eb',
-  cursor: 'pointer',
-  fontWeight: 600,
-};
-
-const roleBadgeStyle: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '8px',
-  padding: '4px 12px',
-  backgroundColor: '#eff6ff',
-  color: '#2563eb',
-  borderRadius: '16px',
-  fontSize: '13px',
-  fontWeight: 600,
-};
-
-const tabsStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: '8px',
-  marginBottom: '20px',
-  borderBottom: '2px solid #f3f4f6',
-};
-
-const tabStyle: React.CSSProperties = {
-  padding: '10px 16px',
-  border: 'none',
-  backgroundColor: 'transparent',
-  cursor: 'pointer',
-  fontSize: '14px',
-  color: '#6b7280',
-};
-
-const activeTabStyle: React.CSSProperties = {
-  ...tabStyle,
-  color: '#2563eb',
-  fontWeight: 600,
-  borderBottom: '2px solid #2563eb',
-};
-
-const cardContentStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '12px',
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 500,
-  color: '#374151',
-};
-
-const inputStyle: React.CSSProperties = {
-  padding: '10px',
-  borderRadius: '6px',
-  border: '1px solid #d1d5db',
-  fontSize: '15px',
-};
-
-const saveButtonStyle: React.CSSProperties = {
-  padding: '12px',
-  backgroundColor: '#2563eb',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '6px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  marginTop: '10px',
-};
-
-const logoutButtonStyle: React.CSSProperties = {
-  padding: '10px 16px',
-  backgroundColor: '#ef4444',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  fontWeight: 600,
-  marginTop: '20px',
-  alignSelf: 'flex-start',
-};
-
-const successAlertStyle: React.CSSProperties = {
-  padding: '10px',
-  backgroundColor: '#ecfdf5',
-  color: '#059669',
-  borderRadius: '6px',
-  marginBottom: '16px',
-  fontSize: '14px',
-};
-
-const errorAlertStyle: React.CSSProperties = {
-  padding: '10px',
-  backgroundColor: '#fef2f2',
-  color: '#dc2626',
-  borderRadius: '6px',
-  marginBottom: '16px',
-  fontSize: '14px',
-};
+const cardBoxStyle: React.CSSProperties = { backgroundColor: '#FFFFFF', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 18px rgba(41,28,14,0.04)', border: '1px solid #E1D4C2' };
+const verifiedBadgeStyle: React.CSSProperties = { backgroundColor: '#F4ECE4', color: '#DC9666', border: '1px solid #E1D4C2', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '12px' };
+const statsRowStyle: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #F4ECE4', paddingTop: '16px' };
+const statsLabelStyle: React.CSSProperties = { fontSize: '12px', color: '#A78D78' };
+const statsValueStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 700, color: '#291C0E', marginTop: '2px' };
+const contactValueStyle: React.CSSProperties = { fontSize: '14px', fontWeight: 700, color: '#291C0E', wordBreak: 'break-all' };
+const outlineBtnStyle: React.CSSProperties = { backgroundColor: '#FFFFFF', border: '1px solid #BEB5A9', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', color: '#291C0E' };
+const dangerBtnStyle: React.CSSProperties = { backgroundColor: '#BA2D2D', color: '#FFFFFF', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' };
+const primaryBtnStyle: React.CSSProperties = { backgroundColor: '#DC9666', color: '#FFFFFF', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' };
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '13px', color: '#6E473B', marginBottom: '6px', fontWeight: 600 };
+const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #BEB5A9', outline: 'none' };
+const avatarUploadBadgeStyle: React.CSSProperties = { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#FFFFFF', borderRadius: '50%', padding: '4px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', fontSize: '14px' };
+const successAlertStyle: React.CSSProperties = { backgroundColor: '#ECFDF5', color: '#059669', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px' };
+const errorAlertStyle: React.CSSProperties = { backgroundColor: '#FEE2E2', color: '#DC2626', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px' };
