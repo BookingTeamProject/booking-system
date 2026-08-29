@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 
 export const RouteCreate: React.FC = () => {
     const navigate = useNavigate();
+    const [categories, setCategories] = useState<any[]>([]);
 
     const [formData, setFromData] = useState({
       title: '',
@@ -12,7 +13,7 @@ export const RouteCreate: React.FC = () => {
       distanceKm: 0,
       durationHours: 0,
       price: 0,
-      categoryId: "a1b2c3d4-e5f6-7a8b-9c0d-1234567890ab"
+      categoryId: ""
 });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -22,6 +23,22 @@ export const RouteCreate: React.FC = () => {
             [name]: type === 'number' ? Number(value) : value
         });
     };
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await api.get('/categories');
+                setCategories(response.data);
+                if (response.data.length > 0) {
+                    setFromData(prev => ({ ...prev, categoryId: response.data[0].id }));
+                }
+            } catch (error) {
+                console.error('Помилка завантаження категорій:', error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,10 +63,13 @@ export const RouteCreate: React.FC = () => {
 
               <label style={{ display: 'flex', flexDirection: 'column', fontSize: '14px', color: '#555' }}>
                 Категорія:
-                <select name="categoryId" onChange={handleChange} required style={{ padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc' }}>
-                  <option value="a1b2c3d4-e5f6-7a8b-9c0d-1234567890ab">Пішохідний</option>
-                  <option value="b7fea096-79c4-42be-84a4-7093db017b2d">Велосипедний</option>
-                  <option value="4dc91d9e-9009-4695-8009-d5ad1a227ce0">Автомобільний</option>
+                <select name="categoryId" value={formData.categoryId} onChange={handleChange} required style={{ padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc' }}>
+                  {categories.length === 0 && <option value="">Завантаження...</option>}
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </label>
 
