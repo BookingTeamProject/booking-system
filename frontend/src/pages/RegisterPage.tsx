@@ -52,56 +52,58 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      <h2 style={{ textAlign: 'center', marginBottom: '24px', color: '#111827' }}>Регистрация Trails UA</h2>
-      {error && <div style={errorStyle}>{error}</div>}
+    <div style={pageWrapperStyle}>
+      <div style={containerStyle}>
+        <h2 style={{ textAlign: 'center', marginBottom: '24px', color: '#111827' }}>Регистрация Trails UA</h2>
+        {error && <div style={errorStyle}>{error}</div>}
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{ ...fieldStyle, flex: 1 }}>
-            <label style={labelStyle}>Имя</label>
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ ...fieldStyle, flex: 1 }}>
+              <label style={labelStyle}>Имя</label>
+              <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
+            </div>
+            <div style={{ ...fieldStyle, flex: 1 }}>
+              <label style={labelStyle}>Фамилия</label>
+              <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+            </div>
           </div>
-          <div style={{ ...fieldStyle, flex: 1 }}>
-            <label style={labelStyle}>Фамилия</label>
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ ...inputStyle, width: '100%' }} />
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@mail.com" required style={inputStyle} />
           </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Пароль</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={inputStyle} />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Тип аккаунта</label>
+            <select value={role} onChange={(e) => setRole(Number(e.target.value))} style={selectStyle}>
+              <option value={0}>Турист / Арендатор</option>
+              <option value={1}>Арендодатель (Создание маршрутов)</option>
+            </select>
+          </div>
+
+          <button type="submit" style={buttonStyle}>Зарегистрироваться</button>
+        </form>
+
+        <div style={{ margin: '20px 0', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>или</div>
+
+        {/* Кнопка Google Входа/Регистрации */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Ошибка входа через Google')}
+          />
         </div>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@mail.com" required style={inputStyle} />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Пароль</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={inputStyle} />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Тип аккаунта</label>
-          <select value={role} onChange={(e) => setRole(Number(e.target.value))} style={selectStyle}>
-            <option value={0}>Турист / Арендатор</option>
-            <option value={1}>Арендодатель (Создание маршрутов)</option>
-          </select>
-        </div>
-
-        <button type="submit" style={buttonStyle}>Зарегистрироваться</button>
-      </form>
-
-      <div style={{ margin: '20px 0', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>или</div>
-
-      {/* Кнопка Google Входа/Регистрации */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError('Ошибка входа через Google')}
-        />
+        <p style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
+          Уже есть аккаунт? <Link to="/login" style={{ color: '#059669', textDecoration: 'none', fontWeight: 600 }}>Войти</Link>
+        </p>
       </div>
-
-      <p style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
-        Уже есть аккаунт? <Link to="/login" style={{ color: '#059669', textDecoration: 'none', fontWeight: 600 }}>Войти</Link>
-      </p>
     </div>
   );
 };
@@ -168,4 +170,12 @@ const errorStyle: React.CSSProperties = {
   marginBottom: '16px',
   fontSize: '14px',
   textAlign: 'center',
+};
+
+const pageWrapperStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  minHeight: 'calc(100vh - 80px)',
+  padding: '20px',
 };

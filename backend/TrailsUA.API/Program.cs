@@ -14,14 +14,27 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // 2. Подключаем PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
+var envPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+if (!string.IsNullOrEmpty(envPassword))
+{
+    var csBuilder = new Npgsql.NpgsqlConnectionStringBuilder(connectionString)
+    {
+        Password = envPassword
+    };
+    connectionString = csBuilder.ConnectionString;
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // 3. Регистрируем сервисы
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 // 4. Настраиваем JWT аутентификацию
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -60,7 +73,22 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseStaticFiles(); // Разрешает раздавать загруженные аватарки из wwwroot
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ошибка при автоматическом применении миграций базы данных.");
+    }
+}
+
+app.UseStaticFiles();
 
 app.UseCors("AllowAll");
 
@@ -76,11 +104,9 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 
-// Важно: Порядок обязателен! Сначала UseAuthentication, затем UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Подключаем маршруты контроллеров (включая AuthController)
 app.MapControllers();
 
 app.Run();
