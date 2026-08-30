@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using TrailsUA.Domain.DTOs.Category;
 using TrailsUA.Infrastructure.Data;
 using TrailsUA.Domain.Entities;
-using Microsoft.IdentityModel.Tokens.Experimental;
 
 namespace TrailsUA.Infrastructure.Services;
 
