@@ -52,7 +52,7 @@ export const RouteCreate: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '20px', width: '60%', minWidth: '800px', textAlign: 'left', position: 'absolute', top: '40px', left: '40px'}}>
+        <div style={{ padding: '40px 20px', width: '100%', maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
             <h2>Створення маршруту</h2>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>

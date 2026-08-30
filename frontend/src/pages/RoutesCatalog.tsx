@@ -40,7 +40,7 @@ export const RoutesCatalog: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: '20px', width: '60%', minWidth: '800px', textAlign: 'left', position: 'absolute', top: '40px', left: '40px' }}>
+        <div style={{ padding: '40px 20px', width: '100%', maxWidth: '900px', margin: '0 auto', textAlign: 'left' }}>
             <h2>Каталог маршрутів</h2>
 
             {/*Кнопка для переходу на сторінку створення маршруту*/}
