@@ -33,7 +33,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
-    steps:
+steps:
     - name: Деплой на сервер через SSH
       uses: appleboy/ssh-action@master
       with:
@@ -42,7 +42,16 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /home/ec2-user
-          curl -o docker-compose.yml https://raw.githubusercontent.com/BookingTeamProject/booking-system/main/docker-compose.yml
+          
+          if ! docker compose version &> /dev/null; then
+            sudo mkdir -p /usr/libexec/docker/cli-plugins/
+            sudo curl -sSL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/libexec/docker/cli-plugins/docker-compose
+            sudo chmod +x /usr/libexec/docker/cli-plugins/docker-compose
+          fi
+          sudo docker rm -f trailsua-api 2>/dev/null || true
+
+          curl -sSL -o docker-compose.yml https://raw.githubusercontent.com/BookingTeamProject/booking-system/main/docker-compose.yml
           export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          
           sudo -E docker compose pull
           sudo -E docker compose up -d --remove-orphans
