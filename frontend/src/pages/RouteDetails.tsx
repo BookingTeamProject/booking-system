@@ -26,7 +26,7 @@ export const RouteDetails: React.FC = () => {
     if (!route) return <div style={{ padding: '20px' }}>Маршрут не знайдено.</div>;
 
     return (
-        <div style={{ padding: '20px', width: '60%', minWidth: '800px', textAlign: 'left', position: 'absolute', top: '40px', left: '40px'}}>
+        <div style={{ padding: '40px 20px', width: '100%', maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}>
             <Link to="/routes" style={{ textDecoration: 'none', color: '#007BFF', marginBottom: '20px', display: 'inline-block' }}>
             ← Назад до списку маршрутів
             </Link>

@@ -4,9 +4,10 @@ namespace TrailsUA.Domain.Entities;
 
 public enum UserRole
 {
-    User = 0,       // Арендатор / Турист
-    Landlord = 1,   // Арендодатель
-    Admin = 2       // Администратор
+    User = 0,       // Турист / Арендатор (Орендар)
+    Landlord = 1,   // Арендодатель / Гид (Орендодавець)
+    Moderator = 2,  // Модератор (проверка маршрутов и отзывов)
+    Admin = 3       // Администратор всей системы
 }
 
 public class User : BaseEntity
