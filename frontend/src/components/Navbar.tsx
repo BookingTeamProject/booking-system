@@ -39,7 +39,7 @@ export const Navbar: React.FC = () => {
         {/* Навигация */}
         <nav style={navLinksStyle}>
           <Link to="/" style={navItemStyle}>🏠 Головна</Link>
-          <Link to="/" style={navItemStyle}>☰ Меню</Link>
+          <Link to="/routes" style={navItemStyle}>☰ Меню</Link>
           <Link to="/" style={navItemStyle}>👥 Про нас</Link>
           <Link to="/" style={navItemStyle}>🏷️ Акції</Link>
           <Link to="/" style={navItemStyle}>🎧 Підтримка</Link>
@@ -48,6 +48,10 @@ export const Navbar: React.FC = () => {
         {/* Кнопка регистрации жилья / роли орендодавця */}
         <Link to="/register" style={ctaButtonStyle}>
           🏠 Зареєструвати своє помешкання
+        </Link>
+
+        <Link to="/routes/create" style={{ marginRight: '20px', textDecoration: 'none', color: '#fff', fontWeight: 'bold' }}>
+           + Додати маршрут
         </Link>
 
         {/* Язык и Профиль */}

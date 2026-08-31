@@ -6,6 +6,9 @@ import { HomePage } from './pages/HomePage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { RoutesCatalog } from './pages/RoutesCatalog';
+import { RouteCreate } from './pages/RouteCreate';
+import { RouteDetails } from './pages/RouteDetails';
 import { ProfilePage } from './pages/ProfilePage';
 import { RoleSelectionPage } from './pages/RoleSelectionPage';
 import { AdminPage } from './pages/AdminPage';
@@ -30,6 +33,17 @@ function App() {
               <Route path="/select-role" element={<RoleSelectionPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/admin" element={<AdminPage />} />
+
+              {/* Создание маршрута */}
+              <Route path="/routes/create" element={<RouteCreate />} />
+
+              {/* Просмотр маршрутов */}
+              <Route path="/routes" element={<RoutesCatalog />} />
+
+              {/* Просмотр деталей маршрута */}
+              <Route path="/routes/:id" element={<RouteDetails />} />
+
+              {/* 404 страница */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>

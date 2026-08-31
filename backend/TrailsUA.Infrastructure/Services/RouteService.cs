@@ -94,6 +94,37 @@ public class RouteService : IRouteService
         return true;
     }
 
+    public async Task<RouteDto?> UpdateRouteAsync(Guid id, UpdateRouteDto dto, Guid authorId)
+    {
+        var route = await _context.Routes
+            .Include(r => r.Images)
+            .FirstOrDefaultAsync(r => r.Id == id && r.AuthorId == authorId);
+        if (route == null) return null;
+        route.Title = dto.Title;
+        route.Description = dto.Description;
+        route.Location = dto.Location;
+        route.DistanceKm = dto.DistanceKm;
+        route.DurationHours = dto.DurationHours;
+        route.Price = dto.Price;
+        route.CategoryId = dto.CategoryId;
+
+        if (dto.ImageUrls != null)
+        {
+            var oldImages = route.Images.ToList();
+            foreach (var img in oldImages)
+            {
+                _context.Images.Remove(img);
+            }
+
+            foreach (var url in dto.ImageUrls)
+            {
+                _context.Images.Add(new Image { Url = url, Route = route });
+            }
+        }
+        await _context.SaveChangesAsync();
+        return await GetRouteByIdAsync(route.Id) ?? MapToDto(route);
+    }
+
     private static RouteDto MapToDto(Route r)
     {
         return new RouteDto
