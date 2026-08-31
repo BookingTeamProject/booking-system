@@ -1,0 +1,39 @@
+import React, { useState } from 'react';
+
+export const FAQPage: React.FC = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const faqs = [
+    { q: 'Як забронювати будиночок або маршрут?', a: 'Оберіть потрібний об\'єкт у каталозі, вкажіть дати заїзду, кількість гостей та натисніть «Підтвердити та забронювати». Бронювання одразу з\'явиться у вашому кабінеті.' },
+    { q: 'Як зареєструвати своє помешкання та стати орендодавцем?', a: 'У шапці сайту натисніть «Зареєструвати своє помешкання» або перейдіть у кабінет та оберіть роль Орендодавця. Після цього вам відкриється форма додавання житла та турів.' },
+    { q: 'Як працює скасування бронювання?', a: 'Безкоштовне скасування можливе не пізніше ніж за 48 годин до заїзду. Керувати своїми бронюваннями можна у вкладці «Поточні броні» особистого кабінету.' },
+    { q: 'Чи безпечно оплачувати через платформу?', a: 'Так, усі платежі проходять шифрування за стандартом PCI DSS. Орендодавець отримує кошти лише через 24 години після вашого успішного заселення.' },
+  ];
+
+  return (
+    <div style={{ maxWidth: '900px', margin: '40px auto', padding: '0 20px 60px 20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+        <h1 style={{ fontSize: '32px', color: '#291C0E', fontWeight: 800 }}>🎧 Служба підтримки та FAQ</h1>
+        <p style={{ color: '#6E473B', fontSize: '15px' }}>Відповіді на найпопулярніші запитання мандрівників та хостів.</p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {faqs.map((faq, idx) => (
+          <div key={idx} style={faqCardStyle} onClick={() => setOpenIndex(openIndex === idx ? null : idx)}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#291C0E', margin: 0 }}>{faq.q}</h3>
+              <span style={{ fontSize: '18px', color: '#DC9666' }}>{openIndex === idx ? '▲' : '▼'}</span>
+            </div>
+            {openIndex === idx && (
+              <p style={{ marginTop: '12px', color: '#6E473B', fontSize: '14px', lineHeight: 1.6, borderTop: '1px solid #F4ECE4', paddingTop: '10px' }}>
+                {faq.a}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const faqCardStyle: React.CSSProperties = { backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1px solid #E1D4C2', boxShadow: '0 4px 15px rgba(41,28,14,0.04)' };
