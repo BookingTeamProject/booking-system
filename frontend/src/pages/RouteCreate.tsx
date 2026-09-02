@@ -1,33 +1,44 @@
 // src/pages/RouteCreate.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import type { RouteItem } from '../types';
 
 const ACCOMMODATION_TYPES = [
-  { id: 'apartment', label: 'Квартира', icon: '🏢', desc: 'Окреме міське житло' },
-  { id: 'house', label: 'Будинок', icon: '🏡', desc: 'Приватний окремий дім' },
   { id: 'chalet', label: 'Шале', icon: '🛖', desc: 'Автентичний дерев’яний дім' },
+  { id: 'house', label: 'Будинок', icon: '🏡', desc: 'Приватний окремий дім' },
   { id: 'glamping', label: 'Глемпінг', icon: '⛺', desc: 'Комфорт серед дикої природи' },
+  { id: 'apartment', label: 'Квартира', icon: '🏢', desc: 'Окреме міське житло' },
   { id: 'room', label: 'Кімната', icon: '🛏️', desc: 'Окрема кімната в будинку' },
 ];
 
 const AMENITIES_LIST = [
   { category: 'Ванна кімната', items: ['Фен для волосся', 'Засоби гігієни', 'Гаряча вода', 'Душова кабіна'] },
-  { category: 'Спальня та пральня', items: ['Шафа для одягу', 'Замки на дверях спальні', 'Пральна машина', 'Постільна білизна', 'Сушарка для одягу', 'Праска та дошка'] },
-  { category: 'Розваги та зв’язок', items: ['Телевізор зі Smart TV', 'Швидкісний Wi-Fi', 'Книги та настілки'] },
-  { category: 'Кухня та їдальня', items: ['Кухня з усім приладдям', 'Холодильник', 'Тостер', 'Мікрохвильова піч', 'Посуд та столові прибори', 'Кавоварка / еспресо', 'Духовка'] },
-  { category: 'Опалення та клімат', items: ['Кондиціонер (холод / тепло)', 'Центральне опалення', 'Камін на дровах', 'Генератор'] },
-  { category: 'Безпека', items: ['Датчик чадного газу / диму', 'Вогнегасник', 'Аптечка першої допомоги', 'Відеоспостереження території'] },
+  { category: 'Спальня та пральня', items: ['Шафа для одягу', 'Замки на дверях спальні', 'Пральна машина', 'Постільна білизна', 'Праска'] },
+  { category: 'Розваги та зв’язок', items: ['Телевізор Smart TV', 'Швидкісний Wi-Fi', 'Книги та настілки'] },
+  { category: 'Кухня та їдальня', items: ['Кухня з усім приладдям', 'Холодильник', 'Мікрохвильова піч', 'Посуд та столові прибори', 'Кавоварка', 'Духовка'] },
+  { category: 'Опалення та клімат', items: ['Кондиціонер', 'Центральне опалення', 'Камін на дровах', 'Генератор'] },
+  { category: 'Безпека', items: ['Датчик диму', 'Вогнегасник', 'Аптечка', 'Відеоспостереження подвір’я'] },
 ];
+
+const CANCELLATION_POLICIES = {
+  flexible: 'Гнучка (100% повернення коштів за 24 год до заїзду)',
+  moderate: 'Помірна (100% повернення коштів за 5 днів до заїзду)',
+  strict: 'Сувора (50% повернення коштів за 7 днів до заїзду)',
+};
 
 export const RouteCreate: React.FC = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<number>(1);
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 
   // Состояние формы
   const [formData, setFormData] = useState({
     type: 'chalet',
+    categoryId: '',
     title: '',
     description: '',
     location: '',
@@ -36,16 +47,73 @@ export const RouteCreate: React.FC = () => {
     maxGuests: 4,
     roomsCount: 2,
     bedsCount: 3,
-    amenities: ['Швидкісний Wi-Fi', 'Гаряча вода', 'Камін на дровах'] as string[],
+    amenities: ['Швидкісний Wi-Fi', 'Гаряча вода', 'Камін на дровах', 'Кухня з усім приладдям'] as string[],
     pricePerNight: 2400,
     minDays: 1,
-    cancellationPolicy: 'flexible',
+    cancellationPolicy: 'flexible' as 'flexible' | 'moderate' | 'strict',
     imageUrls: [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
       'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-    ],
+    ] as string[],
   });
+
+  useEffect(() => {
+    // Подтягиваем доступные категории с бэкенда
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/categories');
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setCategories(res.data);
+          setFormData((prev) => ({ ...prev, categoryId: res.data[0].id }));
+        }
+      } catch (e) {
+        console.warn('Категорії завантажено локально:', e);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Обработка загрузки файлов через File Reader
+  const processFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setFormData((prev) => ({
+            ...prev,
+            imageUrls: [...prev.imageUrls, e.target!.result as string],
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    processFiles(e.dataTransfer.files);
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, idx) => idx !== indexToRemove),
+    }));
+  };
 
   const toggleAmenity = (name: string) => {
     if (formData.amenities.includes(name)) {
@@ -57,40 +125,62 @@ export const RouteCreate: React.FC = () => {
 
   const handlePublish = async () => {
     setLoading(true);
+    const newRouteItem: RouteItem = {
+      id: String(Date.now()),
+      title: formData.title || 'Еко-садиба «Затишок лісу» з карпатським чаном',
+      description: formData.description || 'Неймовірне автентичне помешкання з терасою та краєвидом на гори.',
+      location: formData.location || 'с. Татарів, Івано-Франківська обл.',
+      distanceKm: 0,
+      durationHours: 0,
+      price: formData.pricePerNight,
+      categoryId: formData.categoryId || formData.type,
+      categoryName: ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале',
+      authorName: 'Олександр П.',
+      averageRating: 5.0,
+      imageUrls: formData.imageUrls.length > 0 ? formData.imageUrls : ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80'],
+      amenities: formData.amenities,
+      maxGuests: formData.maxGuests,
+      roomsCount: formData.roomsCount,
+      cancellationPolicy: formData.cancellationPolicy === 'flexible' ? 'Flexible' : formData.cancellationPolicy === 'moderate' ? 'Moderate' : 'Strict',
+      createdAt: new Date().toISOString(),
+    };
+
     try {
-      // Отправляем payload на бэкенд C# Web API
+      // 1. Отправляем на бэкенд .NET API
       await api.post('/routes', {
-        title: formData.title || 'Еко-садиба в Карпатах',
-        description: formData.description || 'Чудове затишне помешкання серед лісу.',
-        location: formData.location || 'Яремче, Івано-Франківська область',
+        title: newRouteItem.title,
+        description: newRouteItem.description,
+        location: newRouteItem.location,
         distanceKm: 0,
         durationHours: 0,
-        price: formData.pricePerNight,
-        categoryId: 'ecotourism-cabin',
-        imageUrls: formData.imageUrls,
-        amenities: formData.amenities,
+        price: newRouteItem.price,
+        categoryId: formData.categoryId || (categories.length > 0 ? categories[0].id : '1'),
+        imageUrls: newRouteItem.imageUrls,
+        amenities: newRouteItem.amenities,
       });
-
-      alert('🎉 Помешкання успішно опубліковано!');
-      navigate('/profile');
     } catch (err) {
-      console.error(err);
-      alert('Помешкання створено локально (демо режим для диплома).');
-      navigate('/profile');
+      console.warn('Збережено у локальний каталог (демо):', err);
     } finally {
+      // 2. Сохраняем в локальный каталог, чтобы объект СРАЗУ отобразился в поиске и на главной
+      const existingLocal: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
+      existingLocal.unshift(newRouteItem);
+      localStorage.setItem('custom_routes', JSON.stringify(existingLocal));
+
       setLoading(false);
+      alert('🎉 Помешкання успішно створено та додано до каталогу!');
+      navigate('/routes');
     }
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '30px auto', padding: '0 20px 8px 20px' }}>
-      {/* Прогресс-бар шагов */}
+    <div style={{ maxWidth: '1000px', margin: '30px auto', padding: '0 20px 80px 20px' }}>
+      {/* Шапка шагов */}
       <div style={wizardHeaderCardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#291C0E', margin: 0 }}>
             Створення нового оголошення
           </h2>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#DC9666', backgroundColor: '#F4ECE4', padding: '4px 12px', borderRadius: '12px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#DC9666', backgroundColor: '#F4ECE4', padding: '4px 14px', borderRadius: '14px' }}>
             Крок {step} з 6
           </span>
         </div>
@@ -104,7 +194,7 @@ export const RouteCreate: React.FC = () => {
       {step === 1 && (
         <div style={stepContentCardStyle}>
           <h3 style={stepTitleStyle}>Крок 1. Оберіть тип помешкання</h3>
-          <p style={stepSubtitleStyle}>Це допоможе мандрівникам знайти ваше житло у відповідній категорії.</p>
+          <p style={stepSubtitleStyle}>Це допоможе мандрівникам швидко знайти ваше житло у пошуку.</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '28px' }}>
             {ACCOMMODATION_TYPES.map((t) => (
@@ -124,25 +214,26 @@ export const RouteCreate: React.FC = () => {
             ))}
           </div>
 
-          <h4 style={sectionHeadingStyle}>Основна локація</h4>
+          <h4 style={sectionHeadingStyle}>Локація та адреса</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
-              <label style={labelStyle}>Населений пункт / Регіон</label>
+              <label style={labelStyle}>Населений пункт / Регіон *</label>
               <input
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="наприклад: с. Татарів, Івано-Франківська область"
                 style={inputStyle}
+                required
               />
             </div>
             <div>
-              <label style={labelStyle}>Точна адреса (буде доступна гостю лише після бронювання)</label>
+              <label style={labelStyle}>Вулиця та номер будинку</label>
               <input
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="вул. Шевченка, 12"
+                placeholder="вул. Незалежності, 14"
                 style={inputStyle}
               />
             </div>
@@ -150,14 +241,14 @@ export const RouteCreate: React.FC = () => {
         </div>
       )}
 
-      {/* ШАГ 2: НАЗВА ТА ФОРМАТ */}
+      {/* ШАГ 2: НАЗВА ТА ОПИС */}
       {step === 2 && (
         <div style={stepContentCardStyle}>
-          <h3 style={stepTitleStyle}>Крок 2. Назва та формат оренди</h3>
-          <p style={stepSubtitleStyle}>Придумайте коротку та привабливу назву, що підкреслить атмосферу.</p>
+          <h3 style={stepTitleStyle}>Крок 2. Назва та опис помешкання</h3>
+          <p style={stepSubtitleStyle}>Придумайте яскраву назву для приваблення туристів.</p>
 
           <div style={{ marginBottom: '18px' }}>
-            <label style={labelStyle}>Назва оголошення (до 60 символів)</label>
+            <label style={labelStyle}>Назва оголошення *</label>
             <input
               type="text"
               value={formData.title}
@@ -173,7 +264,7 @@ export const RouteCreate: React.FC = () => {
               rows={4}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Опишіть краєвид, прилеглі туристичні стежки, тишу та атмосферу..."
+              placeholder="Опишіть затишок, панорами гір, близькість до річки чи лісу..."
               style={inputStyle}
             />
           </div>
@@ -217,8 +308,8 @@ export const RouteCreate: React.FC = () => {
       {/* ШАГ 3: ЗРУЧНОСТІ */}
       {step === 3 && (
         <div style={stepContentCardStyle}>
-          <h3 style={stepTitleStyle}>Крок 3. Зручності вашого котеджу</h3>
-          <p style={stepSubtitleStyle}>Оберіть усі доступні елементи комфорту для мандрівників.</p>
+          <h3 style={stepTitleStyle}>Крок 3. Зручності вашого помешкання</h3>
+          <p style={stepSubtitleStyle}>Позначте всі доступні елементи комфорту.</p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {AMENITIES_LIST.map((sec, idx) => (
@@ -253,33 +344,70 @@ export const RouteCreate: React.FC = () => {
         </div>
       )}
 
-      {/* ШАГ 4: СВІТЛИНИ */}
+      {/* ШАГ 4: СВІТЛИНИ (ІНТЕРАКТИВНИЙ DRAG & DROP ТА ВИБІР) */}
       {step === 4 && (
         <div style={stepContentCardStyle}>
           <h3 style={stepTitleStyle}>Крок 4. Світлини вашого помешкання</h3>
-          <p style={stepSubtitleStyle}>Завантажте щонайменше 3 якісні фотографії. Гарні світлини збільшують перегляди у 4 рази.</p>
+          <p style={stepSubtitleStyle}>Завантажте фотографії з вашого комп'ютера або перетягніть їх у поле нижче.</p>
 
-          <div style={uploadDropzoneStyle}>
-            <span style={{ fontSize: '42px', marginBottom: '8px' }}>📸</span>
-            <strong>Перетягніть фото сюди або натисніть для вибору</strong>
-            <span style={{ fontSize: '12px', color: '#A78D78', marginTop: '4px' }}>Підтримуються JPG, PNG, WEBP до 10MB</span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => processFiles(e.target.files)}
+          />
+
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={{
+              ...uploadDropzoneStyle,
+              borderColor: isDragging ? '#DC9666' : '#BEB5A9',
+              backgroundColor: isDragging ? '#F4ECE4' : '#FAF6F0',
+            }}
+          >
+            <span style={{ fontSize: '42px', marginBottom: '8px' }}>📷</span>
+            <strong style={{ fontSize: '15px', color: '#291C0E' }}>
+              Перетягніть фото сюди або <span style={{ color: '#DC9666', textDecoration: 'underline' }}>натисніть для вибору</span>
+            </strong>
+            <span style={{ fontSize: '12px', color: '#6E473B', marginTop: '6px' }}>Підтримуються файли PNG, JPG, JPEG, WEBP</span>
           </div>
 
-          <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '20px 0 12px 0', color: '#291C0E' }}>
+          <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '24px 0 12px 0', color: '#291C0E' }}>
             Завантажені світлини ({formData.imageUrls.length})
           </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '14px' }}>
-            {formData.imageUrls.map((url, i) => (
-              <div key={i} style={{ position: 'relative', height: '120px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E1D4C2' }}>
-                <img src={url} alt={`Upload ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                {i === 0 && <span style={coverBadgeStyle}>Головне фото</span>}
-              </div>
-            ))}
-          </div>
+
+          {formData.imageUrls.length === 0 ? (
+            <p style={{ color: '#A78D78', fontSize: '13px' }}>Поки не додано жодного фото.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '14px' }}>
+              {formData.imageUrls.map((url, i) => (
+                <div key={i} style={{ position: 'relative', height: '130px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #E1D4C2' }}>
+                  <img src={url} alt={`Upload ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {i === 0 && <span style={coverBadgeStyle}>Головне фото</span>}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(i);
+                    }}
+                    style={deletePhotoBtnStyle}
+                    title="Видалити фото"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* ШАГ 5: ЦІНА ТА ПОЛІТИКА */}
+      {/* ШАГ 5: ВСТАНОВЛЕННЯ ЦІНИ ТА ПОЛІТИКА СКАСУВАННЯ */}
       {step === 5 && (
         <div style={stepContentCardStyle}>
           <h3 style={stepTitleStyle}>Крок 5. Встановлення ціни та умови бронювання</h3>
@@ -287,7 +415,7 @@ export const RouteCreate: React.FC = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
             <div>
-              <label style={labelStyle}>Базова ціна за добу (₴)</label>
+              <label style={labelStyle}>Базова ціна за добу (₴) *</label>
               <input
                 type="number"
                 step={50}
@@ -312,8 +440,8 @@ export const RouteCreate: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
             {[
               { id: 'flexible', title: 'Гнучка', desc: '100% повернення коштів за 24 години до заїзду' },
-              { id: 'moderate', title: 'Помірна', desc: '100% повернення за 5 днів до заїзду' },
-              { id: 'strict', title: 'Сувора', desc: '50% повернення за 7 днів до заїзду' },
+              { id: 'moderate', title: 'Помірна', desc: '100% повернення коштів за 5 днів до заїзду' },
+              { id: 'strict', title: 'Сувора', desc: '50% повернення коштів за 7 днів до заїзду' },
             ].map((p) => (
               <div
                 key={p.id}
@@ -324,55 +452,74 @@ export const RouteCreate: React.FC = () => {
                   backgroundColor: formData.cancellationPolicy === p.id ? '#F4ECE4' : '#FFFFFF',
                 }}
               >
-                <strong>{p.title}</strong>
-                <p style={{ fontSize: '12px', color: '#6E473B', margin: '6px 0 0 0' }}>{p.desc}</p>
+                <strong style={{ color: '#291C0E' }}>{p.title}</strong>
+                <p style={{ fontSize: '12px', color: '#6E473B', margin: '6px 0 0 0', lineHeight: 1.4 }}>{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ШАГ 6: ПЕРЕВІРКА ТА ПУБЛІКАЦІЯ */}
+      {/* ШАГ 6: ПЕРЕВІРКА ТА ПУБЛІКАЦІЯ (УКРАИНСКИЙ ПРЕДПРОСМОТР) */}
       {step === 6 && (
         <div style={stepContentCardStyle}>
           <h3 style={stepTitleStyle}>Крок 6. Перевірка та публікація</h3>
-          <p style={stepSubtitleStyle}>Перегляньте, як ваше оголошення бачитимуть гості на платформі Trails UA.</p>
+          <p style={stepSubtitleStyle}>Перевірте всі деталі оголошення перед фінальною публікацією на платформі Trails UA.</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'start' }}>
-            {/* Карточка превью */}
+            {/* Карточка */}
             <div style={previewCardStyle}>
-              <img src={formData.imageUrls[0]} alt="preview" style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-              <div style={{ padding: '16px' }}>
-                <span style={previewBadgeStyle}>{formData.type.toUpperCase()}</span>
-                <h4 style={{ fontSize: '16px', margin: '8px 0 4px 0', color: '#291C0E' }}>
+              <img
+                src={formData.imageUrls[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
+                alt="preview"
+                style={{ width: '100%', height: '210px', objectFit: 'cover' }}
+              />
+              <div style={{ padding: '18px' }}>
+                <span style={previewBadgeStyle}>
+                  {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале'}
+                </span>
+                <h4 style={{ fontSize: '17px', margin: '8px 0 4px 0', color: '#291C0E', fontWeight: 800 }}>
                   {formData.title || 'Еко-садиба «Затишок лісу»'}
                 </h4>
-                <p style={{ fontSize: '13px', color: '#6E473B', margin: '0 0 10px 0' }}>📍 {formData.location || 'Карпати'}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F4ECE4', paddingTop: '10px' }}>
+                <p style={{ fontSize: '13px', color: '#6E473B', margin: '0 0 12px 0' }}>📍 {formData.location || 'Карпати'}</p>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F4ECE4', paddingTop: '12px' }}>
                   <div>
-                    <span style={{ fontSize: '11px', color: '#A78D78' }}>Ціна:</span>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#291C0E' }}>₴ {formData.pricePerNight} <span style={{ fontSize: '12px', fontWeight: 400 }}>/ доба</span></div>
+                    <span style={{ fontSize: '11px', color: '#A78D78' }}>Вартість за добу:</span>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#291C0E' }}>
+                      ₴ {formData.pricePerNight} <span style={{ fontSize: '12px', fontWeight: 400 }}>/ доба</span>
+                    </div>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669' }}>Готово до публікації</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669', backgroundColor: '#ECFDF5', padding: '4px 10px', borderRadius: '10px' }}>
+                    ✓ Готово до показу
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Сводка по условиям */}
-            <div style={{ backgroundColor: '#F4ECE4', borderRadius: '16px', padding: '20px', border: '1px solid #E1D4C2' }}>
-              <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#291C0E' }}>Специфікація об’єкта</h4>
-              <ul style={{ fontSize: '13px', color: '#6E473B', lineHeight: 1.8, paddingLeft: '18px', margin: 0 }}>
-                <li>Місткість: до {formData.maxGuests} гостей ({formData.roomsCount} кімнати)</li>
-                <li>Обрано зручностей: {formData.amenities.length} позицій</li>
-                <li>Політика скасування: {formData.cancellationPolicy}</li>
-                <li>Мінімальний термін: {formData.minDays} доба</li>
-              </ul>
+            {/* Сводка условий на украинском */}
+            <div style={{ backgroundColor: '#F4ECE4', borderRadius: '18px', padding: '22px', border: '1px solid #E1D4C2' }}>
+              <h4 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#291C0E', fontWeight: 800 }}>
+                📋 Деталі розміщення
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: '#6E473B' }}>
+                <div><strong>Тип житла:</strong> {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label}</div>
+                <div><strong>Місткість:</strong> до {formData.maxGuests} гостей ({formData.roomsCount} кімн., {formData.bedsCount} спальних місць)</div>
+                <div><strong>Обрано зручностей:</strong> {formData.amenities.length} опцій</div>
+                <div><strong>Мінімальний термін:</strong> {formData.minDays} доба</div>
+                <div style={{ borderTop: '1px solid #E1D4C2', paddingTop: '10px' }}>
+                  <strong>Політика скасування:</strong>
+                  <div style={{ color: '#291C0E', marginTop: '2px', fontWeight: 600 }}>
+                    {CANCELLATION_POLICIES[formData.cancellationPolicy]}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Кнопки навигации визарда */}
+      {/* Кнопки переключения шагов */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
         {step > 1 ? (
           <button onClick={() => setStep(step - 1)} style={secondaryNavBtnStyle}>
@@ -394,7 +541,7 @@ export const RouteCreate: React.FC = () => {
   );
 };
 
-// Стили визарда
+// Стили
 const wizardHeaderCardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '20px',
@@ -448,7 +595,6 @@ const typeCardStyle: React.CSSProperties = {
   border: '2px solid',
   cursor: 'pointer',
   textAlign: 'center',
-  transition: 'all 0.2s',
 };
 const labelStyle: React.CSSProperties = {
   display: 'block',
@@ -477,13 +623,13 @@ const checkboxCardStyle: React.CSSProperties = {
 const uploadDropzoneStyle: React.CSSProperties = {
   border: '2px dashed #DC9666',
   borderRadius: '18px',
-  padding: '36px 20px',
+  padding: '40px 20px',
   textAlign: 'center',
-  backgroundColor: '#F4ECE4',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   cursor: 'pointer',
+  transition: 'background-color 0.2s',
 };
 const coverBadgeStyle: React.CSSProperties = {
   position: 'absolute',
@@ -495,6 +641,19 @@ const coverBadgeStyle: React.CSSProperties = {
   borderRadius: '6px',
   fontSize: '10px',
   fontWeight: 700,
+};
+const deletePhotoBtnStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: '8px',
+  right: '8px',
+  backgroundColor: 'rgba(41,28,14,0.75)',
+  color: '#FFFFFF',
+  border: 'none',
+  width: '24px',
+  height: '24px',
+  borderRadius: '50%',
+  cursor: 'pointer',
+  fontSize: '11px',
 };
 const policyCardStyle: React.CSSProperties = {
   padding: '16px',
