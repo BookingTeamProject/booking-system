@@ -21,10 +21,15 @@ export const RoutesCatalog: React.FC = () => {
     try {
       setLoading(true);
       const res = await api.get('/routes');
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        setRoutes(res.data);
+      const apiRoutes = Array.isArray(res.data) ? res.data : [];
+      const localCustomRoutes: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
+
+      // Объединяем созданные пользователем объекты и данные API
+      const combined = [...localCustomRoutes, ...apiRoutes];
+
+      if (combined.length > 0) {
+        setRoutes(combined);
       } else {
-        // Демо-данные согласно макетам Figma (Карпаты)
         setRoutes([
           {
             id: '1',
@@ -56,25 +61,11 @@ export const RoutesCatalog: React.FC = () => {
             imageUrls: ['https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80'],
             createdAt: '2026-08-10',
           },
-          {
-            id: '3',
-            title: 'Маршрут на гору Шпиці та озеро Несамовите',
-            description: 'Один з найвеличніших скельних хребтів Карпат. Джерельна вода, альпійські сосни та величні скелі-вежі.',
-            location: 'Чорногірський хребет',
-            distanceKm: 16.5,
-            durationHours: 7,
-            price: 850,
-            categoryId: 'trail',
-            categoryName: 'Піший маршрут',
-            authorName: 'Гід Тарас',
-            averageRating: 4.85,
-            imageUrls: ['https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80'],
-            createdAt: '2026-08-15',
-          },
         ]);
       }
     } catch (e) {
-      console.error(e);
+      const localCustomRoutes: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
+      setRoutes(localCustomRoutes);
     } finally {
       setLoading(false);
     }
@@ -99,7 +90,6 @@ export const RoutesCatalog: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1400px', margin: '30px auto', padding: '0 24px 60px 24px' }}>
-      {/* Заголовок */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#291C0E', margin: 0 }}>Каталог маршрутів та житла</h1>
@@ -114,11 +104,10 @@ export const RoutesCatalog: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '30px' }}>
-        {/* ЛЕВАЯ ПАНЕЛЬ ФИЛЬТРОВ ИЗ FIGMA */}
+        {/* ЛЕВАЯ ПАНЕЛЬ ФИЛЬТРОВ */}
         <div style={filterSidebarStyle}>
           <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#291C0E', marginBottom: '18px' }}>Фільтри пошуку</h3>
 
-          {/* Поиск */}
           <div style={{ marginBottom: '20px' }}>
             <label style={filterLabelStyle}>Пошук за локацією</label>
             <input
@@ -130,7 +119,6 @@ export const RoutesCatalog: React.FC = () => {
             />
           </div>
 
-          {/* Слайдер цены */}
           <div style={{ marginBottom: '22px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
               <label style={filterLabelStyle}>Макс. ціна за добу</label>
@@ -147,7 +135,6 @@ export const RoutesCatalog: React.FC = () => {
             />
           </div>
 
-          {/* Тип жилья / тура */}
           <div style={{ marginBottom: '22px' }}>
             <label style={filterLabelStyle}>Тип об'єкта</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
@@ -155,7 +142,8 @@ export const RoutesCatalog: React.FC = () => {
                 { id: 'all', label: 'Усі категорії' },
                 { id: 'chalet', label: 'Шале та котеджі' },
                 { id: 'glamping', label: 'Глемпінги' },
-                { id: 'trail', label: 'Туристичні маршрути' },
+                { id: 'house', label: 'Приватні будинки' },
+                { id: 'apartment', label: 'Квартири' },
               ].map((t) => (
                 <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', color: '#291C0E' }}>
                   <input
@@ -171,7 +159,6 @@ export const RoutesCatalog: React.FC = () => {
             </div>
           </div>
 
-          {/* Фильтр по рейтингу (Figma) */}
           <div style={{ marginBottom: '24px' }}>
             <label style={filterLabelStyle}>Мінімальний рейтинг</label>
             <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
@@ -210,7 +197,7 @@ export const RoutesCatalog: React.FC = () => {
             <div style={emptyBoxStyle}>
               <span style={{ fontSize: '36px' }}>🔍</span>
               <h3 style={{ margin: '10px 0 6px 0', color: '#291C0E' }}>Нічого не знайдено</h3>
-              <p style={{ color: '#6E473B', fontSize: '13px' }}>Спробуйте змінити фільтри або ключові слова пошуку.</p>
+              <p style={{ color: '#6E473B', fontSize: '13px' }}>Спробуйте змінити фільтри ціни або параметри пошуку.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -222,14 +209,14 @@ export const RoutesCatalog: React.FC = () => {
                       alt={route.title}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    <span style={categoryBadgeStyle}>{route.categoryName || 'Тур'}</span>
+                    <span style={categoryBadgeStyle}>{route.categoryName || 'Помешкання'}</span>
                   </div>
 
                   <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ color: '#DC9666', fontSize: '13px', fontWeight: 700 }}>
-                          ⭐ {route.averageRating || '4.9'}
+                          ⭐ {route.averageRating || '4.95'}
                         </span>
                         <span style={{ fontSize: '12px', color: '#A78D78' }}>📍 {route.location}</span>
                       </div>
@@ -274,14 +261,12 @@ const filterSidebarStyle: React.CSSProperties = {
   boxShadow: '0 4px 18px rgba(41,28,14,0.04)',
   height: 'fit-content',
 };
-
 const filterLabelStyle: React.CSSProperties = {
   fontSize: '12px',
   fontWeight: 700,
   color: '#6E473B',
   display: 'block',
 };
-
 const filterInputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 12px',
@@ -291,7 +276,6 @@ const filterInputStyle: React.CSSProperties = {
   fontSize: '13px',
   outline: 'none',
 };
-
 const ratingPillStyle: React.CSSProperties = {
   flex: 1,
   padding: '6px 8px',
@@ -302,7 +286,6 @@ const ratingPillStyle: React.CSSProperties = {
   cursor: 'pointer',
   transition: 'all 0.2s',
 };
-
 const resetFilterBtnStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px',
@@ -314,7 +297,6 @@ const resetFilterBtnStyle: React.CSSProperties = {
   fontWeight: 700,
   cursor: 'pointer',
 };
-
 const createCtaBtnStyle: React.CSSProperties = {
   backgroundColor: '#DC9666',
   color: '#FFFFFF',
@@ -324,7 +306,6 @@ const createCtaBtnStyle: React.CSSProperties = {
   fontWeight: 700,
   fontSize: '13px',
 };
-
 const horizontalCardStyle: React.CSSProperties = {
   display: 'flex',
   backgroundColor: '#FFFFFF',
@@ -333,7 +314,6 @@ const horizontalCardStyle: React.CSSProperties = {
   border: '1px solid #E1D4C2',
   boxShadow: '0 6px 20px rgba(41,28,14,0.05)',
 };
-
 const categoryBadgeStyle: React.CSSProperties = {
   position: 'absolute',
   bottom: '12px',
@@ -345,7 +325,6 @@ const categoryBadgeStyle: React.CSSProperties = {
   fontSize: '11px',
   fontWeight: 700,
 };
-
 const viewDetailsBtnStyle: React.CSSProperties = {
   backgroundColor: '#DC9666',
   color: '#FFFFFF',
@@ -356,7 +335,6 @@ const viewDetailsBtnStyle: React.CSSProperties = {
   fontSize: '13px',
   cursor: 'pointer',
 };
-
 const emptyBoxStyle: React.CSSProperties = {
   textAlign: 'center',
   padding: '60px 20px',

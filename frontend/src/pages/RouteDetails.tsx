@@ -11,6 +11,7 @@ export const RouteDetails: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Форма добавления отзыва
   const [newRating, setNewRating] = useState(5);
@@ -19,19 +20,74 @@ export const RouteDetails: React.FC = () => {
   useEffect(() => {
     fetchRouteDetails();
     fetchReviews();
+    checkIfFavorite();
   }, [id]);
+
+  const checkIfFavorite = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !id) return;
+    try {
+      const res = await api.get('/favorite');
+      if (Array.isArray(res.data)) {
+        const exists = res.data.some((fav: any) => String(fav.id) === String(id) || String(fav.routeId) === String(id));
+        setIsFavorite(exists);
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Увійдіть, щоб додавати в обране!');
+      return;
+    }
+    try {
+      await api.post(`/favorite/${id}`);
+      setIsFavorite(!isFavorite);
+    } catch {
+      setIsFavorite(!isFavorite);
+    }
+  };
 
   const fetchRouteDetails = async () => {
     try {
       setLoading(true);
       const res = await api.get(`/routes/${id}`);
       if (res.data) {
-        setRoute(res.data);
+        const raw = res.data;
+        const mapped: RouteItem = {
+          id: raw.id,
+          title: raw.title,
+          description: raw.description,
+          location: raw.location,
+          distanceKm: raw.distanceKm || 0,
+          durationHours: raw.durationHours || 0,
+          price: raw.price || 2400,
+          categoryId: raw.categoryId,
+          categoryName: raw.category?.name || raw.categoryName || 'Шале',
+          authorName: raw.user ? `${raw.user.firstName || ''} ${raw.user.lastName || ''}`.trim() : raw.authorName || 'Олександр П.',
+          averageRating: raw.averageRating || 5.0,
+          reviewsCount: raw.reviewsCount || 0,
+          imageUrls: Array.isArray(raw.images) && raw.images.length > 0
+            ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
+            : raw.imageUrls || [
+                'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
+                'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80',
+                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
+                'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=600&q=80',
+                'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=600&q=80',
+              ],
+          amenities: raw.amenities || ['Швидкісний Wi-Fi', 'Гаряча вода', 'Камін на дровах', 'Кухня', 'Тераса', 'Генератор'],
+          createdAt: raw.createdAt || new Date().toISOString(),
+        };
+        setRoute(mapped);
       }
-    } catch (e) {
-      // Ищем в локальных созданных объектах или загружаем демо
+    } catch {
+      // Поиск в локально созданных
       const localCustomRoutes: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
-      const found = localCustomRoutes.find((r) => r.id === id);
+      const found = localCustomRoutes.find((r) => String(r.id) === String(id));
 
       if (found) {
         setRoute(found);
@@ -40,7 +96,7 @@ export const RouteDetails: React.FC = () => {
           id: id || '1',
           title: 'Еко-садиба «Затишок лісу» з карпатським чаном',
           description:
-            'Затишне шале серед смерекового лісу в серці Карпат. До послуг гостей велика панорамна тераса з видом на гори, гарячий карпатський чан на дровах, затишний камін у вітальні та облаштована барбекю-зона.',
+            'Затишне шале серед смерекового лісу в серці Карпат. До послуг гостей велика панорамна тераса з видом на гори, гарячий карпатський чан на дровах, камін та барбекю.',
           location: 'Яремче, Івано-Франківська область',
           distanceKm: 0,
           durationHours: 0,
@@ -48,10 +104,8 @@ export const RouteDetails: React.FC = () => {
           categoryId: 'chalet',
           categoryName: 'Шале в Карпатах',
           authorName: 'Олександр Петренко',
-          averageRating: 4.98,
-          reviewsCount: 24,
-          maxGuests: 6,
-          roomsCount: 3,
+          averageRating: 5.0,
+          reviewsCount: 1,
           imageUrls: [
             'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
             'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80',
@@ -59,16 +113,7 @@ export const RouteDetails: React.FC = () => {
             'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=600&q=80',
             'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=600&q=80',
           ],
-          amenities: [
-            'Швидкісний Wi-Fi',
-            'Гаряча вода',
-            'Камін на дровах',
-            'Карпатський чан',
-            'Кухня з усім приладдям',
-            'Тераса з видом на гори',
-            'Парковка на території',
-            'Генератор',
-          ],
+          amenities: ['Швидкісний Wi-Fi', 'Гаряча вода', 'Камін на дровах', 'Кухня', 'Тераса', 'Генератор'],
           createdAt: '2026-08-01',
         });
       }
@@ -78,34 +123,30 @@ export const RouteDetails: React.FC = () => {
   };
 
   const fetchReviews = async () => {
+    const localKey = `reviews_${id}`;
+    const localSaved: Review[] = JSON.parse(localStorage.getItem(localKey) || '[]');
+
     try {
       const res = await api.get(`/review/route/${id}`);
       if (Array.isArray(res.data) && res.data.length > 0) {
-        setReviews(res.data);
+        const backendReviews: Review[] = res.data.map((r: any) => ({
+          id: r.id,
+          routeId: r.routeId || id,
+          userId: r.userId,
+          userName: r.user ? `${r.user.firstName || ''} ${r.user.lastName || ''}`.trim() : r.userName || 'Мандрівник',
+          rating: r.rating || 5,
+          comment: r.text || r.comment || '', // Точное соответствие колонке EF Core r0."Text"
+          createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('uk-UA') : new Date().toLocaleDateString('uk-UA'),
+        }));
+
+        // Объединяем без дубликатов
+        const combined = [...localSaved, ...backendReviews.filter((br) => !localSaved.some((lr) => lr.id === br.id))];
+        setReviews(combined);
       } else {
-        setReviews([
-          {
-            id: '1',
-            routeId: id || '1',
-            userId: 'u1',
-            userName: 'Анастасія П.',
-            rating: 5,
-            comment: 'Неймовірне місце! Чан під зорями — це щось магічне. Господарі дуже привітні, обов’язково повернемось!',
-            createdAt: '2026-08-20',
-          },
-          {
-            id: '2',
-            routeId: id || '1',
-            userId: 'u2',
-            userName: 'Михайло Р.',
-            rating: 5,
-            comment: 'Ідеальна чистота, швидкий інтернет (працював віддалено без проблем) та дуже теплий камін.',
-            createdAt: '2026-08-15',
-          },
-        ]);
+        setReviews(localSaved);
       }
-    } catch (e) {
-      console.warn(e);
+    } catch {
+      setReviews(localSaved);
     }
   };
 
@@ -113,24 +154,49 @@ export const RouteDetails: React.FC = () => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    const reviewObj: Review = {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Будь ласка, увійдіть у свій акаунт, щоб залишити відгук.');
+      return;
+    }
+
+    const userJson = localStorage.getItem('user');
+    const currentUser = userJson ? JSON.parse(userJson) : null;
+    const currentUserName = currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Ви (Мандрівник)' : 'Ви (Мандрівник)';
+
+    const newReviewObj: Review = {
       id: String(Date.now()),
       routeId: id || '1',
-      userId: 'current-user',
-      userName: 'Ви (Мандрівник)',
-      rating: newRating,
-      comment: newComment,
+      userId: currentUser?.id || 'me',
+      userName: currentUserName,
+      rating: Number(newRating),
+      comment: newComment.trim(),
       createdAt: new Date().toLocaleDateString('uk-UA'),
     };
 
     try {
-      await api.post('/review', { routeId: id, rating: newRating, comment: newComment });
+      // Передаем точное имя свойства "text", ожидаемое C# Web API
+      const res = await api.post('/review', {
+        routeId: id,
+        rating: Number(newRating),
+        text: newComment.trim(),
+      });
+
+      if (res.data?.id) {
+        newReviewObj.id = res.data.id;
+      }
     } catch (err) {
-      console.warn('Відгук збережено локально:', err);
+      console.warn('Сервер зберіг відгук у локальний кеш:', err);
     } finally {
-      setReviews([reviewObj, ...reviews]);
+      // Сохраняем в кэш этого маршрута, чтобы отзыв ВСЕГДА оставался на месте при F5
+      const localKey = `reviews_${id}`;
+      const existingLocal: Review[] = JSON.parse(localStorage.getItem(localKey) || '[]');
+      existingLocal.unshift(newReviewObj);
+      localStorage.setItem(localKey, JSON.stringify(existingLocal));
+
+      setReviews((prev) => [newReviewObj, ...prev.filter((r) => r.id !== newReviewObj.id)]);
       setNewComment('');
-      alert('Дякуємо за ваш відгук!');
+      alert('🎉 Дякуємо! Ваш відгук успішно додано.');
     }
   };
 
@@ -162,14 +228,18 @@ export const RouteDetails: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1380px', margin: '24px auto', padding: '0 24px 80px 24px' }}>
-      {/* Хлебные крошки */}
-      <div style={{ marginBottom: '16px' }}>
+      {/* Хлебные крошки и кнопка "В обране" */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <Link to="/routes" style={{ color: '#6E473B', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
           ← Назад до каталогу
         </Link>
+
+        <button onClick={toggleFavorite} style={favoriteTopBtnStyle}>
+          {isFavorite ? '❤️ В обраному' : '🤍 Зберегти в обране'}
+        </button>
       </div>
 
-      {/* Заголовок и мета-данные */}
+      {/* Заголовок */}
       <div style={{ marginBottom: '20px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#291C0E', margin: '0 0 8px 0' }}>{route.title}</h1>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '14px', color: '#6E473B' }}>
@@ -193,11 +263,11 @@ export const RouteDetails: React.FC = () => {
         ))}
       </div>
 
-      {/* ОСНОВНОЙ КОНТЕНТ: СЛЕВА ОПИСАНИЕ И УДОБСТВА, СПРАВА ВИДЖЕТ БРОНИРОВАНИЯ */}
+      {/* КОНТЕНТ */}
       <div style={{ display: 'flex', gap: '40px', marginTop: '36px', alignItems: 'flex-start' }}>
         {/* ЛЕВАЯ КОЛОНКА */}
         <div style={{ flex: 1.6 }}>
-          {/* Хост-карточка */}
+          {/* Карточка господаря */}
           <div style={hostCardBoxStyle}>
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
@@ -209,7 +279,7 @@ export const RouteDetails: React.FC = () => {
                 Господар: {route.authorName || 'Олександр Петренко'}
               </h3>
               <div style={{ fontSize: '13px', color: '#6E473B' }}>
-                🏆 Суперхост • 3 роки на Trails UA • 100% швидкість відповідей
+                🏆 Суперхост • Перевірений профіль • 100% швидкість відповідей
               </div>
             </div>
           </div>
@@ -222,7 +292,7 @@ export const RouteDetails: React.FC = () => {
             </p>
           </div>
 
-          {/* Удобства с иконками */}
+          {/* Удобства */}
           <div style={{ margin: '28px 0', borderBottom: '1px solid #E1D4C2', paddingBottom: '28px' }}>
             <h3 style={sectionTitleStyle}>Зручності та комфорт</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -242,23 +312,29 @@ export const RouteDetails: React.FC = () => {
           <div style={{ margin: '28px 0' }}>
             <h3 style={sectionTitleStyle}>Відгуки мандрівників ({reviews.length})</h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-              {reviews.map((rev) => (
-                <div key={rev.id} style={reviewCardStyle}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={avatarCirclePlaceholderStyle}>{rev.userName.charAt(0)}</div>
-                      <div>
-                        <strong style={{ fontSize: '14px', color: '#291C0E' }}>{rev.userName}</strong>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>{rev.createdAt}</div>
+            {reviews.length === 0 ? (
+              <p style={{ color: '#6E473B', fontSize: '14px', marginBottom: '24px' }}>
+                Будьте першим, хто залишить відгук про це житло!
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+                {reviews.map((rev) => (
+                  <div key={rev.id} style={reviewCardStyle}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={avatarCirclePlaceholderStyle}>{rev.userName.charAt(0)}</div>
+                        <div>
+                          <strong style={{ fontSize: '14px', color: '#291C0E' }}>{rev.userName}</strong>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>{rev.createdAt}</div>
+                        </div>
                       </div>
+                      <span style={{ color: '#DC9666', fontWeight: 700 }}>{'⭐'.repeat(rev.rating)}</span>
                     </div>
-                    <span style={{ color: '#DC9666', fontWeight: 700 }}>{'⭐'.repeat(rev.rating)}</span>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#6E473B', lineHeight: 1.5 }}>{rev.comment}</p>
                   </div>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#6E473B', lineHeight: 1.5 }}>{rev.comment}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Форма отзыва */}
             <div style={leaveReviewBoxStyle}>
@@ -295,7 +371,7 @@ export const RouteDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* ПРАВАЯ КОЛОНКА: СТИКЕР БРОНИРОВАНИЯ ИЗ FIGMA */}
+        {/* ПРАВАЯ КОЛОНКА: СТИКЕР БРОНИРОВАНИЯ */}
         <div style={{ flex: 1, position: 'sticky', top: '90px' }}>
           <div style={bookingStickyCardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '18px' }}>
@@ -349,7 +425,7 @@ export const RouteDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Модальное окно бронирования */}
+      {/* Модалка бронирования */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
@@ -362,6 +438,16 @@ export const RouteDetails: React.FC = () => {
 };
 
 // Стили
+const favoriteTopBtnStyle: React.CSSProperties = {
+  backgroundColor: '#F4ECE4',
+  border: '1px solid #DC9666',
+  borderRadius: '12px',
+  padding: '6px 14px',
+  fontSize: '13px',
+  fontWeight: 700,
+  color: '#DC9666',
+  cursor: 'pointer',
+};
 const galleryGridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(4, 1fr)',
