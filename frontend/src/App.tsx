@@ -25,6 +25,13 @@ import { NewsDetailsPage } from './pages/NewsDetailsPage';
 import { ContactPage } from './pages/ContactPage';
 import { ReportIssuePage } from './pages/ReportIssuePage';
 import { LegalPage } from './pages/LegalPage';
+
+// Меню кабінету з Figma-сайдбаром
+import { MenuWorkspacePage } from './pages/MenuWorkspacePage';
+import { HostAccommodationsPage } from './pages/HostAccommodationsPage';
+import { MessagesPage } from './pages/MessagesPage';
+import { TenantBookingsPage } from './pages/TenantBookingsPage';
+import { AccountStatusPage } from './pages/AccountStatusPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const GOOGLE_CLIENT_ID = '1052530733022-0k6943f8d8fkqh2lp36fm8o5l5fr4ivs.apps.googleusercontent.com';
@@ -46,13 +53,20 @@ function App() {
                   <Route path="/routes/:id" element={<RouteDetails />} />
                   <Route path="/favorites" element={<FavoritesPage />} />
 
+                  {/* Розділ "☰ Меню" із Figma-сайдбаром */}
+                  <Route path="/menu" element={<MenuWorkspacePage />} />
+                  <Route path="/messages" element={<MessagesPage />} />
+                  <Route path="/my-bookings" element={<TenantBookingsPage />} />
+                  <Route path="/host/properties" element={<HostAccommodationsPage />} />
+                  <Route path="/account-status" element={<AccountStatusPage />} />
+
                   {/* Інформаційні сторінки та акції */}
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/promotions" element={<PromotionsPage />} />
                   <Route path="/news" element={<NewsPage />} />
                   <Route path="/news/:id" element={<NewsDetailsPage />} />
 
-                  {/* Підтримка, контакти та юридичні документи */}
+                  {/* Підтримка та юридичні документи */}
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/report-issue" element={<ReportIssuePage />} />
