@@ -1,20 +1,111 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700&display=swap');
+
+:root {
+  --color-dark-coffee: #291C0E;
+  --color-warm-chocolate: #6E473B;
+  --color-muted-taupe: #A78D78;
+  --color-stone-gray: #BEB5A9;
+  --color-soft-sand: #E1D4C2;
+  --color-soft-sand-light: #F4ECE4;
+  --color-cream-base: #F7F2EB;
+  --color-terracotta: #DC9666;
+  --color-terracotta-hover: #c88151;
+  --color-success: #059669;
+  --color-success-bg: #ECFDF5;
+  --color-error: #DC2626;
+  --color-error-bg: #FEE2E2;
+  --shadow-card: 0 6px 20px rgba(41, 28, 14, 0.06);
+  --shadow-modal: 0 20px 40px rgba(41, 28, 14, 0.2);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --font-main: 'Montserrat', sans-serif;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background-color: #f7f2eb;
-  color: #291C0E;
+  background-color: var(--color-cream-base);
+  color: var(--color-dark-coffee);
   min-height: 100vh;
   width: 100%;
+  overflow-x: hidden;
 }
 
-#root {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+/* Декоративный фон с туристической тропой (Trail SVG) */
+.trail-bg-pattern {
+  background-image: radial-gradient(#A78D78 0.75px, transparent 0.75px), radial-gradient(#BEB5A9 0.75px, #F7F2EB 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Кнопки дизайн-системы */
+.btn-primary {
+  background-color: var(--color-terracotta);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(220, 150, 102, 0.25);
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-terracotta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(220, 150, 102, 0.35);
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: var(--color-warm-chocolate);
+  border: 1.5px solid var(--color-stone-gray);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-warm-chocolate);
+  background-color: var(--color-soft-sand-light);
+}
+
+/* Стилизация скроллбара */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-muted-taupe);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-warm-chocolate);
 }
