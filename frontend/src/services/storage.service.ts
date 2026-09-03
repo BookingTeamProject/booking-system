@@ -25,7 +25,12 @@ const STORAGE_KEYS = {
   REVIEWS_PREFIX: 'reviews_',
   BLACKLIST: 'host_blacklist',
   MESSAGES: 'chat_messages',
+  LANGUAGE: 'app_language',     // <--- НОВЕ
+  CURRENCY: 'app_currency',     // <--- НОВЕ
 } as const;
+
+export type AppLanguage = 'UA' | 'EN' | 'DE' | 'PL';
+export type AppCurrency = 'UAH' | 'USD' | 'EUR' | 'PLN';
 
 export const checkIsLandlord = (role?: UserRole | string | null): boolean => {
   if (!role) return false;
@@ -227,6 +232,21 @@ export const storage = {
       const updated = [review, ...filtered];
       localStorage.setItem(`${STORAGE_KEYS.REVIEWS_PREFIX}${routeId}`, JSON.stringify(updated));
       return updated;
+    },
+  },
+  // 10. НАЛАШТУВАННЯ МОВИ ТА ВАЛЮТИ (НОВЕ)
+  locale: {
+    getLanguage: (): AppLanguage => {
+      return (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as AppLanguage) || 'UA';
+    },
+    setLanguage: (lang: AppLanguage) => {
+      localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
+    },
+    getCurrency: (): AppCurrency => {
+      return (localStorage.getItem(STORAGE_KEYS.CURRENCY) as AppCurrency) || 'UAH';
+    },
+    setCurrency: (curr: AppCurrency) => {
+      localStorage.setItem(STORAGE_KEYS.CURRENCY, curr);
     },
   },
 };

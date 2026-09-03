@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { RoutesProvider } from './context/RoutesContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -40,54 +41,56 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
-        <RoutesProvider>
-          <Router>
-            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F7F2EB' }}>
-              <Navbar />
-              <main style={{ flex: 1 }}>
-                <Routes>
-                  {/* Головна та каталог */}
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/routes" element={<RoutesCatalog />} />
-                  <Route path="/routes/create" element={<RouteCreate />} />
-                  <Route path="/routes/:id" element={<RouteDetails />} />
-                  <Route path="/favorites" element={<FavoritesPage />} />
+        <SettingsProvider>
+          <RoutesProvider>
+            <Router>
+              <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F7F2EB' }}>
+                <Navbar />
+                <main style={{ flex: 1 }}>
+                  <Routes>
+                    {/* Головна та каталог */}
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/routes" element={<RoutesCatalog />} />
+                    <Route path="/routes/create" element={<RouteCreate />} />
+                    <Route path="/routes/:id" element={<RouteDetails />} />
+                    <Route path="/favorites" element={<FavoritesPage />} />
 
-                  {/* Розділ "☰ Меню" із Figma-сайдбаром */}
-                  <Route path="/menu" element={<MenuWorkspacePage />} />
-                  <Route path="/messages" element={<MessagesPage />} />
-                  <Route path="/my-bookings" element={<TenantBookingsPage />} />
-                  <Route path="/host/properties" element={<HostAccommodationsPage />} />
-                  <Route path="/account-status" element={<AccountStatusPage />} />
+                    {/* Розділ "☰ Меню" із Figma-сайдбаром */}
+                    <Route path="/menu" element={<MenuWorkspacePage />} />
+                    <Route path="/messages" element={<MessagesPage />} />
+                    <Route path="/my-bookings" element={<TenantBookingsPage />} />
+                    <Route path="/host/properties" element={<HostAccommodationsPage />} />
+                    <Route path="/account-status" element={<AccountStatusPage />} />
 
-                  {/* Інформаційні сторінки та акції */}
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/promotions" element={<PromotionsPage />} />
-                  <Route path="/news" element={<NewsPage />} />
-                  <Route path="/news/:id" element={<NewsDetailsPage />} />
+                    {/* Інформаційні сторінки та акції */}
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/promotions" element={<PromotionsPage />} />
+                    <Route path="/news" element={<NewsPage />} />
+                    <Route path="/news/:id" element={<NewsDetailsPage />} />
 
-                  {/* Підтримка та юридичні документи */}
-                  <Route path="/faq" element={<FAQPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/report-issue" element={<ReportIssuePage />} />
-                  <Route path="/legal" element={<LegalPage />} />
-                  <Route path="/legal/:docType" element={<LegalPage />} />
+                    {/* Підтримка та юридичні документи */}
+                    <Route path="/faq" element={<FAQPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/report-issue" element={<ReportIssuePage />} />
+                    <Route path="/legal" element={<LegalPage />} />
+                    <Route path="/legal/:docType" element={<LegalPage />} />
 
-                  {/* Авторизація та кабінети */}
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/select-role" element={<RoleSelectionPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/admin" element={<AdminPage />} />
+                    {/* Авторизація та кабінети */}
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/select-role" element={<RoleSelectionPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/admin" element={<AdminPage />} />
 
-                  {/* 404 помилка */}
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
-          </Router>
-        </RoutesProvider>
+                    {/* 404 помилка */}
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </Router>
+          </RoutesProvider>
+        </SettingsProvider>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
