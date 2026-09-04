@@ -28,6 +28,16 @@ jobs:
         push: ${{ github.event_name == 'push' }}
         tags: ${{ secrets.DOCKER_USERNAME }}/trailsua-api:latest
 
+    - name: Сканування образу на вразливості (Trivy)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ secrets.DOCKER_USERNAME }}/trailsua-api:latest'
+        format: 'table'
+        exit-code: '0'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
   deploy:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
