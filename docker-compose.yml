@@ -27,8 +27,48 @@ services:
     networks:
       - trails-net
 
+  node_exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node_exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+    networks:
+      - trails-net
+
+  prometheus:
+    image: prom/prometheus:v2.50.0
+    container_name: prometheus
+    restart: always
+    volumes:
+      - /home/ec2-user/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - trails-net
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - trails-net
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   trails-net:
