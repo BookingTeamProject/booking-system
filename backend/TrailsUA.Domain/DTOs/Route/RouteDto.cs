@@ -6,8 +6,6 @@ public class RouteDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
-    public double DistanceKm { get; set; }
-    public int DurationHours { get; set; }
     public decimal? Price { get; set; }
     public DateTime CreatedAt { get; set; }
 

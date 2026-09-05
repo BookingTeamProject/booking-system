@@ -117,7 +117,8 @@ export const Navbar: React.FC = () => {
                   <div style={dropdownDividerStyle} />
 
                   {/* 3. Керування помешканням */}
-                  <Link to="/routes" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  {/* 3. Керування помешканням */}
+                  <Link to="/menu?tab=properties" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M9 9V21M9 12H20.7C21.0448 12 21.3754 12.158 21.6192 12.4393C21.863 12.7206 22 13.1022 22 13.5V21M9 18.75H22M11.6 12V18.75" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>

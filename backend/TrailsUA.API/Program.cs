@@ -112,4 +112,78 @@ app.MapControllers();
 
 app.MapFallbackToFile("index.html");
 
+// AUTO SEEDING КАТЕГОРІЙ
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<TrailsUA.Infrastructure.Data.AppDbContext>();
+
+        // Перевіряємо: якщо в базі немає категорій — створюємо всі 6 із Figma
+        if (!context.Categories.Any())
+        {
+            var defaultCategories = new List<TrailsUA.Domain.Entities.Category>
+            {
+                new TrailsUA.Domain.Entities.Category
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Шале",
+                    Description = "Традиційне альпійське шале серед гір",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrailsUA.Domain.Entities.Category
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Котедж",
+                    Description = "Дерев'яний гірський котедж для відпочинку",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrailsUA.Domain.Entities.Category
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Будинок",
+                    Description = "Цілий просторий будинок для всієї родини чи компанії",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrailsUA.Domain.Entities.Category
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Квартира",
+                    Description = "Затишні окремі апартаменти в центрі",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrailsUA.Domain.Entities.Category
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Глемпінг",
+                    Description = "Розкішні купольні намети просто неба з комфортом",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TrailsUA.Domain.Entities.Category
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Кімната",
+                    Description = "Окрема затишна кімната в гостьовому домі",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            };
+
+            context.Categories.AddRange(defaultCategories);
+            context.SaveChanges();
+            Console.WriteLine("🌱 [Data Seeding] Успішно створено 6 базових категорій житла!");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ [Data Seeding Error]: {ex.Message}");
+    }
+}
+
 app.Run();

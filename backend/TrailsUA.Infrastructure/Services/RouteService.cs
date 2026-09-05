@@ -63,8 +63,6 @@ public class RouteService : IRouteService
             Title = dto.Title,
             Description = dto.Description,
             Location = dto.Location,
-            DistanceKm = dto.DistanceKm,
-            DurationHours = dto.DurationHours,
             Price = dto.Price,
             CategoryId = dto.CategoryId,
             AuthorId = authorId
@@ -103,8 +101,6 @@ public class RouteService : IRouteService
         route.Title = dto.Title;
         route.Description = dto.Description;
         route.Location = dto.Location;
-        route.DistanceKm = dto.DistanceKm;
-        route.DurationHours = dto.DurationHours;
         route.Price = dto.Price;
         route.CategoryId = dto.CategoryId;
 
@@ -133,8 +129,6 @@ public class RouteService : IRouteService
             Title = r.Title,
             Description = r.Description,
             Location = r.Location,
-            DistanceKm = r.DistanceKm,
-            DurationHours = r.DurationHours,
             Price = r.Price,
             CreatedAt = r.CreatedAt,
             CategoryName = r.Category?.Name ?? "Общая",

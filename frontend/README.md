@@ -1,75 +1,87 @@
-# React + TypeScript + Vite
+# 🌲 TrailsUA — Платформа автентичного житла та маршрутів України
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Сучасний веб-сервіс для пошуку, бронювання та реєстрації еко-садиб, глемпінгів, котеджів і туристичних маршрутів в Україні.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🎨 Дизайн-система (Figma Tokens)
 
-## React Compiler
+Інтерфейс спроєктовано за палітрою натуральних карпатських відтінків:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Колір | HEX-код | Призначення |
+| :--- | :--- | :--- |
+| **Теракотовий (Primary)** | `#DC9666` | Головні кнопки (CTA), активні таби, акцентні бейджі, радіокнопки |
+| **Темно-кавовий (Dark)** | `#291C0E` | Основні заголовки (H1-H3), темний контрастний текст |
+| **Шоколадний (Secondary)** | `#6E473B` | Підзаголовки, описи, фони темних карток та блоків розсилки |
+| **Теплий льон (Page BG)** | `#E1D4C2` | Основний фон сторінок та м'які підкладки |
+| **Світлий фон (Light BG)** | `#F8F5F0` | Фон каталогу та вторинних секцій |
+| **Бордерний пісок (Border)** | `#D7C7B1` | Рамки карток, інпутів, ліній-розділювачів |
+| **Червоний акцент (Danger)** | `#C62828` | Кнопка скасування, скидання фільтрів, кнопка закриття карти |
 
-## Expanding the ESLint configuration
+### Типографіка:
+* **Заголовки:** `'Alegreya', Georgia, serif` (стилізовані під старовинну та автентичну українську естетику).
+* **Основний інтерфейс:** `'Iosevka Charon', 'DM Sans', 'Manrope', sans-serif`.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🏗️ Архітектура проєкту
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```text
+src/
+├── api/
+│   └── axios.ts              # Axios instance, baseURL, JWT Bearer interceptor, auto-refresh 401
+├── context/
+│   ├── AuthContext.tsx       # Авторизація, профіль, зміна ролей (User / Landlord), аватари
+│   ├── RoutesContext.tsx     # Управління житлом, обраним, бронюваннями через SyncService
+│   └── SettingsContext.tsx   # Мови (UA, EN, DE, PL), валюти (UAH, USD, EUR, PLN), formatPrice()
+├── services/
+│   ├── api.service.ts        # Типізований шар ендпоінтів бекенду (Auth, User, Routes, Reviews...)
+│   ├── sync.service.ts       # In-Memory Cache (TTL), дедуплікація запитів, захист від мерехтіння
+│   └── storage.service.ts    # Єдиний центр збереження localStorage (offline-fallback)
+├── data/
+│   └── mockData.ts           # Централізовані початкові дані (садиби, бронювання, чати, відгуки)
+├── pages/                    # Сторінки (HomePage, RoutesCatalog, RouteDetails, PromotionsPage...)
+└── types/                    # Глобальні TypeScript інтерфейси (RouteItem, User, Review...)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ⚡ Ключові сервіси та контексти
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. `SettingsContext` (Мультивалютність та мови)
+* **Підтримувані валюти:** `UAH (₴)`, `USD ($)`, `EUR (€)`, `PLN (zł)`.
+* **Функція `formatPrice(amountInUah)`:** автоматично перераховує вартість за актуальним курсом і ставить правильний символ валюти.
+* **Підтримувані мови:** `UA`, `EN`, `DE`, `PL` з хелпером перекладу `t(key)`.
 
-```
+### 2. `syncService` (Розумне кешування)
+* **Дедуплікація (In-Flight Pooling):** якщо кілька компонентів одночасно запитують дані, на сервер відправляється лише **один** HTTP-запит.
+* **TTL-кешування (Time-To-Live):** усуває повторні запити при переходах між сторінками.
+* **Хеш-порівняння:** блокує зайві повторні рендери сторінки, якщо дані з бази не змінилися.
+* **Офлайн-резерв:** у разі збою бекенду дані підтягуються з `storage.service.ts`.
+
+### 3. `apiService` (Прямий зв'язок з C# ASP.NET Core)
+Повністю типізований клієнт для контролерів:
+* `authApi` (`/api/auth/*`)
+* `userApi` (`/api/user/*`)
+* `routesApi` (`/api/routes/*`)
+* `favoriteApi` (`/api/favorite/*`)
+* `reviewApi` (`/api/review/*`)
+* `categoriesApi` (`/api/categories/*`)
+* `adminApi` (`/api/admin/*`)
+
+---
+
+## 🚀 Запуск проєкту
+
+1. **Встановлення залежностей:**
+   ```bash
+   npm install
+   ```
+2. **Запуск у режимі розробки:**
+   ```bash
+   npm run dev
+   ```
+3. **Збірка для production:**
+   ```bash
+   npm run build
+   ```

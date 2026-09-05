@@ -77,23 +77,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchRole = async (newRole: 'Landlord' | 'User') => {
     if (!user) return;
-    const roleNum = newRole === 'Landlord' ? 1 : 0;
-    storage.role.set(newRole);
-
-    const updated: User = { ...user, role: newRole };
-    setUser(updated);
-    storage.user.set(updated);
 
     try {
-      if (user.id) {
-        await api.put(`/admin/users/${user.id}/role`, roleNum);
+      if (newRole === 'Landlord') {
+        // 1. Викликаємо новий ендпоінт бекенда
+        const res = await api.post('/user/become-landlord');
+
+        // 2. Якщо бекенд повернув нові токени — миттєво зберігаємо їх
+        if (res.data?.accessToken) {
+          storage.auth.setTokens(res.data.accessToken, res.data.refreshToken);
+          setToken(res.data.accessToken);
+        } else {
+          // Якщо токени не прийшли, робимо тихий refresh через стандартний ендпоінт
+          const oldRefresh = storage.auth.getRefreshToken();
+          const oldToken = storage.auth.getToken();
+          if (oldRefresh) {
+            const refreshRes = await api.post('/auth/refresh', { token: oldToken, refreshToken: oldRefresh });
+            if (refreshRes.data?.accessToken) {
+              storage.auth.setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
+              setToken(refreshRes.data.accessToken);
+            }
+          }
+        }
       }
-    } catch {
-      try {
-        await api.put('/user/profile', { ...updated, role: roleNum });
-      } catch (err) {
-        console.warn('Роль збережено локально:', err);
-      }
+
+      // 3. Оновлюємо стейт користувача в React
+      storage.role.set(newRole);
+      const updatedUser: User = { ...user, role: newRole };
+      setUser(updatedUser);
+      storage.user.set(updatedUser);
+
+      console.log('✅ Роль успішно змінено на Landlord, токен оновлено!');
+    } catch (err) {
+      console.error('Помилка при зміні ролі:', err);
+      // Локальний фолбек
+      storage.role.set(newRole);
+      const updatedUser: User = { ...user, role: newRole };
+      setUser(updatedUser);
+      storage.user.set(updatedUser);
     }
   };
 

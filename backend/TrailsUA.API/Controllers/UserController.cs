@@ -1,7 +1,9 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TrailsUA.Domain.DTOs.User;
+using TrailsUA.Domain.Entities;
+using TrailsUA.Infrastructure.Data;
 using TrailsUA.Infrastructure.Services;
 
 namespace TrailsUA.API.Controllers;
@@ -35,6 +37,52 @@ public class UserController : ControllerBase
         var userId = GetCurrentUserId();
         var updated = await _userService.UpdateProfileAsync(userId, dto);
         return Ok(updated);
+    }
+
+    // POST /api/user/become-landlord — Стати орендодавцем та одразу отримати новий токен
+    [HttpPost("become-landlord")]
+    public async Task<IActionResult> BecomeLandlord(
+        [FromServices] AppDbContext context,
+        [FromServices] IAuthService authService)
+    {
+        var userId = GetCurrentUserId();
+        var user = await context.Users.FindAsync(userId);
+        if (user == null)
+            return NotFound(new { message = "Користувача не знайдено" });
+
+        // 1. Оновлюємо роль у базі даних
+        user.Role = UserRole.Landlord;
+        await context.SaveChangesAsync();
+
+        // 2. Оновлюємо JWT-токен через сервіс авторизації
+        try
+        {
+            var tokens = await authService.RefreshTokenAsync(new TrailsUA.Domain.DTOs.Auth.RefreshTokenDto
+            {
+                RefreshToken = user.RefreshToken ?? ""
+            });
+
+            return Ok(new
+            {
+                accessToken = tokens.AccessToken,
+                refreshToken = tokens.RefreshToken,
+                user = new
+                {
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    Role = "Landlord",
+                    user.AvatarUrl
+                },
+                message = "Вітаємо! Ви успішно стали орендодавцем."
+            });
+        }
+        catch
+        {
+            // Якщо токени з якоїсь причини не згенерувалися, роль у базі все одно вже збережена
+            return Ok(new { message = "Роль успішно оновлено на Landlord" });
+        }
     }
 
     // POST /api/user/change-password — Смена пароля

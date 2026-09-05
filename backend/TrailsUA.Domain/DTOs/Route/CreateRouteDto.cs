@@ -13,12 +13,6 @@ public class CreateRouteDto
     [Required]
     public string Location { get; set; } = string.Empty;
 
-    [Range(0.1, 1000)]
-    public double DistanceKm { get; set; }
-
-    [Range(1, 500)]
-    public int DurationHours { get; set; }
-
     public decimal? Price { get; set; }
 
     [Required]

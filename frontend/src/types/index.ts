@@ -25,8 +25,6 @@ export interface RouteItem {
   title: string;
   description: string;
   location: string;
-  distanceKm: number;
-  durationHours: number;
   price: number;
   categoryId: string;
   categoryName: string;

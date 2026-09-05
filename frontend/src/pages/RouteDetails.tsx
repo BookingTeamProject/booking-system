@@ -136,8 +136,6 @@ export const RouteDetails: React.FC = () => {
           title: raw.title,
           description: raw.description,
           location: raw.location,
-          distanceKm: raw.distanceKm || 0,
-          durationHours: raw.durationHours || 0,
           price: raw.price || 1500,
           categoryId: raw.categoryId,
           categoryName: raw.category?.name || raw.categoryName || 'Котедж',
@@ -177,8 +175,6 @@ export const RouteDetails: React.FC = () => {
         description:
           'Квартира для відпочинку в мальовничому куточку Карпат. Простора та світла тераса 20 м², де можна пити ранкову каву та милуватися краєвидами. Окрема двоярусна спальня, затишна кухня-вітальня та зручний ортопедичний диван. Поруч гірська річка, смерековий ліс та туристичні стежки до найгарніших полонин.',
         location: 'Яремче, Івано-Франківська область',
-        distanceKm: 0,
-        durationHours: 0,
         price: 1500,
         categoryId: 'cottage',
         categoryName: 'Котедж',

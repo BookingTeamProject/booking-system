@@ -1,21 +1,14 @@
-// src/pages/HomePage.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoutes } from '../context/RoutesContext';
-
-interface DisplayRouteItem {
-  id: string;
-  title: string;
-  location: string;
-  price: number;
-  imageUrls: string[];
-  categoryName?: string;
-  averageRating?: number;
-}
+import { useSettings } from '../context/SettingsContext';
+import { MOCK_ROUTES } from '../data/mockData';
+import type { RouteItem } from '../types';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { routes, favorites, toggleFavorite, loading } = useRoutes();
+  const { formatPrice } = useSettings();
 
   // --- Стан полів пошуку ---
   const [locationQuery, setLocationQuery] = useState('');
@@ -41,7 +34,7 @@ export const HomePage: React.FC = () => {
   const [emailSub, setEmailSub] = useState('');
   const [subDone, setSubDone] = useState(false);
 
-  // Рефи для кліку за межі
+  // Рефи для закриття по кліку за межі
   const locationRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
@@ -72,7 +65,9 @@ export const HomePage: React.FC = () => {
 
   const handleSaveGuests = () => {
     const totalGuests = adultsCount + childrenCount;
-    setGuestsQuery(`${roomsCount} ${roomsCount === 1 ? 'Кімната' : 'Кімнати'} / ${totalGuests} ${totalGuests === 1 ? 'Гість' : 'Гостя'}`);
+    setGuestsQuery(
+      `${roomsCount} ${roomsCount === 1 ? 'Кімната' : 'Кімнати'} / ${totalGuests} ${totalGuests === 1 ? 'Гість' : 'Гостя'}`
+    );
     setGuestsOpen(false);
   };
 
@@ -84,7 +79,7 @@ export const HomePage: React.FC = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (locationQuery) params.append('location', locationQuery);
+    if (locationQuery) params.append('search', locationQuery);
     navigate(`/routes?${params.toString()}`);
   };
 
@@ -97,118 +92,16 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  // 8 готелів точно з макета Figma
-  const popularHotelsMock: DisplayRouteItem[] = [
-    {
-      id: '201',
-      title: 'Апартаменти біля Мост-Сіті',
-      location: 'Дніпро, Україна',
-      price: 7428,
-      imageUrls: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '202',
-      title: 'Воскресенська 27-2',
-      location: 'Дніпро, Україна',
-      price: 3558,
-      imageUrls: ['https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '203',
-      title: 'Шарікофф',
-      location: 'Харків, Україна',
-      price: 2628,
-      imageUrls: ['https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '204',
-      title: 'Amalia',
-      location: 'Чернівці, Україна',
-      price: 3496,
-      imageUrls: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '205',
-      title: 'GIL apartments',
-      location: 'Ужгород, Україна',
-      price: 5000,
-      imageUrls: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '206',
-      title: 'Апартаменти Left',
-      location: 'Івано-Франківськ, Україна',
-      price: 4732,
-      imageUrls: ['https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '207',
-      title: 'Апартаменти Аркадія з терасою',
-      location: 'Одеса, Україна',
-      price: 6038,
-      imageUrls: ['https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '208',
-      title: 'Appart Kamanina',
-      location: 'Одеса, Україна',
-      price: 2500,
-      imageUrls: ['https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80']
-    }
-  ];
+  // Оптимізовані списки: беремо дані з RoutesContext або централізованого MOCK_ROUTES
+  const displayPopularHotels: RouteItem[] = useMemo(() => {
+    const source = routes && routes.length > 0 ? routes : MOCK_ROUTES;
+    return source.slice(0, 8);
+  }, [routes]);
 
-  // 4 картки для блоку "Ви нещодавно шукали"
-  const recentItemsMock: DisplayRouteItem[] = [
-    {
-      id: '101',
-      title: 'Bv Apartaments Chess',
-      location: 'Львів, Україна',
-      price: 4700,
-      imageUrls: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '102',
-      title: 'Апартаменти Left',
-      location: 'Івано-Франківськ, Україна',
-      price: 4732,
-      imageUrls: ['https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '103',
-      title: 'Апартаменти Loft 22',
-      location: 'Івано-Франківськ, Україна',
-      price: 3144,
-      imageUrls: ['https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80']
-    },
-    {
-      id: '104',
-      title: 'Апартаменти Аркадія з терасою',
-      location: 'Одеса, Україна',
-      price: 6038,
-      imageUrls: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80']
-    }
-  ];
-
-  // Підключення даних із контексту RoutesContext (використання routes)
-  const displayPopularHotels: DisplayRouteItem[] = routes && routes.length > 0
-    ? routes.slice(0, 8).map(r => ({
-        id: String(r.id),
-        title: r.title,
-        location: r.location,
-        price: r.price,
-        imageUrls: r.imageUrls && r.imageUrls.length > 0 ? r.imageUrls : ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80']
-      }))
-    : popularHotelsMock;
-
-  const displayRecentItems: DisplayRouteItem[] = routes && routes.length > 0
-    ? routes.slice(0, 4).map(r => ({
-        id: String(r.id),
-        title: r.title,
-        location: r.location,
-        price: r.price,
-        imageUrls: r.imageUrls && r.imageUrls.length > 0 ? r.imageUrls : ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80']
-      }))
-    : recentItemsMock;
+  const displayRecentItems: RouteItem[] = useMemo(() => {
+    const source = routes && routes.length > 0 ? routes : MOCK_ROUTES;
+    return source.slice(0, 4);
+  }, [routes]);
 
   return (
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', overflowX: 'hidden' }}>
@@ -244,7 +137,6 @@ export const HomePage: React.FC = () => {
         
         {/* ================= 1. HERO BANNER ================= */}
         <section style={heroOuterCardStyle}>
-          
           <div className="hero-flex-box" style={{ display: 'flex', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
             <div style={{ flex: 1.2 }}>
               <h1 style={heroMainTitleStyle}>
@@ -268,10 +160,8 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* ПОШУКОВИЙ ВІДЖЕТ FIGMA З ІНТЕРАКТИВНИМИ ВИПАДНИМИ ВІКНАМИ */}
+          {/* ПОШУКОВИЙ ВІДЖЕТ FIGMA */}
           <div style={{ marginTop: '36px', position: 'relative', zIndex: 10 }}>
-            
-            {/* Ярлик вкладки "Пошук помешкання" */}
             <div style={searchTabPillStyle}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6E473B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -283,7 +173,7 @@ export const HomePage: React.FC = () => {
             <form onSubmit={handleSearchSubmit} style={searchContainerCardStyle}>
               <div className="search-inputs-grid" style={searchFieldsGridStyle}>
                 
-                {/* 1. ПОЛЕ ЛОКАЦІЇ + СПЛИВАЮЧЕ ВІКНО FIGMA "МІСЦЕ ПЕРЕБУВАННЯ" */}
+                {/* 1. ПОЛЕ ЛОКАЦІЇ */}
                 <div ref={locationRef} style={{ position: 'relative' }}>
                   <div
                     onClick={() => setLocationOpen(!locationOpen)}
@@ -301,7 +191,6 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Спливаюче вікно локації з тегами */}
                   {locationOpen && (
                     <div style={figmaLocationModalStyle}>
                       <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px' }}>
@@ -316,7 +205,7 @@ export const HomePage: React.FC = () => {
                         autoFocus
                       />
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '14px 0 18px 0' }}>
-                        {['Карпати', 'Львів', 'Одеса', 'Дніпро', 'Буковель', 'Київ'].map((tag) => (
+                        {['Карпати', 'Яремче', 'Верховина', 'Львів', 'Одеса', 'Буковель'].map((tag) => (
                           <div
                             key={tag}
                             onClick={() => setLocationQuery(tag)}
@@ -341,7 +230,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
-                {/* 2. ПОЛЕ ДАТ + СПЛИВАЮЧИЙ ДВОМІСЯЧНИЙ КАЛЕНДАР FIGMA */}
+                {/* 2. ПОЛЕ ДАТ */}
                 <div ref={calendarRef} style={{ position: 'relative' }}>
                   <div
                     onClick={() => setCalendarOpen(!calendarOpen)}
@@ -360,7 +249,6 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Спливаючий подвійний календар */}
                   {calendarOpen && (
                     <div style={figmaCalendarModalStyle}>
                       <div style={{ color: '#6E473B', fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>
@@ -368,7 +256,7 @@ export const HomePage: React.FC = () => {
                       </div>
 
                       <div style={{ display: 'flex', gap: '24px', border: '1px solid #D7C7B1', borderRadius: '16px', padding: '16px' }}>
-                        {/* Місяць 1: Грудень 2026 */}
+                        {/* Грудень 2026 */}
                         <div style={{ flex: 1 }}>
                           <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px', textAlign: 'center' }}>
                             Грудень 2026
@@ -414,7 +302,7 @@ export const HomePage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Місяць 2: Січень 2027 */}
+                        {/* Січень 2027 */}
                         <div style={{ flex: 1 }}>
                           <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px', textAlign: 'center' }}>
                             Січень 2027
@@ -455,7 +343,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
-                {/* 3. КІМНАТИ ТА ГОСТІ + СПЛИВАЮЧЕ ВІКНО ЗІ СТЕПЕРАМИ */}
+                {/* 3. КІМНАТИ ТА ГОСТІ */}
                 <div ref={guestsRef} style={{ position: 'relative' }}>
                   <div
                     onClick={() => setGuestsOpen(!guestsOpen)}
@@ -475,13 +363,12 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Спливаюче вікно зі степерами */}
                   {guestsOpen && (
                     <div style={figmaGuestsModalStyle}>
                       <div style={guestSectionHeaderStyle}>Кількість кімнат</div>
                       <div style={modalDividerStyle} />
 
-                      {/* Степер кімнат */}
+                      {/* Кімнати */}
                       <div style={stepperRowStyle}>
                         <span style={stepperLabelStyle}>Кімнати</span>
                         <div style={stepperActionsStyle}>
@@ -599,7 +486,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Кнопка пошуку */}
+                {/* Кнопка відправки пошуку */}
                 <button type="submit" style={searchSubmitBtnStyle}>
                   Пошук
                 </button>
@@ -684,7 +571,7 @@ export const HomePage: React.FC = () => {
               >
                 <div style={{ width: '100%', height: '190px', position: 'relative' }}>
                   <img
-                    src={item.imageUrls[0]}
+                    src={item.imageUrls?.[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
                     alt={item.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '36px', borderTopRightRadius: '36px' }}
                   />
@@ -705,8 +592,8 @@ export const HomePage: React.FC = () => {
                   <span style={recentCardLocationStyle}>{item.location}</span>
 
                   <div style={recentCardFooterPriceRow}>
-                    <span style={{ fontSize: '26px', fontWeight: 900, color: '#DC9666', fontStyle: 'italic' }}>
-                      ₴ {item.price.toLocaleString()}
+                    <span style={{ fontSize: '24px', fontWeight: 900, color: '#DC9666', fontStyle: 'italic' }}>
+                      {formatPrice(item.price || 0)}
                     </span>
                     <span style={recentDetailsLinkStyle}>Дивитися деталі</span>
                   </div>
@@ -805,7 +692,6 @@ export const HomePage: React.FC = () => {
             <div style={{ ...orangePillDividerStyle, width: '320px', margin: '10px auto 0 auto' }} />
           </div>
 
-          {/* Використання loading зі стану useRoutes */}
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#E1D4C2', fontSize: '18px' }}>
               Завантаження помешкань...
@@ -821,7 +707,7 @@ export const HomePage: React.FC = () => {
                 >
                   <div style={{ width: '100%', height: '190px', position: 'relative' }}>
                     <img
-                      src={item.imageUrls[0]}
+                      src={item.imageUrls?.[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
                       alt={item.title}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '36px', borderTopRightRadius: '36px' }}
                     />
@@ -842,8 +728,8 @@ export const HomePage: React.FC = () => {
                     <span style={recentCardLocationStyle}>{item.location}</span>
 
                     <div style={recentCardFooterPriceRow}>
-                      <span style={{ fontSize: '26px', fontWeight: 900, color: '#DC9666', fontStyle: 'italic' }}>
-                        ₴ {item.price.toLocaleString()}
+                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#DC9666', fontStyle: 'italic' }}>
+                        {formatPrice(item.price || 0)}
                       </span>
                       <span style={recentDetailsLinkStyle}>Дивитися деталі</span>
                     </div>
@@ -1364,7 +1250,7 @@ const newsletterSuccessBoxStyle: React.CSSProperties = {
 };
 
 // ==========================================
-// СТИЛІ МОДАЛЬНИХ ВІКОН ПОШУКУ З FIGMA
+// СТИЛІ МОДАЛОК ПОШУКУ
 // ==========================================
 
 const figmaLocationModalStyle: React.CSSProperties = {
