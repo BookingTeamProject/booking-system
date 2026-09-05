@@ -35,8 +35,6 @@ public class FavoriteService : IFavoriteService
             Title = r.Title,
             Description = r.Description,
             Location = r.Location,
-            DistanceKm = r.DistanceKm,
-            DurationHours = r.DurationHours,
             Price = r.Price,
             CategoryName = r.Category?.Name ?? "Общая",
             AuthorName = $"{r.Author?.FirstName} {r.Author?.LastName}".Trim(),

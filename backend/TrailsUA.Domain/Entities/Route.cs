@@ -8,8 +8,6 @@ public class Route : BaseEntity
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty; // Например: "Карпаты, Яремче"
-    public double DistanceKm { get; set; }               // Длина маршрута в км
-    public int DurationHours { get; set; }               // Примерное время в часах
     public decimal? Price { get; set; }                  // Цена (если это платный тур или аренда)
 
     // Связь с автором (Арендодателем)

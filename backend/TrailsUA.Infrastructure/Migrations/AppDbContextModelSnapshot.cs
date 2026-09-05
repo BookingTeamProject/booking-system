@@ -17,7 +17,7 @@ namespace TrailsUA.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -184,12 +184,6 @@ namespace TrailsUA.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<double>("DistanceKm")
-                        .HasColumnType("double precision");
-
-                    b.Property<int>("DurationHours")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Location")
                         .IsRequired()
