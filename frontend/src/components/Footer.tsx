@@ -314,7 +314,10 @@ const footerRootStyle: React.CSSProperties = {
 const footerDashedLineWrapper: React.CSSProperties = {
   width: '100%',
   overflow: 'hidden',
-  lineHeight: 0
+  lineHeight: 0,
+  zIndex: 10,
+  marginBottom: '-120px',
+  pointerEvents: 'none'
 };
 
 const footerFullWidthBody: React.CSSProperties = {

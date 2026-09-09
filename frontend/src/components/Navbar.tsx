@@ -464,7 +464,7 @@ const headerOuterBar: React.CSSProperties = {
 const headerInnerContent: React.CSSProperties = {
   maxWidth: '1820px',
   margin: '0 auto',
-  padding: '10px 20px', // Зменшили загальні відступи
+  padding: '10px 20px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between'
@@ -477,7 +477,7 @@ const logoContainerStyle: React.CSSProperties = {
 
 const verticalSeparatorStyle: React.CSSProperties = {
   width: '1px',
-  height: '24px', // Трохи зменшили висоту ліній
+  height: '24px',
   backgroundColor: '#DC9666',
   opacity: 0.7
 };
@@ -485,7 +485,7 @@ const verticalSeparatorStyle: React.CSSProperties = {
 const desktopNavStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
-  gap: '14px' // Зменшили проміжки між пунктами (було 22px)
+  gap: '14px'
 };
 
 const navItemStyle: React.CSSProperties = {
@@ -494,7 +494,7 @@ const navItemStyle: React.CSSProperties = {
   gap: '6px',
   color: '#FFFFFF',
   textDecoration: 'none',
-  fontSize: '15px', // Акуратніший розмір шрифту
+  fontSize: '15px',
   fontFamily: "'Iosevka Charon', sans-serif",
   fontWeight: 500
 };
@@ -522,7 +522,7 @@ const navDropdownButtonStyle: React.CSSProperties = {
 const ctaHouseButtonStyle: React.CSSProperties = {
   backgroundColor: '#DC9666',
   borderRadius: '29px',
-  padding: '8px 16px', // Суттєво втиснули кнопку
+  padding: '8px 16px',
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
@@ -530,7 +530,7 @@ const ctaHouseButtonStyle: React.CSSProperties = {
   textDecoration: 'none',
   fontFamily: "'Alegreya', Georgia, serif",
   fontWeight: 800,
-  fontSize: '15px', // Було аж 17px
+  fontSize: '15px',
   boxShadow: '0 4px 14px rgba(220, 150, 102, 0.35)'
 };
 
