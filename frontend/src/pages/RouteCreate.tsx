@@ -1000,7 +1000,7 @@ export const RouteCreate: React.FC = () => {
       {/* 3. БІЛА ПАНЕЛЬ НАВІГАЦІЇ */}
       <div style={{ 
         backgroundColor: '#FFFFFF', 
-        padding: '48px 40px',
+        padding: '28px 40px',
         width: '100%', 
         zIndex: 2, 
         position: 'relative',
