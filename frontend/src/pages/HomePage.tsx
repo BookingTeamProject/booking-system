@@ -4,6 +4,9 @@ import { useRoutes } from '../context/RoutesContext';
 import { useSettings } from '../context/SettingsContext';
 import { MOCK_ROUTES } from '../data/mockData';
 import type { RouteItem } from '../types';
+import promoLineBg from '../assets/Line1.png';
+import Line2 from '../assets/Line2.png';
+import HeroTreesBg from '../assets/Tree.png';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -137,8 +140,22 @@ export const HomePage: React.FC = () => {
         
         {/* ================= 1. HERO BANNER ================= */}
         <section style={heroOuterCardStyle}>
+
+          {/* === ДЕКОРАТИВНІ ЯЛИНКИ === */}
+          <img 
+            src={HeroTreesBg} 
+            alt="Decoration trees" 
+            style={{
+              position: 'absolute',
+              left: '0px',      /* Рухай вправо/вліво відносно лівого краю бежевого блоку */
+              bottom: '85px',   /* Піднімай/опускай ялинки над формою пошуку */
+              width: '450px',    /* Розмір самих ялинок (піджени під Фігму) */
+              zIndex: 1,         /* Одиниця сховає їх під текст (у нього zIndex 2) */
+              pointerEvents: 'none'
+            }}
+          />
           <div className="hero-flex-box" style={{ display: 'flex', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-            <div style={{ flex: 1.2 }}>
+            <div style={{ flex: 1.2, transform: 'translateY(-60px)' }}>
               <h1 style={heroMainTitleStyle}>
                 ЗНАЙДІТЬ СВІЙ<br />
                 <span style={{ color: '#DC9666' }}>ІДЕАЛЬНИЙ</span> ВІДПОЧИНОК
@@ -159,6 +176,8 @@ export const HomePage: React.FC = () => {
               />
             </div>
           </div>
+
+          
 
           {/* ПОШУКОВИЙ ВІДЖЕТ FIGMA */}
           <div style={{ marginTop: '36px', position: 'relative', zIndex: 10 }}>
@@ -620,6 +639,22 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ================= ДЕКОРАТИВНА ЛІНІЯ 2 ================= */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
+        <img 
+          src={Line2} 
+          alt="Decorative line 2" 
+          style={{
+            position: 'absolute',
+            left: '-40px',       /* Крути left або right для зсуву по горизонталі */
+            top: '-350px',      /* Крути top або bottom для зсуву по вертикалі */
+            width: '100%',     /* Якщо треба конкретний розмір, став, наприклад, '1200px' */
+            pointerEvents: 'none', /* Щоб лінія не перекривала кліки по кнопках під нею */
+            zIndex: 0
+          }}
+        />
+      </div>
+
       {/* ================= 4. АКЦІЇ ДЛЯ ВАС ================= */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '70px 20px' }}>
         <section className="deals-flex-box" style={dealsSectionContainerStyle}>
@@ -775,12 +810,27 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ================= ДЕКОРАТИВНА ЛІНІЯ (ОКРЕМО) ================= */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
+        <img 
+          src={promoLineBg} 
+          alt="Decorative line" 
+          style={{
+            position: 'absolute',
+            right: '170px',    /* Регулируй сдвиг вправо/влево */
+            bottom: '-350px',  /* Регулируй сдвиг вниз к блоку подписки */
+            width: '1200px', 
+            pointerEvents: 'none'
+          }}
+        />
+      </div>
+
       {/* ================= 6. БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ! ================= */}
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 20px 40px 20px' }}>
-        <section style={newsletterContainerCardStyle}>
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 20px 40px 20px', position: 'relative', zIndex: 1 }}>
+        <section style={{ ...newsletterContainerCardStyle, backgroundColor: 'transparent', boxShadow: 'none' }}>
           <div>
             <h2 style={newsletterHeaderTitleStyle}>БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ!</h2>
-            <div style={{ ...orangePillDividerStyle, margin: '10px 0 16px 0', width: '820px' }} />
+            <div style={{ ...orangePillDividerStyle, margin: '10px 0 16px 0', width: '720px' }} />
             <p style={newsletterSubTitleStyle}>
               Підписатися на рекламу
             </p>
@@ -791,7 +841,7 @@ export const HomePage: React.FC = () => {
               ✓ Дякуємо за підписку! Спеціальний промокод надіслано на вашу пошту.
             </div>
           ) : (
-            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '16px', maxWidth: '850px' }}>
+            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '16px', maxWidth: '700px' }}>
               <input
                 type="email"
                 required
@@ -820,7 +870,6 @@ const heroOuterCardStyle: React.CSSProperties = {
   backgroundColor: '#D7C7B1',
   borderRadius: '40px',
   padding: '44px 40px 32px 40px',
-  outline: '8px solid #A78D78',
   position: 'relative',
   boxShadow: '0 18px 40px rgba(41, 28, 14, 0.08)'
 };
@@ -1214,7 +1263,7 @@ const recommendationsBtnStyle: React.CSSProperties = {
 const newsletterContainerCardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '40px',
-  border: '3px solid #D7C7B1',
+  border: 'none',
   boxShadow: '0 12px 30px rgba(41, 28, 14, 0.06)',
   padding: '48px 40px',
   display: 'flex',
@@ -1224,7 +1273,7 @@ const newsletterContainerCardStyle: React.CSSProperties = {
 
 const newsletterHeaderTitleStyle: React.CSSProperties = {
   fontFamily: "'Alegreya', Georgia, serif",
-  fontSize: 'clamp(26px, 3vw, 38px)',
+  fontSize: '33px',
   fontWeight: 900,
   fontStyle: 'italic',
   textTransform: 'uppercase',
