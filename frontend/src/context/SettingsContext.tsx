@@ -1,5 +1,4 @@
-// src/context/SettingsContext.tsx
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { storage, type AppLanguage, type AppCurrency } from '../services/storage.service';
 
 // Курси валют відносно гривні (UAH)
@@ -136,14 +135,28 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCurrState(curr);
   };
 
+  // Синхронізація між різними вкладками браузера
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'app_language' && e.newValue) {
+        setLangState(e.newValue as AppLanguage);
+      }
+      if (e.key === 'app_currency' && e.newValue) {
+        setCurrState(e.newValue as AppCurrency);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Конвертація ціни з UAH у вибрану валюту з форматуванням
   const formatPrice = (amountInUah: number): string => {
-    const rate = EXCHANGE_RATES[currency];
+    const rate = EXCHANGE_RATES[currency] || 1;
     const converted = Math.round(amountInUah * rate);
     const formattedNum = converted.toLocaleString();
-    const symbol = CURRENCY_SYMBOLS[currency];
+    const symbol = CURRENCY_SYMBOLS[currency] || '₴';
 
-    // Символи $ та € ставимо попереду, ₴ та zł — позаду
     if (currency === 'USD' || currency === 'EUR') {
       return `${symbol}${formattedNum}`;
     }
@@ -151,7 +164,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const getRawConvertedPrice = (amountInUah: number): number => {
-    return Math.round(amountInUah * EXCHANGE_RATES[currency]);
+    const rate = EXCHANGE_RATES[currency] || 1;
+    return Math.round(amountInUah * rate);
   };
 
   const t = (key: string): string => {

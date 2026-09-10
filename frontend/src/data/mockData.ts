@@ -197,3 +197,70 @@ export const MOCK_DEFAULT_REVIEWS: Review[] = [
     createdAt: '2026-08-15',
   },
 ];
+
+// ================= 8. ФІНАНСОВІ ТА ПЛАТІЖНІ ДАНІ =================
+
+// 8. ДЕМО ФІНАНСИ ТА ТРАНЗАКЦІЇ
+export interface FinancialTransaction {
+  id: string;
+  date: string;
+  title: string;
+  guestName?: string;
+  propertyName?: string;
+  amount: number;
+  commission: number;
+  type: 'income' | 'payout' | 'refund' | 'insurance';
+  status: 'Виплачено' | 'Очікується' | 'Успішно' | 'Повернено';
+}
+
+export interface PayoutSettings {
+  iban: string;
+  frequency: 'Щодня' | 'Щотижня' | 'Щомісяця' | 'Щокварталу' | 'Щороку';
+}
+
+export const MOCK_INITIAL_TRANSACTIONS: FinancialTransaction[] = [
+  {
+    id: 'tx-1',
+    date: '28 Січ, 2026',
+    title: 'Бронювання Колиба "Два Потоки"',
+    guestName: 'Олена К.',
+    propertyName: "Колиба 'Два Потоки', Яремче",
+    amount: 18400,
+    commission: 2208,
+    type: 'income',
+    status: 'Успішно',
+  },
+  {
+    id: 'tx-2',
+    date: '22 Січ, 2026',
+    title: 'Бронювання Chalet "Eco-Smerika"',
+    guestName: 'Андрій М.',
+    propertyName: "Chalet 'Eco-Smerika', Микуличин",
+    amount: 9300,
+    commission: 1116,
+    type: 'income',
+    status: 'Виплачено',
+  },
+  {
+    id: 'tx-3',
+    date: '18 Січ, 2026',
+    title: "Бронювання Будинок на дереві 'Пташине Гніздо'",
+    guestName: 'Тетяна С.',
+    propertyName: "Будинок на дереві 'Пташине Гніздо'",
+    amount: 5600,
+    commission: 672,
+    type: 'income',
+    status: 'Очікується',
+  },
+  {
+    id: 'tx-4',
+    date: '12 Гру, 2025',
+    title: 'Повернення коштів — Chalet "Eco-Smerika"',
+    guestName: 'Олександр П.',
+    propertyName: "Chalet 'Eco-Smerika'",
+    amount: 8900,
+    commission: 0,
+    type: 'refund',
+    status: 'Повернено',
+  },
+];

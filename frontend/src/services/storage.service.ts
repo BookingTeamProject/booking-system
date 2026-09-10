@@ -6,13 +6,22 @@ import {
   MOCK_MESSAGES,
   MOCK_BLACKLIST,
   MOCK_DEFAULT_REVIEWS,
+  MOCK_INITIAL_TRANSACTIONS,
   type HostBookingRequest,
   type ChatMessage,
   type BlacklistGuest,
+  type FinancialTransaction,
+  type PayoutSettings,
 } from '../data/mockData';
 
-// Реэкспортируем типы
-export type { HostBookingRequest, ChatMessage, BlacklistGuest };
+// Реекспортуємо типи для інших компонентів
+export type {
+  HostBookingRequest,
+  ChatMessage,
+  BlacklistGuest,
+  FinancialTransaction,
+  PayoutSettings,
+};
 
 const STORAGE_KEYS = {
   TOKEN: 'token',
@@ -25,8 +34,11 @@ const STORAGE_KEYS = {
   REVIEWS_PREFIX: 'reviews_',
   BLACKLIST: 'host_blacklist',
   MESSAGES: 'chat_messages',
-  LANGUAGE: 'app_language',     // <--- НОВЕ
-  CURRENCY: 'app_currency',     // <--- НОВЕ
+  LANGUAGE: 'app_language',
+  CURRENCY: 'app_currency',
+  FINANCE_BALANCE: 'tu_finance_balance',
+  FINANCE_TRANSACTIONS: 'tu_finance_tx',
+  FINANCE_PAYOUT: 'tu_finance_payout_settings',
 } as const;
 
 export type AppLanguage = 'UA' | 'EN' | 'DE' | 'PL';
@@ -38,7 +50,7 @@ export const checkIsLandlord = (role?: UserRole | string | null): boolean => {
 };
 
 export const storage = {
-  // 1. АВТОРИЗАЦИЯ
+  // 1. АВТОРИЗАЦІЯ
   auth: {
     getToken: (): string | null => localStorage.getItem(STORAGE_KEYS.TOKEN),
     getRefreshToken: (): string | null => localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN),
@@ -54,7 +66,7 @@ export const storage = {
     },
   },
 
-  // 2. ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
+  // 2. ДАНІ КОРИСТУВАЧА
   user: {
     get: (): User | null => {
       const raw = localStorage.getItem(STORAGE_KEYS.USER);
@@ -86,7 +98,7 @@ export const storage = {
     clear: () => localStorage.removeItem(STORAGE_KEYS.ROLE_OVERRIDE),
   },
 
-  // 4. МАРШРУТЫ И ЖИЛЬЕ
+  // 4. МАРШРУТИ ТА ЖИТЛО
   routes: {
     getCustom: (): RouteItem[] => {
       const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_ROUTES);
@@ -113,7 +125,7 @@ export const storage = {
     },
   },
 
-  // 5. ИЗБРАННОЕ
+  // 5. ОБРАНЕ
   favorites: {
     get: (): string[] => {
       const raw = localStorage.getItem(STORAGE_KEYS.FAVORITES);
@@ -135,7 +147,7 @@ export const storage = {
     },
   },
 
-  // 6. БРОНИРОВАНИЯ
+  // 6. БРОНЮВАННЯ
   bookings: {
     get: (): Booking[] => {
       const raw = localStorage.getItem(STORAGE_KEYS.BOOKINGS);
@@ -163,7 +175,7 @@ export const storage = {
     },
   },
 
-  // 7. ЧЕРНЫЙ СПИСОК
+  // 7. ЧОРНИЙ СПИСОК
   blacklist: {
     get: (): BlacklistGuest[] => {
       const raw = localStorage.getItem(STORAGE_KEYS.BLACKLIST);
@@ -215,7 +227,7 @@ export const storage = {
     },
   },
 
-  // 9. ОТЗЫВЫ
+  // 9. ВІДГУКИ
   reviews: {
     get: (routeId: string): Review[] => {
       const raw = localStorage.getItem(`${STORAGE_KEYS.REVIEWS_PREFIX}${routeId}`);
@@ -234,7 +246,8 @@ export const storage = {
       return updated;
     },
   },
-  // 10. НАЛАШТУВАННЯ МОВИ ТА ВАЛЮТИ (НОВЕ)
+
+  // 10. НАЛАШТУВАННЯ МОВИ ТА ВАЛЮТИ
   locale: {
     getLanguage: (): AppLanguage => {
       return (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as AppLanguage) || 'UA';
@@ -247,6 +260,49 @@ export const storage = {
     },
     setCurrency: (curr: AppCurrency) => {
       localStorage.setItem(STORAGE_KEYS.CURRENCY, curr);
+    },
+  },
+
+  // 11. ФІНАНСИ ТА ПЛАТЕЖІ
+  finance: {
+    getBalance: (): number => {
+      const raw = localStorage.getItem(STORAGE_KEYS.FINANCE_BALANCE);
+      return raw !== null ? Number(raw) : 14250;
+    },
+    setBalance: (amount: number) => {
+      localStorage.setItem(STORAGE_KEYS.FINANCE_BALANCE, String(amount));
+    },
+    getTransactions: (): FinancialTransaction[] => {
+      const raw = localStorage.getItem(STORAGE_KEYS.FINANCE_TRANSACTIONS);
+      if (!raw) return MOCK_INITIAL_TRANSACTIONS;
+      try {
+        return JSON.parse(raw) as FinancialTransaction[];
+      } catch {
+        return MOCK_INITIAL_TRANSACTIONS;
+      }
+    },
+    setTransactions: (txs: FinancialTransaction[]) => {
+      localStorage.setItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, JSON.stringify(txs));
+    },
+    getPayoutSettings: (): PayoutSettings => {
+      const raw = localStorage.getItem(STORAGE_KEYS.FINANCE_PAYOUT);
+      if (!raw) {
+        return {
+          iban: 'UA49 3052 9900 0000 0260 0123 4567',
+          frequency: 'Щотижня',
+        };
+      }
+      try {
+        return JSON.parse(raw) as PayoutSettings;
+      } catch {
+        return {
+          iban: 'UA49 3052 9900 0000 0260 0123 4567',
+          frequency: 'Щотижня',
+        };
+      }
+    },
+    setPayoutSettings: (settings: PayoutSettings) => {
+      localStorage.setItem(STORAGE_KEYS.FINANCE_PAYOUT, JSON.stringify(settings));
     },
   },
 };
