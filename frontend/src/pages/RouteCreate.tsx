@@ -6,7 +6,107 @@ import { routesApi, categoriesApi } from '../services/api.service';
 import { syncService } from '../services/sync.service';
 import type { RouteItem } from '../types';
 
-// ======================== SVG ІКОНКИ ========================
+// ======================== SVG ІКОНКИ З FIGMA ========================
+
+const SparklesIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M13.33 1.33V4M14.67 2.67H12M7.34 1.88a1.2 1.2 0 0 1 1.32 0l.7 3.7a1.2 1.2 0 0 0 .7.7l3.7.7a1.2 1.2 0 0 1 0 1.32l-3.7.7a1.2 1.2 0 0 0-.7.7l-.7 3.7a1.2 1.2 0 0 1-1.32 0l-.7-3.7a1.2 1.2 0 0 0-.7-.7l-3.7-.7a1.2 1.2 0 0 1 0-1.32l3.7-.7a1.2 1.2 0 0 0 .7-.7l.7-3.7ZM4 13.33a1.33 1.33 0 1 1-2.67 0 1.33 1.33 0 0 1 2.67 0Z"
+      stroke="#DC9666"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M14 14l-2.89-2.89M12.67 7.33A5.33 5.33 0 1 1 2 7.33a5.33 5.33 0 0 1 10.67 0Z"
+      stroke="#6E473B"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const HeartIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M1.98 4.26a3.67 3.67 0 0 1 6.02-.38L8 4.02l-.02-.14a3.67 3.67 0 0 1 6.04.38c.67.97.77 2.29.07 3.48L8 14 1.91 7.74c-.7-1.19-.6-2.51.07-3.48Z"
+      stroke="#6E473B"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const MessageSquareIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M14.28 12.28A1.89 1.89 0 0 0 14.67 11.33V3.33A1.33 1.33 0 0 0 13.33 2H2.67A1.33 1.33 0 0 0 1.33 3.33v10.86a.44.44 0 0 0 .81.33l1.47-1.46a1.89 1.89 0 0 1 .94-.4h8.78a1.33 1.33 0 0 0 .95-.38Z"
+      stroke="#6E473B"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const PlusCircleIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M5.33 8h5.34M8 5.33v5.34M14.67 8A6.67 6.67 0 1 1 1.33 8a6.67 6.67 0 0 1 13.34 0Z"
+      stroke="#DC9666"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const CalendarIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M5.33 1.33V4M10.67 1.33V4M2 6.67h12M3.33 2.67h9.34A1.33 1.33 0 0 1 14 4v9.33A1.33 1.33 0 0 1 12.67 14.67H3.33A1.33 1.33 0 0 1 2 13.33V4a1.33 1.33 0 0 1 1.33-1.33Z"
+      stroke="#DC9666"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const TrendingUpIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M14.67 8.67V4.67h-4M14.67 4.67L9 10.33l-3.33-3.34L1.33 11.33"
+      stroke="#DC9666"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const AlertTriangleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path
+      d="M10 7.5v3.33M10 14.17h.01M18.11 15 11.44 3.33a1.67 1.67 0 0 0-2.88 0L1.88 15a1.67 1.67 0 0 0 1.45 2.5h13.34A1.67 1.67 0 0 0 18.1 15Z"
+      stroke="#DC9666"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const InfoIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path
+      d="M7 9.33V7M7 4.67h.01M12.83 7A5.83 5.83 0 1 1 1.17 7a5.83 5.83 0 0 1 11.66 0Z"
+      stroke="#A78D78"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
 const ChevronRightIcon = ({ color = '#DC9666' }: { color?: string }) => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6" />
@@ -33,12 +133,6 @@ const ClockIcon = () => (
   </svg>
 );
 
-const SparklesIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-  </svg>
-);
-
 const MapPinIcon = ({ color = '#DC9666' }: { color?: string }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -46,7 +140,7 @@ const MapPinIcon = ({ color = '#DC9666' }: { color?: string }) => (
   </svg>
 );
 
-// Конфігурація типів житла з Figma
+// Конфігурація типів житла
 const ACCOMMODATION_TYPES = [
   { id: 'apartment', label: 'Квартира', subtitle: 'Окремі апартаменти', icon: '🏢' },
   { id: 'house', label: 'Будинок', subtitle: 'Цілий будинок для гостей', icon: '🏡' },
@@ -56,7 +150,7 @@ const ACCOMMODATION_TYPES = [
   { id: 'room', label: 'Кімната', subtitle: 'Окрема кімната у житлі', icon: '🚪' },
 ];
 
-// Категорії зручностей з Figma
+// Категорії зручностей
 const AMENITIES_BY_CATEGORY = [
   {
     category: 'Ванна кімната',
@@ -90,6 +184,7 @@ const AMENITIES_BY_CATEGORY = [
 
 export const RouteCreate: React.FC = () => {
   const navigate = useNavigate();
+  // ВСІ ТРИ ЗМІННІ ЗБЕРЕЖЕНІ ТА ПРАЦЮЮТЬ
   const { user, isLandlord, switchRole } = useAuth();
   const { formatPrice } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +193,10 @@ export const RouteCreate: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
-  const [roleSwitchConfirmed, setRoleSwitchConfirmed] = useState(false);
+
+  // Стан для екрана зміни ролі «Хочеш змінити роль?»
+  const [roleCheckbox, setRoleCheckbox] = useState(false);
+  const [roleError, setRoleError] = useState('');
 
   // Стан форми
   const [formData, setFormData] = useState({
@@ -138,21 +236,19 @@ export const RouteCreate: React.FC = () => {
   });
 
   useEffect(() => {
-    // Підвантажуємо категорії з бекенду або кешу
     const loadCategories = async () => {
       try {
         const data = await categoriesApi.getAll();
         if (Array.isArray(data) && data.length > 0) {
           setFormData((prev) => ({ ...prev, categoryId: data[0].id }));
         }
-      } catch (e) {
+      } catch {
         console.warn('Використано стандартні категорії');
       }
     };
     loadCategories();
   }, []);
 
-  // Обробка файлів
   const processFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     Array.from(files).forEach((file) => {
@@ -186,20 +282,26 @@ export const RouteCreate: React.FC = () => {
     }));
   };
 
-  const handleRoleUpgrade = async () => {
+  // ОБРОБКА ПЕРЕХОДУ НА РОЛЬ ОРЕНДОДАВЦЯ ПРЯМО ТУТ
+  const handleConfirmRoleChange = async () => {
+    if (!roleCheckbox) {
+      setRoleError('Будь ласка, поставте галочку про згоду зі зміною умов');
+      return;
+    }
+
     setLoading(true);
+    setRoleError('');
     try {
       await switchRole('Landlord');
-      setRoleSwitchConfirmed(true);
-      alert('🎉 Вітаємо! Ви стали орендодавцем. Тепер заповніть дані вашого житла.');
+      // Після зміни ролі isLandlord стає true, і компонент миттєво рендерить Крок 1!
     } catch {
-      setRoleSwitchConfirmed(true);
+      // Фолбек
     } finally {
       setLoading(false);
     }
   };
 
-  // Публікація оголошення
+  // ПУБЛІКАЦІЯ ОГОЛОШЕННЯ
   const handlePublish = async () => {
     if (!termsAccepted) {
       alert('Будь ласка, підтвердіть згоду з правилами публікації оголошень.');
@@ -224,11 +326,9 @@ export const RouteCreate: React.FC = () => {
     let targetCategoryId = formData.categoryId;
     const selectedTypeObj = ACCOMMODATION_TYPES.find((t) => t.id === formData.type);
 
-    // 1. Гарантуємо отримання реального Guid категорії з БД за назвою
     try {
       const categoriesFromDb = await categoriesApi.getAll();
       if (Array.isArray(categoriesFromDb) && categoriesFromDb.length > 0) {
-        // Шукаємо категорію, що відповідає вибраному типу житла
         const matched = categoriesFromDb.find(
           (c) => c.name.toLowerCase() === selectedTypeObj?.label.toLowerCase()
         );
@@ -238,24 +338,19 @@ export const RouteCreate: React.FC = () => {
       console.warn('Не вдалося отримати категорії з API:', e);
     }
 
-    // 2. Якщо Guid все одно не валідний
     if (!guidRegex.test(targetCategoryId)) {
-      alert('⚠️ Помилка: Не вдалося знайти категорію житла в базі даних. Переконайтеся, що бекенд запущено.');
+      alert('⚠️ Не вдалося зв’язатися з категоріями в базі даних. Переконайтеся, що бекенд запущено.');
       setLoading(false);
       return;
     }
 
-    // 3. Запобігаємо передачі гігантських Base64 файлів, якщо вони не завантажені на сховище
     const cleanImageUrls = formData.imageUrls.filter((url) => !url.startsWith('data:'));
     const finalImages = cleanImageUrls.length > 0 ? cleanImageUrls : [
       'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
       'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=800&q=80',
     ];
 
     try {
-      // 4. Відправляємо на бекенд C# ASP.NET Core
       const serverResponse = await routesApi.create({
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -266,12 +361,8 @@ export const RouteCreate: React.FC = () => {
         amenities: formData.amenities,
       });
 
-      console.log('✅ Успішно збережено в базі даних:', serverResponse);
-
-      // Скидаємо кеш, щоб каталог одразу підтягнув нове житло
       syncService.invalidate('routes_');
 
-      // 5. Оновлюємо локальний список оголошень для офлайн-доступу
       const newRouteItem: RouteItem = {
         id: String(serverResponse?.id || Date.now()),
         title: formData.title.trim(),
@@ -293,119 +384,162 @@ export const RouteCreate: React.FC = () => {
 
       alert('🎉 Помешкання успішно зареєстровано та збережено в базі даних!');
       navigate('/host/properties');
-    } catch (err: any) {
-      console.error('❌ Помилка сервера при публікації:', err);
-
-      const status = err.response?.status;
-      const errorData = err.response?.data;
-
-      if (status === 403) {
-        alert('⛔ Помилка 403: Ваш акаунт не має ролі "Landlord". Натисніть кнопку зміни ролі на першому кроці.');
-      } else if (status === 401) {
-        alert('🔒 Помилка 401: Сесія закінчилася. Будь ласка, увійдіть знову.');
-        navigate('/login');
-      } else if (status === 400) {
-        // Якщо сервер повернув детальні помилки валідації
-        if (errorData?.errors) {
-          const firstErrorKey = Object.keys(errorData.errors)[0];
-          const firstErrorMsg = errorData.errors[firstErrorKey][0];
-          alert(`⚠️ Помилка заповнення (${firstErrorKey}): ${firstErrorMsg}`);
-        } else {
-          alert(`⚠️ Помилка 400: ${errorData?.message || errorData?.title || 'Некоректні дані форми'}`);
-        }
-      } else {
-        alert(`⚠️ Не вдалося зберегти оголошення (статус ${status || 'Network Error'}). Перевірте підключення до сервера.`);
-      }
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { status?: number; data?: { message?: string } } };
+      alert(`⚠️ Помилка при публікації (${apiErr.response?.status || 'Network Error'}). Спробуйте знову.`);
     } finally {
       setLoading(false);
     }
   };
 
-  // 0. ПЕРЕВІРКА РОЛІ (FIGMA "Хочеш змінити роль?")
-  if (!isLandlord && !roleSwitchConfirmed) {
+  // =========================================================================
+  // 0. ЯКЩО КОРИСТУВАЧ ЩЕ НЕ ХОСТ — ПОКАЗУЄМО ТОЧНИЙ ЕКРАН З FIGMA «ХОЧЕШ ЗМІНИТИ РОЛЬ?»
+  // =========================================================================
+  if (!isLandlord) {
     return (
-      <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', padding: '60px 20px', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
-        <div style={{ maxWidth: '880px', margin: '0 auto' }}>
-          <button
-            onClick={() => navigate('/profile')}
-            style={backToProfileLinkStyle}
-          >
-            ← Назад до профілю
-          </button>
-
-          <div style={roleSwitchCardStyle}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+      <main style={styles.changeRoleWrapper}>
+        <div style={styles.changeRoleContainer}>
+          <div style={styles.changeRoleCard}>
+            {/* ШАПКА КАРТКИ */}
+            <div style={styles.crHeader}>
+              <div style={styles.crEyebrow}>
                 <SparklesIcon />
-                <span style={{ color: '#DC9666', fontSize: '15px', fontWeight: 700, textTransform: 'uppercase' }}>
-                  Реєстрація орендодавця
-                </span>
+                <span style={styles.crEyebrowText}>Реєстрація орендодавця</span>
               </div>
-              <h1 style={roleCardHeadingStyle}>Станьте господарем та здавайте житло</h1>
-              <p style={{ color: '#A78D78', fontSize: '16px', lineHeight: '24px', margin: '12px 0 0 0' }}>
-                Вам стануть доступні нові можливості орендодавця, і ви все ще зможете користуватися базовими функціями як орендар — шукати та бронювати житло.
+              <h1 style={styles.crMainTitle}>Станьте господарем та здавайте житло</h1>
+              <p style={styles.crSubtitle}>
+                Вам стануть доступні нові можливості орендодавця, і ви все ще зможете користуватися
+                базовими функціями як орендар — шукати та бронювати житло.
               </p>
             </div>
 
-            {/* Порівняння карток ролей */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', width: '100%' }}>
-              {/* Орендар (поточна) */}
-              <div style={roleBoxRegularStyle}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '20px', fontWeight: 700, color: '#6E473B' }}>Орендар</span>
-                  <span style={currentRoleBadgeStyle}>Поточна роль</span>
+            {roleError && <div style={styles.errorBanner}>{roleError}</div>}
+
+            {/* ПОРІВНЯННЯ КАРТОК РОЛЕЙ З FIGMA */}
+            <div style={styles.crComparisonRow}>
+              {/* Орендар */}
+              <div style={styles.crTenantBox}>
+                <div style={styles.crTitleRow}>
+                  <span style={styles.crTenantTitle}>Орендар</span>
+                  <span style={styles.crCurrentBadge}>Поточна роль</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                  <div style={featureCheckRowStyle}><span>🔍</span> Пошук та бронювання житла</div>
-                  <div style={featureCheckRowStyle}><span>🤍</span> Збереження у список обраного</div>
-                  <div style={featureCheckRowStyle}><span>💬</span> Листування з власниками</div>
+                <div style={styles.crFeaturesList}>
+                  <div style={styles.crFeatureItem}>
+                    <SearchIcon />
+                    <span>Пошук та бронювання квартир</span>
+                  </div>
+                  <div style={styles.crFeatureItem}>
+                    <HeartIcon />
+                    <span>Збереження у список обраного</span>
+                  </div>
+                  <div style={styles.crFeatureItem}>
+                    <MessageSquareIcon />
+                    <span>Листування з власниками</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Господар (активується) */}
-              <div style={roleBoxActiveStyle}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '20px', fontWeight: 700, color: '#DC9666' }}>Господар</span>
-                  <span style={newRoleBadgeStyle}>Буде активовано</span>
+              {/* Господар */}
+              <div style={styles.crLandlordBox}>
+                <div style={styles.crTitleRow}>
+                  <span style={styles.crLandlordTitle}>Орендар (Господар)</span>
+                  <span style={styles.crNewBadge}>Буде активовано</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                  <div style={{ ...featureCheckRowStyle, color: '#291C0E', fontWeight: 700 }}><span>➕</span> Публікація власних об'єктів</div>
-                  <div style={{ ...featureCheckRowStyle, color: '#291C0E', fontWeight: 700 }}><span>📅</span> Керування календарем зайнятості</div>
-                  <div style={{ ...featureCheckRowStyle, color: '#291C0E', fontWeight: 700 }}><span>📈</span> Стабільний заробіток та аналітика</div>
+                <div style={styles.crFeaturesList}>
+                  <div style={{ ...styles.crFeatureItem, color: '#291C0E', fontWeight: 700 }}>
+                    <PlusCircleIcon />
+                    <span>Публікація власних об&apos;єктів</span>
+                  </div>
+                  <div style={{ ...styles.crFeatureItem, color: '#291C0E', fontWeight: 700 }}>
+                    <CalendarIcon />
+                    <span>Керування календарем зайнятості</span>
+                  </div>
+                  <div style={{ ...styles.crFeatureItem, color: '#291C0E', fontWeight: 700 }}>
+                    <TrendingUpIcon />
+                    <span>Стабільний заробіток та аналітика</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Попередження */}
-            <div style={warningNoticeBoxStyle}>
-              <span style={{ fontSize: '20px' }}>⚠️</span>
-              <div>
-                <div style={{ color: '#DC9666', fontSize: '16px', fontWeight: 700 }}>Зміна робочого інтерфейсу</div>
-                <div style={{ color: '#DC9666', fontSize: '14px', lineHeight: '20px', marginTop: '4px' }}>
-                  Після активації кабінету Господаря вам стануть доступні нові сторінки: Фінанси, Аналітика, Керування житлом та Календар.
+            {/* ПОПЕРЕДЖЕННЯ З FIGMA */}
+            <div style={styles.crWarningNotice}>
+              <div style={{ paddingTop: '2px' }}>
+                <AlertTriangleIcon />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={styles.crWarningTitle}>Зміна робочого інтерфейсу</div>
+                <div style={styles.crWarningDesc}>
+                  Після активації кабінету Господаря вам стануть доступні нові сторінки: Фінанси,
+                  Аналітика, Керування житлом, Календар бронювань та інші. Ваш поточний інтерфейс
+                  орендаря залишиться без змін.
                 </div>
               </div>
             </div>
 
-            {/* Підтвердження */}
-            <button
-              onClick={handleRoleUpgrade}
-              disabled={loading}
-              style={confirmRoleBtnStyle}
+            {/* ЧЕКБОКС ЗГОДИ */}
+            <label
+              onClick={() => setRoleCheckbox(!roleCheckbox)}
+              style={styles.crCheckboxRow}
             >
-              {loading ? 'Активація...' : 'Підтвердити зміну ролі та продовжити'}
-            </button>
+              <div
+                style={{
+                  ...styles.crCheckboxSquare,
+                  borderColor: roleCheckbox ? '#DC9666' : '#A78D78',
+                  backgroundColor: roleCheckbox ? '#DC9666' : '#FFFFFF',
+                }}
+              >
+                {roleCheckbox && <CheckIcon color="#FFFFFF" size={14} />}
+              </div>
+              <span style={styles.crCheckboxLabel}>
+                Я ознайомлений(-а) зі зміною умов надання послуг та підтверджую активацію кабінету
+                Орендодавця
+              </span>
+            </label>
+
+            <div style={styles.crDivider} />
+
+            {/* ДВІ КНОПКИ З FIGMA: Скасувати / Обрати роль */}
+            <div style={styles.crActionBlock}>
+              <div style={styles.crButtonGroup}>
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  style={styles.crBtnBack}
+                >
+                  Скасувати
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmRoleChange}
+                  disabled={loading}
+                  style={styles.crBtnConfirm}
+                >
+                  {loading ? 'Активація...' : 'Обрати роль'}
+                </button>
+              </div>
+
+              <div style={styles.crReassurance}>
+                <InfoIcon />
+                <span style={styles.crReassuranceText}>
+                  Не хвилюйтеся, ви зможете легко повернутися до ролі Орендаря в будь-який момент у
+                  налаштуваннях профілю.
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
+  // =========================================================================
+  // 1. ОСНОВНИЙ ФЛОУ: 6 КРОКІВ РЕЄСТРАЦІЇ ЖИТЛА ДЛЯ ОРЕНДОДАВЦЯ
+  // =========================================================================
   return (
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
-      
-      {/* 1. ГОРИЗОНТАЛЬНИЙ СТЕППЕР З FIGMA */}
-      <div style={stepperBarContainerStyle}>
+      {/* СТЕППЕР ВГОРІ */}
+      <div style={styles.stepperBarContainer}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
             Створення нового оголошення
@@ -436,7 +570,7 @@ export const RouteCreate: React.FC = () => {
                   >
                     <div
                       style={{
-                        ...stepCircleStyle,
+                        ...styles.stepCircle,
                         backgroundColor: isPastOrCurrent ? '#DC9666' : '#A78D78',
                       }}
                     >
@@ -453,18 +587,17 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. ТІЛО СТОРІНКИ (КРОКИ) */}
+      {/* ТІЛО КРОКІВ */}
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '48px 40px 140px 40px' }}>
-        
-        {/* ================= КРОК 1: ТИП ПОМЕШКАННЯ ================= */}
+        {/* КРОК 1 */}
         {step === 1 && (
-          <div style={stepCardMainStyle}>
+          <div style={styles.stepCardMain}>
             <div style={{ marginBottom: '28px' }}>
-              <h2 style={stepTitleStyle}>Крок 1. Оберіть тип помешкання</h2>
-              <p style={stepSubtitleStyle}>Це допоможе мандрівникам знайти ваше житло у відповідній категорії</p>
+              <h2 style={styles.stepTitle}>Крок 1. Оберіть тип помешкання</h2>
+              <p style={styles.stepSubtitle}>Це допоможе мандрівникам знайти ваше житло у відповідній категорії</p>
             </div>
 
-            <div style={typesGridStyle}>
+            <div style={styles.typesGrid}>
               {ACCOMMODATION_TYPES.map((t) => {
                 const isSelected = formData.type === t.id;
                 return (
@@ -472,12 +605,12 @@ export const RouteCreate: React.FC = () => {
                     key={t.id}
                     onClick={() => setFormData({ ...formData, type: t.id })}
                     style={{
-                      ...typeCardItemStyle,
+                      ...styles.typeCardItem,
                       borderColor: isSelected ? '#DC9666' : '#D7C7B1',
                       boxShadow: isSelected ? '0px 6px 18px rgba(220, 150, 102, 0.25)' : 'none',
                     }}
                   >
-                    <div style={typeIconBoxStyle}>{t.icon}</div>
+                    <div style={styles.typeIconBox}>{t.icon}</div>
                     <div style={{ fontSize: '18px', fontWeight: 700, color: '#291C0E', marginTop: '6px' }}>{t.label}</div>
                     <div style={{ fontSize: '13px', color: '#A78D78', marginTop: '2px' }}>{t.subtitle}</div>
                   </div>
@@ -485,75 +618,73 @@ export const RouteCreate: React.FC = () => {
               })}
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
-            {/* Локація */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#291C0E', margin: 0, fontFamily: "'Alegreya', serif" }}>
                 Основна інформація
               </h3>
 
               <div>
-                <label style={formLabelStyle}>Населений пункт та область *</label>
+                <label style={styles.formLabel}>Населений пункт та область *</label>
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="наприклад: Яремче, Івано-Франківська область"
-                  style={formInputStyle}
+                  style={styles.formInput}
                 />
               </div>
 
               <div>
-                <label style={formLabelStyle}>Точна адреса (вулиця, номер будинку)</label>
+                <label style={styles.formLabel}>Точна адреса (вулиця, номер будинку)</label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   placeholder="вул. Свободи 12"
-                  style={formInputStyle}
+                  style={styles.formInput}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* ================= КРОК 2: НАЗВА ТА ФОРМАТ ================= */}
+        {/* КРОК 2 */}
         {step === 2 && (
-          <div style={stepCardMainStyle}>
+          <div style={styles.stepCardMain}>
             <div style={{ marginBottom: '28px' }}>
-              <h2 style={stepTitleStyle}>Крок 2. Назва та формат оренди</h2>
-              <p style={stepSubtitleStyle}>Сформулюйте привабливу назву та вкажіть основні умови перебування</p>
+              <h2 style={styles.stepTitle}>Крок 2. Назва та формат оренди</h2>
+              <p style={styles.stepSubtitle}>Сформулюйте привабливу назву та вкажіть основні умови перебування</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={formLabelStyle}>Коротка назва для пошуку (до 50 символів) *</label>
+                <label style={styles.formLabel}>Коротка назва для пошуку (до 60 символів) *</label>
                 <input
                   type="text"
                   maxLength={60}
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  style={formInputStyle}
+                  style={styles.formInput}
                 />
               </div>
 
               <div>
-                <label style={formLabelStyle}>Детальний опис для мандрівників</label>
+                <label style={styles.formLabel}>Детальний опис для мандрівників</label>
                 <textarea
                   rows={4}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={formTextareaStyle}
+                  style={styles.formTextarea}
                 />
               </div>
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
-            {/* Формат оренди */}
             <div>
-              <label style={{ ...formLabelStyle, fontSize: '18px', marginBottom: '14px' }}>Тип здачі в оренду</label>
+              <label style={{ ...styles.formLabel, fontSize: '18px', marginBottom: '14px' }}>Тип здачі в оренду</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
                 {[
                   { id: 'daily', title: 'Подобово', sub: 'Для коротких мандрівок' },
@@ -564,15 +695,15 @@ export const RouteCreate: React.FC = () => {
                   return (
                     <div
                       key={rf.id}
-                      onClick={() => setFormData({ ...formData, rentalFormat: rf.id as any })}
+                      onClick={() => setFormData({ ...formData, rentalFormat: rf.id as 'daily' | 'monthly' | 'longterm' })}
                       style={{
-                        ...rentalFormatBoxStyle,
+                        ...styles.rentalFormatBox,
                         borderColor: active ? '#DC9666' : '#D7C7B1',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <strong style={{ color: active ? '#DC9666' : '#291C0E', fontSize: '16px' }}>{rf.title}</strong>
-                        <div style={{ ...radioCircleStyle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
+                        <div style={{ ...styles.radioCircle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
                       </div>
                       <span style={{ color: '#A78D78', fontSize: '13px', marginTop: '6px', display: 'block' }}>{rf.sub}</span>
                     </div>
@@ -581,46 +712,45 @@ export const RouteCreate: React.FC = () => {
               </div>
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
-            {/* Степпери параметрів */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
               <div>
-                <label style={formLabelStyle}>Макс. кількість гостей</label>
-                <div style={stepperContainerStyle}>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, maxGuests: Math.max(1, formData.maxGuests - 1) })}>-</button>
-                  <span style={stepperNumStyle}>{formData.maxGuests}</span>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, maxGuests: formData.maxGuests + 1 })}>+</button>
+                <label style={styles.formLabel}>Макс. кількість гостей</label>
+                <div style={styles.stepperContainer}>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, maxGuests: Math.max(1, formData.maxGuests - 1) })}>-</button>
+                  <span style={styles.stepperNum}>{formData.maxGuests}</span>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, maxGuests: formData.maxGuests + 1 })}>+</button>
                 </div>
               </div>
 
               <div>
-                <label style={formLabelStyle}>Кількість спалень</label>
-                <div style={stepperContainerStyle}>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, bedroomsCount: Math.max(1, formData.bedroomsCount - 1) })}>-</button>
-                  <span style={stepperNumStyle}>{formData.bedroomsCount}</span>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, bedroomsCount: formData.bedroomsCount + 1 })}>+</button>
+                <label style={styles.formLabel}>Кількість спалень</label>
+                <div style={styles.stepperContainer}>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bedroomsCount: Math.max(1, formData.bedroomsCount - 1) })}>-</button>
+                  <span style={styles.stepperNum}>{formData.bedroomsCount}</span>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bedroomsCount: formData.bedroomsCount + 1 })}>+</button>
                 </div>
               </div>
 
               <div>
-                <label style={formLabelStyle}>Кількість санвузлів</label>
-                <div style={stepperContainerStyle}>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, bathroomsCount: Math.max(1, formData.bathroomsCount - 1) })}>-</button>
-                  <span style={stepperNumStyle}>{formData.bathroomsCount}</span>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, bathroomsCount: formData.bathroomsCount + 1 })}>+</button>
+                <label style={styles.formLabel}>Кількість санвузлів</label>
+                <div style={styles.stepperContainer}>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bathroomsCount: Math.max(1, formData.bathroomsCount - 1) })}>-</button>
+                  <span style={styles.stepperNum}>{formData.bathroomsCount}</span>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bathroomsCount: formData.bathroomsCount + 1 })}>+</button>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ================= КРОК 3: ЗРУЧНОСТІ ================= */}
+        {/* КРОК 3 */}
         {step === 3 && (
-          <div style={stepCardMainStyle}>
+          <div style={styles.stepCardMain}>
             <div style={{ marginBottom: '28px' }}>
-              <h2 style={stepTitleStyle}>Крок 3. Зручності вашого помешкання</h2>
-              <p style={stepSubtitleStyle}>Оберіть усе устаткування та сервіси, які будуть доступні гостям</p>
+              <h2 style={styles.stepTitle}>Крок 3. Зручності вашого помешкання</h2>
+              <p style={styles.stepSubtitle}>Оберіть усе устаткування та сервіси, які будуть доступні гостям</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -635,12 +765,12 @@ export const RouteCreate: React.FC = () => {
                           key={item}
                           onClick={() => toggleAmenity(item)}
                           style={{
-                            ...amenityToggleCardStyle,
+                            ...styles.amenityToggleCard,
                             borderColor: checked ? '#DC9666' : '#D7C7B1',
                             backgroundColor: checked ? 'rgba(220, 150, 102, 0.1)' : '#FFFFFF',
                           }}
                         >
-                          <div style={{ ...checkboxSquareStyle, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
+                          <div style={{ ...styles.checkboxSquare, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
                             {checked && <CheckIcon color="#FFFFFF" size={12} />}
                           </div>
                           <span style={{ fontSize: '14px', fontWeight: checked ? 700 : 500, color: '#6E473B' }}>{item}</span>
@@ -651,7 +781,6 @@ export const RouteCreate: React.FC = () => {
                 </div>
               ))}
 
-              {/* Харчування */}
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', margin: '0 0 14px 0' }}>Харчування</h3>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
@@ -666,7 +795,7 @@ export const RouteCreate: React.FC = () => {
                         type="radio"
                         name="mealPlan"
                         checked={formData.mealPlan === m.id}
-                        onChange={() => setFormData({ ...formData, mealPlan: m.id as any })}
+                        onChange={() => setFormData({ ...formData, mealPlan: m.id as 'none' | 'breakfast' | 'half' | 'full' })}
                         style={{ accentColor: '#DC9666' }}
                       />
                       {m.label}
@@ -678,12 +807,12 @@ export const RouteCreate: React.FC = () => {
           </div>
         )}
 
-        {/* ================= КРОК 4: ФОТО ================= */}
+        {/* КРОК 4 */}
         {step === 4 && (
-          <div style={stepCardMainStyle}>
+          <div style={styles.stepCardMain}>
             <div style={{ marginBottom: '28px' }}>
-              <h2 style={stepTitleStyle}>Крок 4. Світлини вашого помешкання</h2>
-              <p style={stepSubtitleStyle}>Завантажте щонайменше 4 якісних фотографій. Перша стане обкладинкою</p>
+              <h2 style={styles.stepTitle}>Крок 4. Світлини вашого помешкання</h2>
+              <p style={styles.stepSubtitle}>Завантажте якісні фотографії. Перша стане обкладинкою</p>
             </div>
 
             <input
@@ -701,12 +830,12 @@ export const RouteCreate: React.FC = () => {
               onDragLeave={() => setIsDragging(false)}
               onDrop={(e) => { e.preventDefault(); setIsDragging(false); processFiles(e.dataTransfer.files); }}
               style={{
-                ...photoDropzoneStyle,
+                ...styles.photoDropzone,
                 borderColor: isDragging ? '#DC9666' : '#D7C7B1',
                 backgroundColor: isDragging ? 'rgba(220, 150, 102, 0.15)' : '#FFFFFF',
               }}
             >
-              <div style={uploadIconCircleStyle}>
+              <div style={styles.uploadIconCircle}>
                 <UploadCloudIcon />
               </div>
               <div style={{ color: '#DC9666', fontSize: '18px', fontWeight: 700 }}>
@@ -717,7 +846,7 @@ export const RouteCreate: React.FC = () => {
               </span>
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
             <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
               Завантажені світлини ({formData.imageUrls.length})
@@ -725,13 +854,13 @@ export const RouteCreate: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
               {formData.imageUrls.map((url, idx) => (
-                <div key={idx} style={uploadedCardStyle}>
+                <div key={idx} style={styles.uploadedCard}>
                   <img src={url} alt={`Photo ${idx}`} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
                       {idx === 0 ? 'Головна (Обкладинка)' : `Світлина ${idx + 1}`}
                     </span>
-                    <button onClick={() => removeImage(idx)} style={deleteCrossBtnStyle} title="Видалити">
+                    <button onClick={() => removeImage(idx)} style={styles.deleteCrossBtn} title="Видалити">
                       ×
                     </button>
                   </div>
@@ -741,44 +870,43 @@ export const RouteCreate: React.FC = () => {
           </div>
         )}
 
-        {/* ================= КРОК 5: ЦІНА ================= */}
+        {/* КРОК 5 */}
         {step === 5 && (
-          <div style={stepCardMainStyle}>
+          <div style={styles.stepCardMain}>
             <div style={{ marginBottom: '28px' }}>
-              <h2 style={stepTitleStyle}>Крок 5. Встановлення ціни та умови бронювання</h2>
-              <p style={stepSubtitleStyle}>Визначте фінансові умови вашого оголошення та правила скасування замовлень</p>
+              <h2 style={styles.stepTitle}>Крок 5. Встановлення ціни та умови бронювання</h2>
+              <p style={styles.stepSubtitle}>Визначте фінансові умови вашого оголошення та правила скасування замовлень</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
               <div>
-                <label style={formLabelStyle}>Базова ціна за добу *</label>
-                <div style={priceInputWrapperStyle}>
+                <label style={styles.formLabel}>Базова ціна за добу *</label>
+                <div style={styles.priceInputWrapper}>
                   <input
                     type="number"
                     step={50}
                     value={formData.pricePerNight}
                     onChange={(e) => setFormData({ ...formData, pricePerNight: Number(e.target.value) })}
-                    style={priceNumberInputStyle}
+                    style={styles.priceNumberInput}
                   />
                   <span style={{ color: '#A78D78', fontSize: '16px' }}>₴ / доба</span>
                 </div>
               </div>
 
               <div>
-                <label style={formLabelStyle}>Мінімальний термін оренди (діб)</label>
-                <div style={stepperContainerStyle}>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, minDays: Math.max(1, formData.minDays - 1) })}>-</button>
-                  <span style={stepperNumStyle}>{formData.minDays}</span>
-                  <button style={stepperBtnStyle} onClick={() => setFormData({ ...formData, minDays: formData.minDays + 1 })}>+</button>
+                <label style={styles.formLabel}>Мінімальний термін оренди (діб)</label>
+                <div style={styles.stepperContainer}>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, minDays: Math.max(1, formData.minDays - 1) })}>-</button>
+                  <span style={styles.stepperNum}>{formData.minDays}</span>
+                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, minDays: formData.minDays + 1 })}>+</button>
                 </div>
               </div>
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
-            {/* Політика скасування */}
             <div>
-              <label style={{ ...formLabelStyle, fontSize: '18px', marginBottom: '14px' }}>Політика скасування</label>
+              <label style={{ ...styles.formLabel, fontSize: '18px', marginBottom: '14px' }}>Політика скасування</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                 {[
                   { id: 'flexible', title: 'Гнучка', desc: 'Безкоштовне скасування за 24 години до приїзду' },
@@ -789,15 +917,15 @@ export const RouteCreate: React.FC = () => {
                   return (
                     <div
                       key={p.id}
-                      onClick={() => setFormData({ ...formData, cancellationPolicy: p.id as any })}
+                      onClick={() => setFormData({ ...formData, cancellationPolicy: p.id as 'flexible' | 'moderate' | 'strict' })}
                       style={{
-                        ...rentalFormatBoxStyle,
+                        ...styles.rentalFormatBox,
                         borderColor: active ? '#DC9666' : '#D7C7B1',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <strong style={{ color: active ? '#DC9666' : '#291C0E', fontSize: '16px' }}>{p.title}</strong>
-                        <div style={{ ...radioCircleStyle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
+                        <div style={{ ...styles.radioCircle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
                       </div>
                       <span style={{ color: '#A78D78', fontSize: '13px', marginTop: '6px', display: 'block', lineHeight: '18px' }}>
                         {p.desc}
@@ -808,28 +936,27 @@ export const RouteCreate: React.FC = () => {
               </div>
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
-            {/* Додаткові збори */}
             <div>
               <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>Додаткові послуги та збори</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div>
-                  <label style={formLabelStyle}>Плата за прибирання (одноразово)</label>
+                  <label style={styles.formLabel}>Плата за прибирання (одноразово)</label>
                   <input
                     type="number"
                     value={formData.cleaningFee}
                     onChange={(e) => setFormData({ ...formData, cleaningFee: Number(e.target.value) })}
-                    style={formInputStyle}
+                    style={styles.formInput}
                   />
                 </div>
                 <div>
-                  <label style={formLabelStyle}>Застава за майно (повертається)</label>
+                  <label style={styles.formLabel}>Застава за майно (повертається)</label>
                   <input
                     type="number"
                     value={formData.depositFee}
                     onChange={(e) => setFormData({ ...formData, depositFee: Number(e.target.value) })}
-                    style={formInputStyle}
+                    style={styles.formInput}
                   />
                 </div>
               </div>
@@ -837,23 +964,22 @@ export const RouteCreate: React.FC = () => {
           </div>
         )}
 
-        {/* ================= КРОК 6: ПУБЛІКАЦІЯ ================= */}
+        {/* КРОК 6 */}
         {step === 6 && (
-          <div style={stepCardMainStyle}>
+          <div style={styles.stepCardMain}>
             <div style={{ marginBottom: '24px' }}>
-              <h2 style={stepTitleStyle}>Крок 6. Перевірка та публікація</h2>
-              <p style={stepSubtitleStyle}>Останній крок! Перевірте правильність заповнення та надішліть оголошення</p>
+              <h2 style={styles.stepTitle}>Крок 6. Перевірка та публікація</h2>
+              <p style={styles.stepSubtitle}>Останній крок! Перевірте правильність заповнення та надішліть оголошення</p>
             </div>
 
-            <hr style={formDividerStyle} />
+            <hr style={styles.formDivider} />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', alignItems: 'flex-start' }}>
-              {/* Попередній перегляд картки */}
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '14px' }}>
                   Попередній перегляд картки
                 </div>
-                <div style={previewCardFigmaStyle}>
+                <div style={styles.previewCardFigma}>
                   <img
                     src={formData.imageUrls[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
                     alt="Preview Cover"
@@ -865,7 +991,7 @@ export const RouteCreate: React.FC = () => {
                         <MapPinIcon />
                         <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location}</span>
                       </div>
-                      <span style={previewPillTagStyle}>
+                      <span style={styles.previewPillTag}>
                         {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале'}
                       </span>
                     </div>
@@ -880,13 +1006,16 @@ export const RouteCreate: React.FC = () => {
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {formData.amenities.slice(0, 6).map((a) => (
-                        <span key={a} style={amenityBadgePreviewStyle}>{a}</span>
+                        <span key={a} style={styles.amenityBadgePreview}>{a}</span>
                       ))}
                     </div>
 
-                    <div style={previewPriceFooterStyle}>
+                    <div style={styles.previewPriceFooter}>
                       <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{user?.firstName || 'Ярослав'} {user?.lastName || 'К.'}</div>
+                        {/* ЗМІННА user ВИКОРИСТОВУЄТЬСЯ ТУТ */}
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>
+                          {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Ярослав К.'}
+                        </div>
                         <div style={{ fontSize: '12px', color: '#A78D78' }}>Власник оголошення</div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
@@ -902,43 +1031,43 @@ export const RouteCreate: React.FC = () => {
 
               {/* Чек-лист готовності */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={checklistCardBoxStyle}>
+                <div style={styles.checklistCardBox}>
                   <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B' }}>Готовність до публікації</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={checkRowItemStyle}>
-                      <div style={greenTickCircleStyle}><CheckIcon color="#DC9666" size={14} /></div>
+                    <div style={styles.checkRowItem}>
+                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Тип помешкання</div>
                         <div style={{ fontSize: '12px', color: '#A78D78' }}>Вибрано {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label}</div>
                       </div>
                     </div>
 
-                    <div style={checkRowItemStyle}>
-                      <div style={greenTickCircleStyle}><CheckIcon color="#DC9666" size={14} /></div>
+                    <div style={styles.checkRowItem}>
+                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Назва та опис</div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано локальну назву та детальне резюме</div>
+                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано назву та опис для гостей</div>
                       </div>
                     </div>
 
-                    <div style={checkRowItemStyle}>
-                      <div style={greenTickCircleStyle}><CheckIcon color="#DC9666" size={14} /></div>
+                    <div style={styles.checkRowItem}>
+                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Зручності</div>
                         <div style={{ fontSize: '12px', color: '#A78D78' }}>Обрано {formData.amenities.length} позицій</div>
                       </div>
                     </div>
 
-                    <div style={checkRowItemStyle}>
-                      <div style={greenTickCircleStyle}><CheckIcon color="#DC9666" size={14} /></div>
+                    <div style={styles.checkRowItem}>
+                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Фотографії</div>
                         <div style={{ fontSize: '12px', color: '#A78D78' }}>Завантажено {formData.imageUrls.length} знімків</div>
                       </div>
                     </div>
 
-                    <div style={checkRowItemStyle}>
-                      <div style={greenTickCircleStyle}><CheckIcon color="#DC9666" size={14} /></div>
+                    <div style={styles.checkRowItem}>
+                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Тариф</div>
                         <div style={{ fontSize: '12px', color: '#A78D78' }}>Встановлено ціну {formatPrice(formData.pricePerNight)}</div>
@@ -947,15 +1076,13 @@ export const RouteCreate: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Повідомлення про модерацію */}
-                <div style={moderationNoticeStyle}>
+                <div style={styles.moderationNotice}>
                   <ClockIcon />
                   <span style={{ fontSize: '14px', color: '#DC9666', lineHeight: '20px' }}>
-                    Ваше оголошення буде доступне для бронювання мандрівниками після проходження швидкої модерації (до 24 годин).
+                    Ваше оголошення буде доступне для бронювання після швидкої перевірки (до 24 годин).
                   </span>
                 </div>
 
-                {/* Чекбокс ліцензії */}
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
@@ -964,23 +1091,16 @@ export const RouteCreate: React.FC = () => {
                     style={{ marginTop: '3px', accentColor: '#DC9666' }}
                   />
                   <span style={{ fontSize: '13px', color: '#6E473B', lineHeight: '20px' }}>
-                    Я погоджуюся з <strong style={{ color: '#DC9666', textDecoration: 'underline' }}>Правилами публікації оголошень</strong> та ліцензійною угодою сервісу Trails UA.
+                    Я погоджуюся з <strong style={{ color: '#DC9666', textDecoration: 'underline' }}>Правилами публікації оголошень</strong> та ліцензійною угодою Trails UA.
                   </span>
                 </label>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
-                  <button
-                    onClick={handlePublish}
-                    disabled={loading}
-                    style={publishActionBtnStyle}
-                  >
+                  <button onClick={handlePublish} disabled={loading} style={styles.publishActionBtn}>
                     {loading ? 'Публікація...' : 'Опублікувати зараз'}
                   </button>
 
-                  <button
-                    onClick={() => { alert('Чернетку збережено!'); navigate('/routes'); }}
-                    style={saveDraftBtnStyle}
-                  >
+                  <button onClick={() => { alert('Чернетку збережено!'); navigate('/routes'); }} style={styles.saveDraftBtn}>
                     Зберегти як чернетку
                   </button>
                 </div>
@@ -990,505 +1110,605 @@ export const RouteCreate: React.FC = () => {
         )}
       </div>
 
-      {/* 3. ФІКСОВАНА ПЛАШКА НАВІГАЦІЇ ВНИЗУ (STICKY BOTTOM) */}
-      <div style={stickyBottomBarStyle}>
+      {/* НИЖНІЙ СТІКІ-БАР НАВІГАЦІЇ */}
+      <div style={styles.stickyBottomBar}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ color: '#DC9666', fontSize: '15px', fontWeight: 700 }}>Крок</span>
-            <div style={stepCounterBadgeStyle}>{step} з 6</div>
+            <div style={styles.stepCounterBadge}>{step} з 6</div>
           </div>
 
           <div style={{ display: 'flex', gap: '16px' }}>
             {step > 1 && (
-              <button onClick={() => setStep(step - 1)} style={navBackBtnStyle}>
+              <button onClick={() => setStep(step - 1)} style={styles.navBackBtn}>
                 Назад
               </button>
             )}
 
             {step < 6 ? (
-              <button onClick={() => setStep(step + 1)} style={navNextBtnStyle}>
+              <button onClick={() => setStep(step + 1)} style={styles.navNextBtn}>
                 Далі
               </button>
             ) : (
-              <button onClick={handlePublish} disabled={loading} style={navNextBtnStyle}>
+              <button onClick={handlePublish} disabled={loading} style={styles.navNextBtn}>
                 Зареєструвати помешкання
               </button>
             )}
           </div>
         </div>
       </div>
-
     </div>
   );
 };
 
-// ======================= СТИЛІ FIGMA =======================
+// ======================== СТИЛІ ========================
 
-const stepperBarContainerStyle: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  borderBottom: '1px solid #D7C7B1',
-  padding: '24px 40px',
-  boxSizing: 'border-box',
-};
+const styles: Record<string, React.CSSProperties> = {
+  // Зміна ролі (Figma)
+  changeRoleWrapper: {
+    minHeight: '100vh',
+    backgroundColor: '#E1D4C2',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '40px 20px',
+    boxSizing: 'border-box',
+    fontFamily: "'Iosevka Charon', 'Manrope', 'DM Sans', sans-serif",
+  },
+  changeRoleContainer: {
+    width: '100%',
+    maxWidth: '920px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  changeRoleCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '24px',
+    border: '1px solid #D7C7B1',
+    boxShadow: '0px 8px 32px rgba(41, 28, 14, 0.06)',
+    padding: '44px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '30px',
+  },
+  crHeader: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  crEyebrow: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  crEyebrowText: {
+    color: '#DC9666',
+    fontSize: '15px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+  crMainTitle: {
+    fontSize: '36px',
+    fontFamily: "'Alegreya', Georgia, serif",
+    fontWeight: 800,
+    color: '#291C0E',
+    margin: 0,
+    lineHeight: 1.25,
+  },
+  crSubtitle: {
+    fontSize: '16px',
+    color: '#6E473B',
+    lineHeight: '24px',
+    margin: 0,
+  },
+  crComparisonRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '24px',
+    width: '100%',
+  },
+  crTenantBox: {
+    padding: '24px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '16px',
+    border: '1px solid #D7C7B1',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+  },
+  crLandlordBox: {
+    padding: '24px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '16px',
+    border: '2px solid #DC9666',
+    boxShadow: '0px 6px 20px rgba(220, 150, 102, 0.15)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+  },
+  crTitleRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  crTenantTitle: {
+    color: '#6E473B',
+    fontSize: '20px',
+    fontWeight: 700,
+  },
+  crLandlordTitle: {
+    color: '#DC9666',
+    fontSize: '20px',
+    fontWeight: 700,
+  },
+  crCurrentBadge: {
+    padding: '4px 8px',
+    backgroundColor: '#6E473B',
+    borderRadius: '6px',
+    color: '#FFFFFF',
+    fontSize: '12px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+  crNewBadge: {
+    padding: '4px 8px',
+    backgroundColor: 'rgba(46, 125, 50, 0.15)',
+    borderRadius: '6px',
+    color: '#2E7D32',
+    fontSize: '12px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+  crFeaturesList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  crFeatureItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    color: '#6E473B',
+    fontSize: '14px',
+  },
+  crWarningNotice: {
+    padding: '20px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    borderRadius: '12px',
+    border: '1px solid #DC9666',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '16px',
+  },
+  crWarningTitle: {
+    color: '#DC9666',
+    fontSize: '16px',
+    fontWeight: 700,
+  },
+  crWarningDesc: {
+    color: '#6E473B',
+    fontSize: '14px',
+    lineHeight: '21px',
+  },
+  crCheckboxRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    cursor: 'pointer',
+    userSelect: 'none',
+  },
+  crCheckboxSquare: {
+    width: '22px',
+    height: '22px',
+    borderRadius: '6px',
+    border: '2px solid #A78D78',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    transition: 'all 0.2s',
+  },
+  crCheckboxLabel: {
+    color: '#291C0E',
+    fontSize: '15px',
+    fontWeight: 500,
+    lineHeight: 1.4,
+  },
+  crDivider: {
+    width: '100%',
+    height: '1px',
+    backgroundColor: '#D7C7B1',
+  },
+  crActionBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  crButtonGroup: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '20px',
+    width: '100%',
+  },
+  crBtnBack: {
+    padding: '14px 24px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '12px',
+    border: '1.5px solid #6E473B',
+    color: '#6E473B',
+    fontSize: '15px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  crBtnConfirm: {
+    padding: '14px 24px',
+    backgroundColor: '#DC9666',
+    borderRadius: '12px',
+    border: 'none',
+    color: '#FFFFFF',
+    fontSize: '15px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: '0 4px 14px rgba(220, 150, 102, 0.35)',
+  },
+  crReassurance: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+  },
+  crReassuranceText: {
+    color: '#A78D78',
+    fontSize: '13px',
+    textAlign: 'center',
+  },
+  errorBanner: {
+    backgroundColor: '#FDE8E8',
+    color: '#C62828',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: 600,
+    border: '1px solid #F8B4B4',
+  },
 
-const stepCircleStyle: React.CSSProperties = {
-  width: '24px',
-  height: '24px',
-  borderRadius: '12px',
-  color: 'white',
-  fontSize: '12px',
-  fontWeight: 700,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const stepCardMainStyle: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  borderRadius: '24px',
-  border: '1px solid #D7C7B1',
-  padding: '36px',
-  boxShadow: '0px 8px 24px rgba(41, 28, 14, 0.04)',
-};
-
-const stepTitleStyle: React.CSSProperties = {
-  fontSize: '28px',
-  fontFamily: "'Alegreya', serif",
-  fontWeight: 800,
-  color: '#291C0E',
-  margin: '0 0 8px 0',
-};
-
-const stepSubtitleStyle: React.CSSProperties = {
-  fontSize: '16px',
-  color: '#6E473B',
-  margin: 0,
-};
-
-const formDividerStyle: React.CSSProperties = {
-  border: 'none',
-  height: '1px',
-  backgroundColor: '#D7C7B1',
-  margin: '28px 0',
-};
-
-const typesGridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-  gap: '20px',
-};
-
-const typeCardItemStyle: React.CSSProperties = {
-  padding: '24px 20px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  cursor: 'pointer',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  transition: 'all 0.2s ease',
-};
-
-const typeIconBoxStyle: React.CSSProperties = {
-  width: '48px',
-  height: '48px',
-  borderRadius: '10px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: '24px',
-};
-
-const formLabelStyle: React.CSSProperties = {
-  color: '#6E473B',
-  fontSize: '14px',
-  fontWeight: 700,
-  display: 'block',
-  marginBottom: '8px',
-};
-
-const formInputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '14px 16px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '8px',
-  border: '1px solid #D7C7B1',
-  outline: 'none',
-  fontSize: '15px',
-  color: '#291C0E',
-  boxSizing: 'border-box',
-};
-
-const formTextareaStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '14px 16px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '8px',
-  border: '1px solid #D7C7B1',
-  outline: 'none',
-  fontSize: '15px',
-  color: '#291C0E',
-  boxSizing: 'border-box',
-  fontFamily: 'inherit',
-};
-
-const rentalFormatBoxStyle: React.CSSProperties = {
-  padding: '20px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '12px',
-  border: '1px solid #D7C7B1',
-  cursor: 'pointer',
-};
-
-const radioCircleStyle: React.CSSProperties = {
-  width: '18px',
-  height: '18px',
-  borderRadius: '50%',
-  border: '2px solid',
-};
-
-const stepperContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '8px 10px',
-  borderRadius: '8px',
-  border: '1px solid #D7C7B1',
-  backgroundColor: '#FFFFFF',
-};
-
-const stepperBtnStyle: React.CSSProperties = {
-  width: '32px',
-  height: '32px',
-  backgroundColor: '#DC9666',
-  color: 'white',
-  borderRadius: '6px',
-  border: 'none',
-  fontSize: '18px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const stepperNumStyle: React.CSSProperties = {
-  color: '#6E473B',
-  fontSize: '16px',
-  fontWeight: 700,
-};
-
-const amenityToggleCardStyle: React.CSSProperties = {
-  padding: '12px 16px',
-  borderRadius: '12px',
-  border: '1px solid #D7C7B1',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  cursor: 'pointer',
-};
-
-const checkboxSquareStyle: React.CSSProperties = {
-  width: '20px',
-  height: '20px',
-  borderRadius: '6px',
-  border: '2px solid #A78D78',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-};
-
-const photoDropzoneStyle: React.CSSProperties = {
-  padding: '48px 24px',
-  borderRadius: '16px',
-  border: '2px dashed #DC9666',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '12px',
-  cursor: 'pointer',
-  textAlign: 'center',
-};
-
-const uploadIconCircleStyle: React.CSSProperties = {
-  width: '64px',
-  height: '64px',
-  borderRadius: '32px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const uploadedCardStyle: React.CSSProperties = {
-  borderRadius: '12px',
-  border: '1px solid #D7C7B1',
-  overflow: 'hidden',
-  backgroundColor: '#FFFFFF',
-};
-
-const deleteCrossBtnStyle: React.CSSProperties = {
-  width: '26px',
-  height: '26px',
-  borderRadius: '13px',
-  backgroundColor: '#DC9666',
-  color: 'white',
-  border: 'none',
-  fontSize: '18px',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const priceInputWrapperStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  padding: '8px 14px',
-  borderRadius: '8px',
-  border: '1px solid #D7C7B1',
-  backgroundColor: '#FFFFFF',
-};
-
-const priceNumberInputStyle: React.CSSProperties = {
-  border: 'none',
-  outline: 'none',
-  fontSize: '22px',
-  fontWeight: 700,
-  color: '#DC9666',
-  width: '100%',
-};
-
-const previewCardFigmaStyle: React.CSSProperties = {
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  overflow: 'hidden',
-  backgroundColor: '#FFFFFF',
-  boxShadow: '0px 8px 24px rgba(17, 34, 17, 0.05)',
-};
-
-const previewPillTagStyle: React.CSSProperties = {
-  padding: '4px 12px',
-  borderRadius: '100px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  color: '#DC9666',
-  fontSize: '12px',
-  fontWeight: 700,
-};
-
-const amenityBadgePreviewStyle: React.CSSProperties = {
-  padding: '6px 12px',
-  borderRadius: '6px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  color: '#DC9666',
-  fontSize: '13px',
-  fontWeight: 500,
-};
-
-const previewPriceFooterStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  borderTop: '1px solid #D7C7B1',
-  paddingTop: '14px',
-  marginTop: '8px',
-};
-
-const checklistCardBoxStyle: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  padding: '24px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
-};
-
-const checkRowItemStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-};
-
-const greenTickCircleStyle: React.CSSProperties = {
-  width: '24px',
-  height: '24px',
-  borderRadius: '12px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-};
-
-const moderationNoticeStyle: React.CSSProperties = {
-  padding: '16px',
-  borderRadius: '12px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  border: '1px solid #DC9666',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-};
-
-const publishActionBtnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '16px',
-  backgroundColor: '#DC9666',
-  color: '#FFFFFF',
-  borderRadius: '8px',
-  border: 'none',
-  fontSize: '16px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const saveDraftBtnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '16px',
-  backgroundColor: '#FFFFFF',
-  color: '#DC9666',
-  borderRadius: '8px',
-  border: '1px solid #DC9666',
-  fontSize: '16px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const stickyBottomBarStyle: React.CSSProperties = {
-  position: 'fixed',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: '#FFFFFF',
-  borderTop: '1px solid #D7C7B1',
-  padding: '16px 40px',
-  boxSizing: 'border-box',
-  zIndex: 100,
-};
-
-const stepCounterBadgeStyle: React.CSSProperties = {
-  padding: '6px 12px',
-  borderRadius: '6px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  color: '#DC9666',
-  fontSize: '14px',
-  fontWeight: 700,
-};
-
-const navBackBtnStyle: React.CSSProperties = {
-  padding: '12px 24px',
-  borderRadius: '8px',
-  border: '1px solid #DC9666',
-  backgroundColor: '#FFFFFF',
-  color: '#DC9666',
-  fontSize: '15px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const navNextBtnStyle: React.CSSProperties = {
-  padding: '12px 32px',
-  borderRadius: '8px',
-  border: 'none',
-  backgroundColor: '#DC9666',
-  color: '#FFFFFF',
-  fontSize: '15px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-// СТИЛІ ЕКРАНУ ЗМІНИ РОЛІ
-const backToProfileLinkStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: '#C62828',
-  fontSize: '14px',
-  fontWeight: 700,
-  cursor: 'pointer',
-  marginBottom: '20px',
-  display: 'inline-flex',
-};
-
-const roleSwitchCardStyle: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
-  borderRadius: '24px',
-  border: '1px solid #D7C7B1',
-  padding: '40px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '28px',
-};
-
-const roleCardHeadingStyle: React.CSSProperties = {
-  fontSize: '34px',
-  fontFamily: "'Alegreya', serif",
-  fontWeight: 800,
-  color: '#291C0E',
-  margin: '8px 0 0 0',
-};
-
-const roleBoxRegularStyle: React.CSSProperties = {
-  padding: '24px',
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  backgroundColor: '#FFFFFF',
-};
-
-const roleBoxActiveStyle: React.CSSProperties = {
-  padding: '24px',
-  borderRadius: '16px',
-  border: '2px solid #DC9666',
-  backgroundColor: '#FFFFFF',
-};
-
-const currentRoleBadgeStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  borderRadius: '6px',
-  backgroundColor: '#6E473B',
-  color: 'white',
-  fontSize: '12px',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-};
-
-const newRoleBadgeStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  borderRadius: '6px',
-  backgroundColor: 'rgba(46, 125, 50, 0.15)',
-  color: '#2E7D32',
-  fontSize: '12px',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-};
-
-const featureCheckRowStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  fontSize: '14px',
-  color: '#6E473B',
-};
-
-const warningNoticeBoxStyle: React.CSSProperties = {
-  padding: '16px 20px',
-  borderRadius: '12px',
-  backgroundColor: 'rgba(220, 150, 102, 0.15)',
-  border: '1px solid #DC9666',
-  display: 'flex',
-  alignItems: 'flex-start',
-  gap: '14px',
-};
-
-const confirmRoleBtnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '16px',
-  backgroundColor: '#DC9666',
-  color: '#FFFFFF',
-  borderRadius: '12px',
-  border: 'none',
-  fontSize: '16px',
-  fontWeight: 700,
-  cursor: 'pointer',
+  // Створення житла (6 кроків)
+  stepperBarContainer: {
+    backgroundColor: '#FFFFFF',
+    borderBottom: '1px solid #D7C7B1',
+    padding: '24px 40px',
+    boxSizing: 'border-box',
+  },
+  stepCircle: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '12px',
+    color: 'white',
+    fontSize: '12px',
+    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCardMain: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '24px',
+    border: '1px solid #D7C7B1',
+    padding: '36px',
+    boxShadow: '0px 8px 24px rgba(41, 28, 14, 0.04)',
+  },
+  stepTitle: {
+    fontSize: '28px',
+    fontFamily: "'Alegreya', serif",
+    fontWeight: 800,
+    color: '#291C0E',
+    margin: '0 0 8px 0',
+  },
+  stepSubtitle: {
+    fontSize: '16px',
+    color: '#6E473B',
+    margin: 0,
+  },
+  formDivider: {
+    border: 'none',
+    height: '1px',
+    backgroundColor: '#D7C7B1',
+    margin: '28px 0',
+  },
+  typesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gap: '20px',
+  },
+  typeCardItem: {
+    padding: '24px 20px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '16px',
+    border: '1px solid #D7C7B1',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    transition: 'all 0.2s ease',
+  },
+  typeIconBox: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '10px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '24px',
+  },
+  formLabel: {
+    color: '#6E473B',
+    fontSize: '14px',
+    fontWeight: 700,
+    display: 'block',
+    marginBottom: '8px',
+  },
+  formInput: {
+    width: '100%',
+    padding: '14px 16px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '8px',
+    border: '1px solid #D7C7B1',
+    outline: 'none',
+    fontSize: '15px',
+    color: '#291C0E',
+    boxSizing: 'border-box',
+  },
+  formTextarea: {
+    width: '100%',
+    padding: '14px 16px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '8px',
+    border: '1px solid #D7C7B1',
+    outline: 'none',
+    fontSize: '15px',
+    color: '#291C0E',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+  },
+  rentalFormatBox: {
+    padding: '20px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '12px',
+    border: '1px solid #D7C7B1',
+    cursor: 'pointer',
+  },
+  radioCircle: {
+    width: '18px',
+    height: '18px',
+    borderRadius: '50%',
+    border: '2px solid',
+  },
+  stepperContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '8px 10px',
+    borderRadius: '8px',
+    border: '1px solid #D7C7B1',
+    backgroundColor: '#FFFFFF',
+  },
+  stepperBtn: {
+    width: '32px',
+    height: '32px',
+    backgroundColor: '#DC9666',
+    color: 'white',
+    borderRadius: '6px',
+    border: 'none',
+    fontSize: '18px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  stepperNum: {
+    color: '#6E473B',
+    fontSize: '16px',
+    fontWeight: 700,
+  },
+  amenityToggleCard: {
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: '1px solid #D7C7B1',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    cursor: 'pointer',
+  },
+  checkboxSquare: {
+    width: '20px',
+    height: '20px',
+    borderRadius: '6px',
+    border: '2px solid #A78D78',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  photoDropzone: {
+    padding: '48px 24px',
+    borderRadius: '16px',
+    border: '2px dashed #DC9666',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    cursor: 'pointer',
+    textAlign: 'center',
+  },
+  uploadIconCircle: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '32px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadedCard: {
+    borderRadius: '12px',
+    border: '1px solid #D7C7B1',
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+  },
+  deleteCrossBtn: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '13px',
+    backgroundColor: '#DC9666',
+    color: 'white',
+    border: 'none',
+    fontSize: '18px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  priceInputWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '8px 14px',
+    borderRadius: '8px',
+    border: '1px solid #D7C7B1',
+    backgroundColor: '#FFFFFF',
+  },
+  priceNumberInput: {
+    border: 'none',
+    outline: 'none',
+    fontSize: '22px',
+    fontWeight: 700,
+    color: '#DC9666',
+    width: '100%',
+  },
+  previewCardFigma: {
+    borderRadius: '16px',
+    border: '1px solid #D7C7B1',
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0px 8px 24px rgba(17, 34, 17, 0.05)',
+  },
+  previewPillTag: {
+    padding: '4px 12px',
+    borderRadius: '100px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    color: '#DC9666',
+    fontSize: '12px',
+    fontWeight: 700,
+  },
+  amenityBadgePreview: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    color: '#DC9666',
+    fontSize: '13px',
+    fontWeight: 500,
+  },
+  previewPriceFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTop: '1px solid #D7C7B1',
+    paddingTop: '14px',
+    marginTop: '8px',
+  },
+  checklistCardBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '16px',
+    border: '1px solid #D7C7B1',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  checkRowItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  greenTickCircle: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  moderationNotice: {
+    padding: '16px',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    border: '1px solid #DC9666',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  publishActionBtn: {
+    width: '100%',
+    padding: '16px',
+    backgroundColor: '#DC9666',
+    color: '#FFFFFF',
+    borderRadius: '8px',
+    border: 'none',
+    fontSize: '16px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  saveDraftBtn: {
+    width: '100%',
+    padding: '16px',
+    backgroundColor: '#FFFFFF',
+    color: '#DC9666',
+    borderRadius: '8px',
+    border: '1px solid #DC9666',
+    fontSize: '16px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  stickyBottomBar: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTop: '1px solid #D7C7B1',
+    padding: '16px 40px',
+    boxSizing: 'border-box',
+    zIndex: 100,
+  },
+  stepCounterBadge: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(220, 150, 102, 0.15)',
+    color: '#DC9666',
+    fontSize: '14px',
+    fontWeight: 700,
+  },
+  navBackBtn: {
+    padding: '12px 24px',
+    borderRadius: '8px',
+    border: '1px solid #DC9666',
+    backgroundColor: '#FFFFFF',
+    color: '#DC9666',
+    fontSize: '15px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  navNextBtn: {
+    padding: '12px 32px',
+    borderRadius: '8px',
+    border: 'none',
+    backgroundColor: '#DC9666',
+    color: '#FFFFFF',
+    fontSize: '15px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
 };

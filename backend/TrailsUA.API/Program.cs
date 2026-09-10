@@ -27,7 +27,7 @@ if (!string.IsNullOrEmpty(envPassword))
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // 3. Регистрируем сервисы
 builder.Services.AddScoped<IAuthService, AuthService>();
