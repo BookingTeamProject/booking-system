@@ -509,7 +509,7 @@ const googleInteractiveOverlayStyle: React.CSSProperties = {
   width: '100%',
   height: '100%',
   opacity: 0.001, // Мінімальна видимість, щоб Google не вважав це спробою фішингу/Clickjacking
-  zIndex: 2,
+  zIndex: 2, // Обов'язково поверх підкладки (щоб клік потрапляв на Google)
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',

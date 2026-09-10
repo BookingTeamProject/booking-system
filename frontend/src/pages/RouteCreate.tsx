@@ -5,6 +5,8 @@ import { useSettings } from '../context/SettingsContext';
 import { routesApi, categoriesApi } from '../services/api.service';
 import { syncService } from '../services/sync.service';
 import type { RouteItem } from '../types';
+import treesBg from '../assets/trees-bg.png';
+import birdsBg from '../assets/birds.png';
 
 // ======================== SVG ІКОНКИ З FIGMA ========================
 
@@ -140,7 +142,6 @@ const MapPinIcon = ({ color = '#DC9666' }: { color?: string }) => (
   </svg>
 );
 
-// Конфігурація типів житла
 const ACCOMMODATION_TYPES = [
   { id: 'apartment', label: 'Квартира', subtitle: 'Окремі апартаменти', icon: '🏢' },
   { id: 'house', label: 'Будинок', subtitle: 'Цілий будинок для гостей', icon: '🏡' },
@@ -150,7 +151,6 @@ const ACCOMMODATION_TYPES = [
   { id: 'room', label: 'Кімната', subtitle: 'Окрема кімната у житлі', icon: '🚪' },
 ];
 
-// Категорії зручностей
 const AMENITIES_BY_CATEGORY = [
   {
     category: 'Ванна кімната',
@@ -184,7 +184,6 @@ const AMENITIES_BY_CATEGORY = [
 
 export const RouteCreate: React.FC = () => {
   const navigate = useNavigate();
-  // ВСІ ТРИ ЗМІННІ ЗБЕРЕЖЕНІ ТА ПРАЦЮЮТЬ
   const { user, isLandlord, switchRole } = useAuth();
   const { formatPrice } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -194,7 +193,7 @@ export const RouteCreate: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
 
-  // Стан для екрана зміни ролі «Хочеш змінити роль?»
+  // Стан зміни ролі
   const [roleCheckbox, setRoleCheckbox] = useState(false);
   const [roleError, setRoleError] = useState('');
 
@@ -282,7 +281,6 @@ export const RouteCreate: React.FC = () => {
     }));
   };
 
-  // ОБРОБКА ПЕРЕХОДУ НА РОЛЬ ОРЕНДОДАВЦЯ ПРЯМО ТУТ
   const handleConfirmRoleChange = async () => {
     if (!roleCheckbox) {
       setRoleError('Будь ласка, поставте галочку про згоду зі зміною умов');
@@ -293,7 +291,6 @@ export const RouteCreate: React.FC = () => {
     setRoleError('');
     try {
       await switchRole('Landlord');
-      // Після зміни ролі isLandlord стає true, і компонент миттєво рендерить Крок 1!
     } catch {
       // Фолбек
     } finally {
@@ -301,7 +298,6 @@ export const RouteCreate: React.FC = () => {
     }
   };
 
-  // ПУБЛІКАЦІЯ ОГОЛОШЕННЯ
   const handlePublish = async () => {
     if (!termsAccepted) {
       alert('Будь ласка, підтвердіть згоду з правилами публікації оголошень.');
@@ -361,6 +357,7 @@ export const RouteCreate: React.FC = () => {
         amenities: formData.amenities,
       });
 
+      console.log('✅ Успішно збережено в базі даних:', serverResponse);
       syncService.invalidate('routes_');
 
       const newRouteItem: RouteItem = {
@@ -384,23 +381,41 @@ export const RouteCreate: React.FC = () => {
 
       alert('🎉 Помешкання успішно зареєстровано та збережено в базі даних!');
       navigate('/host/properties');
-    } catch (err: unknown) {
-      const apiErr = err as { response?: { status?: number; data?: { message?: string } } };
-      alert(`⚠️ Помилка при публікації (${apiErr.response?.status || 'Network Error'}). Спробуйте знову.`);
+    } catch (err: any) {
+      console.error('❌ Помилка сервера при публікації:', err);
+
+      const status = err.response?.status;
+      const errorData = err.response?.data;
+
+      if (status === 403) {
+        alert('⛔ Помилка 403: Ваш акаунт не має ролі "Landlord". Натисніть кнопку зміни ролі на першому кроці.');
+      } else if (status === 401) {
+        alert('🔒 Помилка 401: Сесія закінчилася. Будь ласка, увійдіть знову.');
+        navigate('/login');
+      } else if (status === 400) {
+        if (errorData?.errors) {
+          const firstErrorKey = Object.keys(errorData.errors)[0];
+          const firstErrorMsg = errorData.errors[firstErrorKey][0];
+          alert(`⚠️ Помилка заповнення (${firstErrorKey}): ${firstErrorMsg}`);
+        } else {
+          alert(`⚠️ Помилка 400: ${errorData?.message || errorData?.title || 'Некоректні дані форми'}`);
+        }
+      } else {
+        alert(`⚠️ Не вдалося зберегти оголошення (статус ${status || 'Network Error'}). Перевірте підключення до сервера.`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   // =========================================================================
-  // 0. ЯКЩО КОРИСТУВАЧ ЩЕ НЕ ХОСТ — ПОКАЗУЄМО ТОЧНИЙ ЕКРАН З FIGMA «ХОЧЕШ ЗМІНИТИ РОЛЬ?»
+  // 0. ЯКЩО НЕ ХОСТ — ЕКРАН ЗМІНИ РОЛІ
   // =========================================================================
   if (!isLandlord) {
     return (
       <main style={styles.changeRoleWrapper}>
         <div style={styles.changeRoleContainer}>
           <div style={styles.changeRoleCard}>
-            {/* ШАПКА КАРТКИ */}
             <div style={styles.crHeader}>
               <div style={styles.crEyebrow}>
                 <SparklesIcon />
@@ -415,9 +430,7 @@ export const RouteCreate: React.FC = () => {
 
             {roleError && <div style={styles.errorBanner}>{roleError}</div>}
 
-            {/* ПОРІВНЯННЯ КАРТОК РОЛЕЙ З FIGMA */}
             <div style={styles.crComparisonRow}>
-              {/* Орендар */}
               <div style={styles.crTenantBox}>
                 <div style={styles.crTitleRow}>
                   <span style={styles.crTenantTitle}>Орендар</span>
@@ -439,7 +452,6 @@ export const RouteCreate: React.FC = () => {
                 </div>
               </div>
 
-              {/* Господар */}
               <div style={styles.crLandlordBox}>
                 <div style={styles.crTitleRow}>
                   <span style={styles.crLandlordTitle}>Орендар (Господар)</span>
@@ -462,7 +474,6 @@ export const RouteCreate: React.FC = () => {
               </div>
             </div>
 
-            {/* ПОПЕРЕДЖЕННЯ З FIGMA */}
             <div style={styles.crWarningNotice}>
               <div style={{ paddingTop: '2px' }}>
                 <AlertTriangleIcon />
@@ -477,7 +488,6 @@ export const RouteCreate: React.FC = () => {
               </div>
             </div>
 
-            {/* ЧЕКБОКС ЗГОДИ */}
             <label
               onClick={() => setRoleCheckbox(!roleCheckbox)}
               style={styles.crCheckboxRow}
@@ -499,7 +509,6 @@ export const RouteCreate: React.FC = () => {
 
             <div style={styles.crDivider} />
 
-            {/* ДВІ КНОПКИ З FIGMA: Скасувати / Обрати роль */}
             <div style={styles.crActionBlock}>
               <div style={styles.crButtonGroup}>
                 <button
@@ -537,9 +546,10 @@ export const RouteCreate: React.FC = () => {
   // 1. ОСНОВНИЙ ФЛОУ: 6 КРОКІВ РЕЄСТРАЦІЇ ЖИТЛА ДЛЯ ОРЕНДОДАВЦЯ
   // =========================================================================
   return (
-    <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
-      {/* СТЕППЕР ВГОРІ */}
-      <div style={styles.stepperBarContainer}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
+
+      {/* 1. ГОРИЗОНТАЛЬНИЙ СТЕППЕР З FIGMA */}
+      <div style={{ ...styles.stepperBarContainer, zIndex: 50 }}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
             Створення нового оголошення
@@ -587,530 +597,554 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
-      {/* ТІЛО КРОКІВ */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '48px 40px 140px 40px' }}>
-        {/* КРОК 1 */}
-        {step === 1 && (
-          <div style={styles.stepCardMain}>
-            <div style={{ marginBottom: '28px' }}>
-              <h2 style={styles.stepTitle}>Крок 1. Оберіть тип помешкання</h2>
-              <p style={styles.stepSubtitle}>Це допоможе мандрівникам знайти ваше житло у відповідній категорії</p>
-            </div>
+      {/* 2. ТІЛО СТОРІНКИ (Гнучкий контейнер з фоновими ялинками та пташками) */}
+      <div style={{ flex: 1, position: 'relative', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+        
+        {/* ФОНОВІ ЯЛИНКИ ТА ПТАШКИ */}
+        <div style={{ position: 'absolute', right: '-20px', bottom: '-140px', zIndex: 0, pointerEvents: 'none', width: '500px' }}>
+          <img 
+            src={birdsBg} 
+            alt="Пташки" 
+            style={{ 
+              position: 'absolute', 
+              right: '300px', 
+              top: '-40px', 
+              width: '180px',
+              opacity: 0.9 
+            }} 
+          />
+          <img src={treesBg} alt="Декоративні ялинки" style={{ width: '100%', height: 'auto', display: 'block', opacity: 0.9 }} />
+        </div>
 
-            <div style={styles.typesGrid}>
-              {ACCOMMODATION_TYPES.map((t) => {
-                const isSelected = formData.type === t.id;
-                return (
-                  <div
-                    key={t.id}
-                    onClick={() => setFormData({ ...formData, type: t.id })}
-                    style={{
-                      ...styles.typeCardItem,
-                      borderColor: isSelected ? '#DC9666' : '#D7C7B1',
-                      boxShadow: isSelected ? '0px 6px 18px rgba(220, 150, 102, 0.25)' : 'none',
-                    }}
-                  >
-                    <div style={styles.typeIconBox}>{t.icon}</div>
-                    <div style={{ fontSize: '18px', fontWeight: 700, color: '#291C0E', marginTop: '6px' }}>{t.label}</div>
-                    <div style={{ fontSize: '13px', color: '#A78D78', marginTop: '2px' }}>{t.subtitle}</div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <hr style={styles.formDivider} />
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#291C0E', margin: 0, fontFamily: "'Alegreya', serif" }}>
-                Основна інформація
-              </h3>
-
-              <div>
-                <label style={styles.formLabel}>Населений пункт та область *</label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="наприклад: Яремче, Івано-Франківська область"
-                  style={styles.formInput}
-                />
+        {/* ОСНОВНИЙ КОНТЕНТ ФОРМИ */}
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
+          
+          {/* КРОК 1 */}
+          {step === 1 && (
+            <div style={styles.stepCardMain}>
+              <div style={{ marginBottom: '28px' }}>
+                <h2 style={styles.stepTitle}>Крок 1. Оберіть тип помешкання</h2>
+                <p style={styles.stepSubtitle}>Це допоможе мандрівникам знайти ваше житло у відповідній категорії</p>
               </div>
 
-              <div>
-                <label style={styles.formLabel}>Точна адреса (вулиця, номер будинку)</label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="вул. Свободи 12"
-                  style={styles.formInput}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* КРОК 2 */}
-        {step === 2 && (
-          <div style={styles.stepCardMain}>
-            <div style={{ marginBottom: '28px' }}>
-              <h2 style={styles.stepTitle}>Крок 2. Назва та формат оренди</h2>
-              <p style={styles.stepSubtitle}>Сформулюйте привабливу назву та вкажіть основні умови перебування</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={styles.formLabel}>Коротка назва для пошуку (до 60 символів) *</label>
-                <input
-                  type="text"
-                  maxLength={60}
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  style={styles.formInput}
-                />
-              </div>
-
-              <div>
-                <label style={styles.formLabel}>Детальний опис для мандрівників</label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={styles.formTextarea}
-                />
-              </div>
-            </div>
-
-            <hr style={styles.formDivider} />
-
-            <div>
-              <label style={{ ...styles.formLabel, fontSize: '18px', marginBottom: '14px' }}>Тип здачі в оренду</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
-                {[
-                  { id: 'daily', title: 'Подобово', sub: 'Для коротких мандрівок' },
-                  { id: 'monthly', title: 'Помісячно', sub: 'Оренда на кілька місяців' },
-                  { id: 'longterm', title: 'Довгостроково', sub: 'Контракт від 1 року' },
-                ].map((rf) => {
-                  const active = formData.rentalFormat === rf.id;
+              <div style={styles.typesGrid}>
+                {ACCOMMODATION_TYPES.map((t) => {
+                  const isSelected = formData.type === t.id;
                   return (
                     <div
-                      key={rf.id}
-                      onClick={() => setFormData({ ...formData, rentalFormat: rf.id as 'daily' | 'monthly' | 'longterm' })}
+                      key={t.id}
+                      onClick={() => setFormData({ ...formData, type: t.id })}
                       style={{
-                        ...styles.rentalFormatBox,
-                        borderColor: active ? '#DC9666' : '#D7C7B1',
+                        ...styles.typeCardItem,
+                        borderColor: isSelected ? '#DC9666' : '#D7C7B1',
+                        boxShadow: isSelected ? '0px 6px 18px rgba(220, 150, 102, 0.25)' : 'none',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <strong style={{ color: active ? '#DC9666' : '#291C0E', fontSize: '16px' }}>{rf.title}</strong>
-                        <div style={{ ...styles.radioCircle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
-                      </div>
-                      <span style={{ color: '#A78D78', fontSize: '13px', marginTop: '6px', display: 'block' }}>{rf.sub}</span>
+                      <div style={styles.typeIconBox}>{t.icon}</div>
+                      <div style={{ fontSize: '18px', fontWeight: 700, color: '#291C0E', marginTop: '6px' }}>{t.label}</div>
+                      <div style={{ fontSize: '13px', color: '#A78D78', marginTop: '2px' }}>{t.subtitle}</div>
                     </div>
                   );
                 })}
               </div>
+
+              <hr style={styles.formDivider} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#291C0E', margin: 0, fontFamily: "'Alegreya', serif" }}>
+                  Основна інформація
+                </h3>
+
+                <div>
+                  <label style={styles.formLabel}>Населений пункт та область *</label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="наприклад: Яремче, Івано-Франківська область"
+                    style={styles.formInput}
+                  />
+                </div>
+
+                <div>
+                  <label style={styles.formLabel}>Точна адреса (вулиця, номер будинку)</label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="вул. Свободи 12"
+                    style={styles.formInput}
+                  />
+                </div>
+              </div>
             </div>
+          )}
 
-            <hr style={styles.formDivider} />
+          {/* КРОК 2 */}
+          {step === 2 && (
+            <div style={styles.stepCardMain}>
+              <div style={{ marginBottom: '28px' }}>
+                <h2 style={styles.stepTitle}>Крок 2. Назва та формат оренди</h2>
+                <p style={styles.stepSubtitle}>Сформулюйте привабливу назву та вкажіть основні умови перебування</p>
+              </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-              <div>
-                <label style={styles.formLabel}>Макс. кількість гостей</label>
-                <div style={styles.stepperContainer}>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, maxGuests: Math.max(1, formData.maxGuests - 1) })}>-</button>
-                  <span style={styles.stepperNum}>{formData.maxGuests}</span>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, maxGuests: formData.maxGuests + 1 })}>+</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <label style={styles.formLabel}>Коротка назва для пошуку (до 60 символів) *</label>
+                  <input
+                    type="text"
+                    maxLength={60}
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    style={styles.formInput}
+                  />
+                </div>
+
+                <div>
+                  <label style={styles.formLabel}>Детальний опис для мандрівників</label>
+                  <textarea
+                    rows={4}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    style={styles.formTextarea}
+                  />
                 </div>
               </div>
 
-              <div>
-                <label style={styles.formLabel}>Кількість спалень</label>
-                <div style={styles.stepperContainer}>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bedroomsCount: Math.max(1, formData.bedroomsCount - 1) })}>-</button>
-                  <span style={styles.stepperNum}>{formData.bedroomsCount}</span>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bedroomsCount: formData.bedroomsCount + 1 })}>+</button>
-                </div>
-              </div>
+              <hr style={styles.formDivider} />
 
               <div>
-                <label style={styles.formLabel}>Кількість санвузлів</label>
-                <div style={styles.stepperContainer}>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bathroomsCount: Math.max(1, formData.bathroomsCount - 1) })}>-</button>
-                  <span style={styles.stepperNum}>{formData.bathroomsCount}</span>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bathroomsCount: formData.bathroomsCount + 1 })}>+</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* КРОК 3 */}
-        {step === 3 && (
-          <div style={styles.stepCardMain}>
-            <div style={{ marginBottom: '28px' }}>
-              <h2 style={styles.stepTitle}>Крок 3. Зручності вашого помешкання</h2>
-              <p style={styles.stepSubtitle}>Оберіть усе устаткування та сервіси, які будуть доступні гостям</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-              {AMENITIES_BY_CATEGORY.map((sec, i) => (
-                <div key={i}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', margin: '0 0 14px 0' }}>{sec.category}</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-                    {sec.items.map((item) => {
-                      const checked = formData.amenities.includes(item);
-                      return (
-                        <div
-                          key={item}
-                          onClick={() => toggleAmenity(item)}
-                          style={{
-                            ...styles.amenityToggleCard,
-                            borderColor: checked ? '#DC9666' : '#D7C7B1',
-                            backgroundColor: checked ? 'rgba(220, 150, 102, 0.1)' : '#FFFFFF',
-                          }}
-                        >
-                          <div style={{ ...styles.checkboxSquare, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
-                            {checked && <CheckIcon color="#FFFFFF" size={12} />}
-                          </div>
-                          <span style={{ fontSize: '14px', fontWeight: checked ? 700 : 500, color: '#6E473B' }}>{item}</span>
+                <label style={{ ...styles.formLabel, fontSize: '18px', marginBottom: '14px' }}>Тип здачі в оренду</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+                  {[
+                    { id: 'daily', title: 'Подобово', sub: 'Для коротких мандрівок' },
+                    { id: 'monthly', title: 'Помісячно', sub: 'Оренда на кілька місяців' },
+                    { id: 'longterm', title: 'Довгостроково', sub: 'Контракт від 1 року' },
+                  ].map((rf) => {
+                    const active = formData.rentalFormat === rf.id;
+                    return (
+                      <div
+                        key={rf.id}
+                        onClick={() => setFormData({ ...formData, rentalFormat: rf.id as 'daily' | 'monthly' | 'longterm' })}
+                        style={{
+                          ...styles.rentalFormatBox,
+                          borderColor: active ? '#DC9666' : '#D7C7B1',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ color: active ? '#DC9666' : '#291C0E', fontSize: '16px' }}>{rf.title}</strong>
+                          <div style={{ ...styles.radioCircle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
                         </div>
-                      );
-                    })}
+                        <span style={{ color: '#A78D78', fontSize: '13px', marginTop: '6px', display: 'block' }}>{rf.sub}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <hr style={styles.formDivider} />
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+                <div>
+                  <label style={styles.formLabel}>Макс. кількість гостей</label>
+                  <div style={styles.stepperContainer}>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, maxGuests: Math.max(1, formData.maxGuests - 1) })}>-</button>
+                    <span style={styles.stepperNum}>{formData.maxGuests}</span>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, maxGuests: formData.maxGuests + 1 })}>+</button>
                   </div>
                 </div>
-              ))}
 
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', margin: '0 0 14px 0' }}>Харчування</h3>
-                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  {[
-                    { id: 'none', label: 'Без харчування' },
-                    { id: 'breakfast', label: 'Сніданок' },
-                    { id: 'half', label: 'Напівпансіон' },
-                    { id: 'full', label: 'Повний пансіон' },
-                  ].map((m) => (
-                    <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#6E473B', fontSize: '15px' }}>
-                      <input
-                        type="radio"
-                        name="mealPlan"
-                        checked={formData.mealPlan === m.id}
-                        onChange={() => setFormData({ ...formData, mealPlan: m.id as 'none' | 'breakfast' | 'half' | 'full' })}
-                        style={{ accentColor: '#DC9666' }}
-                      />
-                      {m.label}
-                    </label>
-                  ))}
+                <div>
+                  <label style={styles.formLabel}>Кількість спалень</label>
+                  <div style={styles.stepperContainer}>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bedroomsCount: Math.max(1, formData.bedroomsCount - 1) })}>-</button>
+                    <span style={styles.stepperNum}>{formData.bedroomsCount}</span>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bedroomsCount: formData.bedroomsCount + 1 })}>+</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={styles.formLabel}>Кількість санвузлів</label>
+                  <div style={styles.stepperContainer}>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bathroomsCount: Math.max(1, formData.bathroomsCount - 1) })}>-</button>
+                    <span style={styles.stepperNum}>{formData.bathroomsCount}</span>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, bathroomsCount: formData.bathroomsCount + 1 })}>+</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* КРОК 4 */}
-        {step === 4 && (
-          <div style={styles.stepCardMain}>
-            <div style={{ marginBottom: '28px' }}>
-              <h2 style={styles.stepTitle}>Крок 4. Світлини вашого помешкання</h2>
-              <p style={styles.stepSubtitle}>Завантажте якісні фотографії. Перша стане обкладинкою</p>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={(e) => processFiles(e.target.files)}
-            />
-
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => { e.preventDefault(); setIsDragging(false); processFiles(e.dataTransfer.files); }}
-              style={{
-                ...styles.photoDropzone,
-                borderColor: isDragging ? '#DC9666' : '#D7C7B1',
-                backgroundColor: isDragging ? 'rgba(220, 150, 102, 0.15)' : '#FFFFFF',
-              }}
-            >
-              <div style={styles.uploadIconCircle}>
-                <UploadCloudIcon />
+          {/* КРОК 3 */}
+          {step === 3 && (
+            <div style={styles.stepCardMain}>
+              <div style={{ marginBottom: '28px' }}>
+                <h2 style={styles.stepTitle}>Крок 3. Зручності вашого помешкання</h2>
+                <p style={styles.stepSubtitle}>Оберіть усе устаткування та сервіси, які будуть доступні гостям</p>
               </div>
-              <div style={{ color: '#DC9666', fontSize: '18px', fontWeight: 700 }}>
-                Перетягніть фото сюди або натисніть для вибору
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                {AMENITIES_BY_CATEGORY.map((sec, i) => (
+                  <div key={i}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', margin: '0 0 14px 0' }}>{sec.category}</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                      {sec.items.map((item) => {
+                        const checked = formData.amenities.includes(item);
+                        return (
+                          <div
+                            key={item}
+                            onClick={() => toggleAmenity(item)}
+                            style={{
+                              ...styles.amenityToggleCard,
+                              borderColor: checked ? '#DC9666' : '#D7C7B1',
+                              backgroundColor: checked ? 'rgba(220, 150, 102, 0.1)' : '#FFFFFF',
+                            }}
+                          >
+                            <div style={{ ...styles.checkboxSquare, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
+                              {checked && <CheckIcon color="#FFFFFF" size={12} />}
+                            </div>
+                            <span style={{ fontSize: '14px', fontWeight: checked ? 700 : 500, color: '#6E473B' }}>{item}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', margin: '0 0 14px 0' }}>Харчування</h3>
+                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'none', label: 'Без харчування' },
+                      { id: 'breakfast', label: 'Сніданок' },
+                      { id: 'half', label: 'Напівпансіон' },
+                      { id: 'full', label: 'Повний пансіон' },
+                    ].map((m) => (
+                      <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#6E473B', fontSize: '15px' }}>
+                        <input
+                          type="radio"
+                          name="mealPlan"
+                          checked={formData.mealPlan === m.id}
+                          onChange={() => setFormData({ ...formData, mealPlan: m.id as 'none' | 'breakfast' | 'half' | 'full' })}
+                          style={{ accentColor: '#DC9666' }}
+                        />
+                        {m.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <span style={{ color: '#A78D78', fontSize: '14px' }}>
-                Рекомендований формат JPG/PNG, мінімум 1920x1080px
-              </span>
             </div>
+          )}
 
-            <hr style={styles.formDivider} />
+          {/* КРОК 4 */}
+          {step === 4 && (
+            <div style={styles.stepCardMain}>
+              <div style={{ marginBottom: '28px' }}>
+                <h2 style={styles.stepTitle}>Крок 4. Світлини вашого помешкання</h2>
+                <p style={styles.stepSubtitle}>Завантажте щонайменше 4 якісних фотографій. Перша стане обкладинкою</p>
+              </div>
 
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
-              Завантажені світлини ({formData.imageUrls.length})
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => processFiles(e.target.files)}
+              />
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setIsDragging(false); processFiles(e.dataTransfer.files); }}
+                style={{
+                  ...styles.photoDropzone,
+                  borderColor: isDragging ? '#DC9666' : '#D7C7B1',
+                  backgroundColor: isDragging ? 'rgba(220, 150, 102, 0.15)' : '#FFFFFF',
+                }}
+              >
+                <div style={styles.uploadIconCircle}>
+                  <UploadCloudIcon />
+                </div>
+                <div style={{ color: '#DC9666', fontSize: '18px', fontWeight: 700 }}>
+                  Перетягніть фото сюди або натисніть для вибору
+                </div>
+                <span style={{ color: '#A78D78', fontSize: '14px' }}>
+                  Рекомендований формат JPG/PNG, мінімум 1920x1080px
+                </span>
+              </div>
+
+              <hr style={styles.formDivider} />
+
+              <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
+                Завантажені світлини ({formData.imageUrls.length})
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
+                {formData.imageUrls.map((url, idx) => (
+                  <div key={idx} style={styles.uploadedCard}>
+                    <img src={url} alt={`Photo ${idx}`} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
+                        {idx === 0 ? 'Головна (Обкладинка)' : `Світлина ${idx + 1}`}
+                      </span>
+                      <button onClick={() => removeImage(idx)} style={styles.deleteCrossBtn} title="Видалити">
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
-              {formData.imageUrls.map((url, idx) => (
-                <div key={idx} style={styles.uploadedCard}>
-                  <img src={url} alt={`Photo ${idx}`} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
-                      {idx === 0 ? 'Головна (Обкладинка)' : `Світлина ${idx + 1}`}
+          {/* КРОК 5 */}
+          {step === 5 && (
+            <div style={styles.stepCardMain}>
+              <div style={{ marginBottom: '28px' }}>
+                <h2 style={styles.stepTitle}>Крок 5. Встановлення ціни та умови бронювання</h2>
+                <p style={styles.stepSubtitle}>Визначте фінансові умови вашого оголошення та правила скасування замовлень</p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div>
+                  <label style={styles.formLabel}>Базова ціна за добу *</label>
+                  <div style={styles.priceInputWrapper}>
+                    <input
+                      type="number"
+                      step={50}
+                      value={formData.pricePerNight}
+                      onChange={(e) => setFormData({ ...formData, pricePerNight: Number(e.target.value) })}
+                      style={styles.priceNumberInput}
+                    />
+                    <span style={{ color: '#A78D78', fontSize: '16px' }}>₴ / доба</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={styles.formLabel}>Мінімальний термін оренди (діб)</label>
+                  <div style={styles.stepperContainer}>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, minDays: Math.max(1, formData.minDays - 1) })}>-</button>
+                    <span style={styles.stepperNum}>{formData.minDays}</span>
+                    <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, minDays: formData.minDays + 1 })}>+</button>
+                  </div>
+                </div>
+              </div>
+
+              <hr style={styles.formDivider} />
+
+              <div>
+                <label style={{ ...styles.formLabel, fontSize: '18px', marginBottom: '14px' }}>Політика скасування</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                  {[
+                    { id: 'flexible', title: 'Гнучка', desc: 'Безкоштовне скасування за 24 години до приїзду' },
+                    { id: 'moderate', title: 'Помірна', desc: 'Безкоштовне скасування за 5 днів до заїзду' },
+                    { id: 'strict', title: 'Сувора', desc: 'Повернення 50% при скасуванні за 14 днів до заїзду' },
+                  ].map((p) => {
+                    const active = formData.cancellationPolicy === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => setFormData({ ...formData, cancellationPolicy: p.id as 'flexible' | 'moderate' | 'strict' })}
+                        style={{
+                          ...styles.rentalFormatBox,
+                          borderColor: active ? '#DC9666' : '#D7C7B1',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ color: active ? '#DC9666' : '#291C0E', fontSize: '16px' }}>{p.title}</strong>
+                          <div style={{ ...styles.radioCircle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
+                        </div>
+                        <span style={{ color: '#A78D78', fontSize: '13px', marginTop: '6px', display: 'block', lineHeight: '18px' }}>
+                          {p.desc}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <hr style={styles.formDivider} />
+
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>Додаткові послуги та збори</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                  <div>
+                    <label style={styles.formLabel}>Плата за прибирання (одноразово)</label>
+                    <input
+                      type="number"
+                      value={formData.cleaningFee}
+                      onChange={(e) => setFormData({ ...formData, cleaningFee: Number(e.target.value) })}
+                      style={styles.formInput}
+                    />
+                  </div>
+                  <div>
+                    <label style={styles.formLabel}>Застава за майно (повертається)</label>
+                    <input
+                      type="number"
+                      value={formData.depositFee}
+                      onChange={(e) => setFormData({ ...formData, depositFee: Number(e.target.value) })}
+                      style={styles.formInput}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* КРОК 6 */}
+          {step === 6 && (
+            <div style={styles.stepCardMain}>
+              <div style={{ marginBottom: '24px' }}>
+                <h2 style={styles.stepTitle}>Крок 6. Перевірка та публікація</h2>
+                <p style={styles.stepSubtitle}>Останній крок! Перевірте правильність заповнення та надішліть оголошення</p>
+              </div>
+
+              <hr style={styles.formDivider} />
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '14px' }}>
+                    Попередній перегляд картки
+                  </div>
+                  <div style={styles.previewCardFigma}>
+                    <img
+                      src={formData.imageUrls[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
+                      alt="Preview Cover"
+                      style={{ width: '100%', height: '320px', objectFit: 'cover' }}
+                    />
+                    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPinIcon />
+                          <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location}</span>
+                        </div>
+                        <span style={styles.previewPillTag}>
+                          {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале'}
+                        </span>
+                      </div>
+
+                      <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#6E473B', margin: 0 }}>
+                        {formData.title}
+                      </h3>
+
+                      <p style={{ fontSize: '14px', color: '#6E473B', lineHeight: '22px', margin: 0 }}>
+                        {formData.description}
+                      </p>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {formData.amenities.slice(0, 6).map((a) => (
+                          <span key={a} style={styles.amenityBadgePreview}>{a}</span>
+                        ))}
+                      </div>
+
+                      <div style={styles.previewPriceFooter}>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{user?.firstName || 'Ярослав'} {user?.lastName || 'К.'}</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Власник оголошення</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                          <span style={{ fontSize: '24px', fontWeight: 700, color: '#DC9666' }}>
+                            {formatPrice(formData.pricePerNight)}
+                          </span>
+                          <span style={{ fontSize: '14px', color: '#A78D78' }}>/ доба</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={styles.checklistCardBox}>
+                    <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B' }}>Готовність до публікації</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <div style={styles.checkRowItem}>
+                        <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Тип помешкання</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Вибрано {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label}</div>
+                        </div>
+                      </div>
+
+                      <div style={styles.checkRowItem}>
+                        <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Назва та опис</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано локальну назву та детальне резюме</div>
+                        </div>
+                      </div>
+
+                      <div style={styles.checkRowItem}>
+                        <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Зручності</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Обрано {formData.amenities.length} позицій</div>
+                        </div>
+                      </div>
+
+                      <div style={styles.checkRowItem}>
+                        <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Фотографії</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Завантажено {formData.imageUrls.length} знімків</div>
+                        </div>
+                      </div>
+
+                      <div style={styles.checkRowItem}>
+                        <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Тариф</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Встановлено ціну {formatPrice(formData.pricePerNight)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={styles.moderationNotice}>
+                    <ClockIcon />
+                    <span style={{ fontSize: '14px', color: '#DC9666', lineHeight: '20px' }}>
+                      Ваше оголошення буде доступне для бронювання мандрівниками після проходження швидкої модерації (до 24 годин).
                     </span>
-                    <button onClick={() => removeImage(idx)} style={styles.deleteCrossBtn} title="Видалити">
-                      ×
+                  </div>
+
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      style={{ marginTop: '3px', accentColor: '#DC9666' }}
+                    />
+                    <span style={{ fontSize: '13px', color: '#6E473B', lineHeight: '20px' }}>
+                      Я погоджуюся з <strong style={{ color: '#DC9666', textDecoration: 'underline' }}>Правилами публікації оголошень</strong> та ліцензійною угодою сервісу Trails UA.
+                    </span>
+                  </label>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+                    <button
+                      onClick={handlePublish}
+                      disabled={loading}
+                      style={styles.publishActionBtn}
+                    >
+                      {loading ? 'Публікація...' : 'Опублікувати зараз'}
+                    </button>
+
+                    <button
+                      onClick={() => { alert('Чернетку збережено!'); navigate('/routes'); }}
+                      style={styles.saveDraftBtn}
+                    >
+                      Зберегти як чернетку
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* КРОК 5 */}
-        {step === 5 && (
-          <div style={styles.stepCardMain}>
-            <div style={{ marginBottom: '28px' }}>
-              <h2 style={styles.stepTitle}>Крок 5. Встановлення ціни та умови бронювання</h2>
-              <p style={styles.stepSubtitle}>Визначте фінансові умови вашого оголошення та правила скасування замовлень</p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              <div>
-                <label style={styles.formLabel}>Базова ціна за добу *</label>
-                <div style={styles.priceInputWrapper}>
-                  <input
-                    type="number"
-                    step={50}
-                    value={formData.pricePerNight}
-                    onChange={(e) => setFormData({ ...formData, pricePerNight: Number(e.target.value) })}
-                    style={styles.priceNumberInput}
-                  />
-                  <span style={{ color: '#A78D78', fontSize: '16px' }}>₴ / доба</span>
-                </div>
-              </div>
-
-              <div>
-                <label style={styles.formLabel}>Мінімальний термін оренди (діб)</label>
-                <div style={styles.stepperContainer}>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, minDays: Math.max(1, formData.minDays - 1) })}>-</button>
-                  <span style={styles.stepperNum}>{formData.minDays}</span>
-                  <button style={styles.stepperBtn} onClick={() => setFormData({ ...formData, minDays: formData.minDays + 1 })}>+</button>
-                </div>
               </div>
             </div>
-
-            <hr style={styles.formDivider} />
-
-            <div>
-              <label style={{ ...styles.formLabel, fontSize: '18px', marginBottom: '14px' }}>Політика скасування</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-                {[
-                  { id: 'flexible', title: 'Гнучка', desc: 'Безкоштовне скасування за 24 години до приїзду' },
-                  { id: 'moderate', title: 'Помірна', desc: 'Безкоштовне скасування за 5 днів до заїзду' },
-                  { id: 'strict', title: 'Сувора', desc: 'Повернення 50% при скасуванні за 14 днів до заїзду' },
-                ].map((p) => {
-                  const active = formData.cancellationPolicy === p.id;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => setFormData({ ...formData, cancellationPolicy: p.id as 'flexible' | 'moderate' | 'strict' })}
-                      style={{
-                        ...styles.rentalFormatBox,
-                        borderColor: active ? '#DC9666' : '#D7C7B1',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <strong style={{ color: active ? '#DC9666' : '#291C0E', fontSize: '16px' }}>{p.title}</strong>
-                        <div style={{ ...styles.radioCircle, borderColor: active ? '#DC9666' : '#D7C7B1', backgroundColor: active ? '#DC9666' : 'white' }} />
-                      </div>
-                      <span style={{ color: '#A78D78', fontSize: '13px', marginTop: '6px', display: 'block', lineHeight: '18px' }}>
-                        {p.desc}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <hr style={styles.formDivider} />
-
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>Додаткові послуги та збори</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                <div>
-                  <label style={styles.formLabel}>Плата за прибирання (одноразово)</label>
-                  <input
-                    type="number"
-                    value={formData.cleaningFee}
-                    onChange={(e) => setFormData({ ...formData, cleaningFee: Number(e.target.value) })}
-                    style={styles.formInput}
-                  />
-                </div>
-                <div>
-                  <label style={styles.formLabel}>Застава за майно (повертається)</label>
-                  <input
-                    type="number"
-                    value={formData.depositFee}
-                    onChange={(e) => setFormData({ ...formData, depositFee: Number(e.target.value) })}
-                    style={styles.formInput}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* КРОК 6 */}
-        {step === 6 && (
-          <div style={styles.stepCardMain}>
-            <div style={{ marginBottom: '24px' }}>
-              <h2 style={styles.stepTitle}>Крок 6. Перевірка та публікація</h2>
-              <p style={styles.stepSubtitle}>Останній крок! Перевірте правильність заповнення та надішліть оголошення</p>
-            </div>
-
-            <hr style={styles.formDivider} />
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', alignItems: 'flex-start' }}>
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '14px' }}>
-                  Попередній перегляд картки
-                </div>
-                <div style={styles.previewCardFigma}>
-                  <img
-                    src={formData.imageUrls[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
-                    alt="Preview Cover"
-                    style={{ width: '100%', height: '320px', objectFit: 'cover' }}
-                  />
-                  <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MapPinIcon />
-                        <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location}</span>
-                      </div>
-                      <span style={styles.previewPillTag}>
-                        {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале'}
-                      </span>
-                    </div>
-
-                    <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#6E473B', margin: 0 }}>
-                      {formData.title}
-                    </h3>
-
-                    <p style={{ fontSize: '14px', color: '#6E473B', lineHeight: '22px', margin: 0 }}>
-                      {formData.description}
-                    </p>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {formData.amenities.slice(0, 6).map((a) => (
-                        <span key={a} style={styles.amenityBadgePreview}>{a}</span>
-                      ))}
-                    </div>
-
-                    <div style={styles.previewPriceFooter}>
-                      <div>
-                        {/* ЗМІННА user ВИКОРИСТОВУЄТЬСЯ ТУТ */}
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>
-                          {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Ярослав К.'}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Власник оголошення</div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                        <span style={{ fontSize: '24px', fontWeight: 700, color: '#DC9666' }}>
-                          {formatPrice(formData.pricePerNight)}
-                        </span>
-                        <span style={{ fontSize: '14px', color: '#A78D78' }}>/ доба</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Чек-лист готовності */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={styles.checklistCardBox}>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B' }}>Готовність до публікації</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={styles.checkRowItem}>
-                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Тип помешкання</div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Вибрано {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label}</div>
-                      </div>
-                    </div>
-
-                    <div style={styles.checkRowItem}>
-                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Назва та опис</div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано назву та опис для гостей</div>
-                      </div>
-                    </div>
-
-                    <div style={styles.checkRowItem}>
-                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Зручності</div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Обрано {formData.amenities.length} позицій</div>
-                      </div>
-                    </div>
-
-                    <div style={styles.checkRowItem}>
-                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Фотографії</div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Завантажено {formData.imageUrls.length} знімків</div>
-                      </div>
-                    </div>
-
-                    <div style={styles.checkRowItem}>
-                      <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Тариф</div>
-                        <div style={{ fontSize: '12px', color: '#A78D78' }}>Встановлено ціну {formatPrice(formData.pricePerNight)}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={styles.moderationNotice}>
-                  <ClockIcon />
-                  <span style={{ fontSize: '14px', color: '#DC9666', lineHeight: '20px' }}>
-                    Ваше оголошення буде доступне для бронювання після швидкої перевірки (до 24 годин).
-                  </span>
-                </div>
-
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    style={{ marginTop: '3px', accentColor: '#DC9666' }}
-                  />
-                  <span style={{ fontSize: '13px', color: '#6E473B', lineHeight: '20px' }}>
-                    Я погоджуюся з <strong style={{ color: '#DC9666', textDecoration: 'underline' }}>Правилами публікації оголошень</strong> та ліцензійною угодою Trails UA.
-                  </span>
-                </label>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
-                  <button onClick={handlePublish} disabled={loading} style={styles.publishActionBtn}>
-                    {loading ? 'Публікація...' : 'Опублікувати зараз'}
-                  </button>
-
-                  <button onClick={() => { alert('Чернетку збережено!'); navigate('/routes'); }} style={styles.saveDraftBtn}>
-                    Зберегти як чернетку
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* НИЖНІЙ СТІКІ-БАР НАВІГАЦІЇ */}
+      {/* 3. БІЛА ПАНЕЛЬ НАВІГАЦІЇ */}
       <div style={styles.stickyBottomBar}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1144,7 +1178,6 @@ export const RouteCreate: React.FC = () => {
 // ======================== СТИЛІ ========================
 
 const styles: Record<string, React.CSSProperties> = {
-  // Зміна ролі (Figma)
   changeRoleWrapper: {
     minHeight: '100vh',
     backgroundColor: '#E1D4C2',
@@ -1373,8 +1406,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     border: '1px solid #F8B4B4',
   },
-
-  // Створення житла (6 кроків)
   stepperBarContainer: {
     backgroundColor: '#FFFFFF',
     borderBottom: '1px solid #D7C7B1',
@@ -1393,14 +1424,14 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
   },
   stepCardMain: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#E1D4C2',
     borderRadius: '24px',
-    border: '1px solid #D7C7B1',
+    border: '1px solid #E1D4C2',
     padding: '36px',
-    boxShadow: '0px 8px 24px rgba(41, 28, 14, 0.04)',
+    boxShadow: 'none',
   },
   stepTitle: {
-    fontSize: '28px',
+    fontSize: '24px',
     fontFamily: "'Alegreya', serif",
     fontWeight: 800,
     color: '#291C0E',
@@ -1420,10 +1451,10 @@ const styles: Record<string, React.CSSProperties> = {
   typesGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-    gap: '20px',
+    gap: '12px',
   },
   typeCardItem: {
-    padding: '24px 20px',
+    padding: '16px 14px',
     backgroundColor: '#FFFFFF',
     borderRadius: '16px',
     border: '1px solid #D7C7B1',
@@ -1434,14 +1465,14 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.2s ease',
   },
   typeIconBox: {
-    width: '48px',
+    width: '36px',
     height: '48px',
     borderRadius: '10px',
     backgroundColor: 'rgba(220, 150, 102, 0.15)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '24px',
+    fontSize: '20px',
   },
   formLabel: {
     color: '#6E473B',
@@ -1452,7 +1483,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   formInput: {
     width: '100%',
-    padding: '14px 16px',
+    padding: '10px 14px',
     backgroundColor: '#FFFFFF',
     borderRadius: '8px',
     border: '1px solid #D7C7B1',
@@ -1673,15 +1704,13 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   stickyBottomBar: {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#FFFFFF',
-    borderTop: '1px solid #D7C7B1',
-    padding: '16px 40px',
+    padding: '28px 40px',
+    width: '100%',
+    zIndex: 2,
+    position: 'relative',
     boxSizing: 'border-box',
-    zIndex: 100,
+    borderTop: '1px solid #D7C7B1',
   },
   stepCounterBadge: {
     padding: '6px 12px',

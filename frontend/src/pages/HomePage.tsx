@@ -4,6 +4,9 @@ import { useRoutes } from '../context/RoutesContext';
 import { useSettings } from '../context/SettingsContext';
 import { MOCK_ROUTES } from '../data/mockData';
 import type { RouteItem } from '../types';
+import promoLineBg from '../assets/Line1.png';
+import Line2 from '../assets/Line2.png';
+import HeroTreesBg from '../assets/Tree.png';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -137,8 +140,22 @@ export const HomePage: React.FC = () => {
         
         {/* ================= 1. HERO BANNER ================= */}
         <section style={heroOuterCardStyle}>
+
+          {/* === ДЕКОРАТИВНІ ЯЛИНКИ === */}
+          <img 
+            src={HeroTreesBg} 
+            alt="Decoration trees" 
+            style={{
+              position: 'absolute',
+              left: '0px',      /* Рухай вправо/вліво відносно лівого краю бежевого блоку */
+              bottom: '85px',   /* Піднімай/опускай ялинки над формою пошуку */
+              width: '450px',    /* Розмір самих ялинок (піджени під Фігму) */
+              zIndex: 1,         /* Одиниця сховає їх під текст (у нього zIndex 2) */
+              pointerEvents: 'none'
+            }}
+          />
           <div className="hero-flex-box" style={{ display: 'flex', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-            <div style={{ flex: 1.2 }}>
+            <div style={{ flex: 1.2, transform: 'translateY(-60px)' }}>
               <h1 style={heroMainTitleStyle}>
                 ЗНАЙДІТЬ СВІЙ<br />
                 <span style={{ color: '#DC9666' }}>ІДЕАЛЬНИЙ</span> ВІДПОЧИНОК
@@ -159,6 +176,8 @@ export const HomePage: React.FC = () => {
               />
             </div>
           </div>
+
+          
 
           {/* ПОШУКОВИЙ ВІДЖЕТ FIGMA */}
           <div style={{ marginTop: '36px', position: 'relative', zIndex: 10 }}>
@@ -554,7 +573,7 @@ export const HomePage: React.FC = () => {
             <h2 style={{ ...sectionHeaderTitleStyle, color: '#E1D4C2' }}>
               ВИ НЕЩОДАВНО ШУКАЛИ
             </h2>
-            <div style={{ ...orangePillDividerStyle, width: '280px', margin: '10px auto 0 auto' }} />
+            <div style={{ ...orangePillDividerStyle, width: '800px', margin: '10px auto 0 auto' }} />
           </div>
 
           <div
@@ -620,6 +639,22 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ================= ДЕКОРАТИВНА ЛІНІЯ 2 ================= */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
+        <img 
+          src={Line2} 
+          alt="Decorative line 2" 
+          style={{
+            position: 'absolute',
+            left: '-40px',       /* Крути left або right для зсуву по горизонталі */
+            top: '-350px',      /* Крути top або bottom для зсуву по вертикалі */
+            width: '100%',     /* Якщо треба конкретний розмір, став, наприклад, '1200px' */
+            pointerEvents: 'none', /* Щоб лінія не перекривала кліки по кнопках під нею */
+            zIndex: 0
+          }}
+        />
+      </div>
+
       {/* ================= 4. АКЦІЇ ДЛЯ ВАС ================= */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '70px 20px' }}>
         <section className="deals-flex-box" style={dealsSectionContainerStyle}>
@@ -633,15 +668,25 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div style={{ flex: 1.15, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ ...sectionHeaderTitleStyle, textAlign: 'left', margin: 0 }}>АКЦІЇ ДЛЯ ВАС</h2>
-              <div style={{ ...orangePillDividerStyle, margin: '8px 0 0 0', width: '220px' }} />
+            
+            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+              <h2 style={{ ...sectionHeaderTitleStyle, margin: 0 }}>АКЦІЇ ДЛЯ ВАС</h2>
+              <div style={{ ...orangePillDividerStyle, margin: '8px auto 0 auto', width: '700px' }} />
             </div>
 
             <div style={dealsListCardWrapperStyle}>
+              
+              {/* АКЦІЯ 1 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
-                <div style={dealPercentBadgeStyle}>%</div>
-                <div style={{ flex: 1 }}>
+                {/* Світла зірочка */}
+                <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#DC9666" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <path d="M12 1L14.5 4.5L18.5 4L19.5 8L23.5 9.5L21.5 13L23.5 16.5L19.5 18L18.5 22L14.5 21.5L12 25L9.5 21.5L5.5 22L4.5 18L0.5 16.5L2.5 13L0.5 9.5L4.5 8L5.5 4L9.5 4.5L12 1Z" />
+                  </svg>
+                  <span style={{ position: 'relative', color: '#FFFFFF', fontSize: '24px', fontWeight: 900, fontStyle: 'italic', zIndex: 1, fontFamily: "'Alegreya', Georgia, serif" }}>%</span>
+                </div>
+
+                <div style={{ flex: 1, paddingLeft: '14px' }}>
                   <div style={dealItemTitleStyle}>Знижка 20% на Колиба &apos;Два Потоки&apos;</div>
                   <div style={dealItemTagStyle}>ЯРЕМЧЕ, КАРПАТИ</div>
                 </div>
@@ -650,9 +695,18 @@ export const HomePage: React.FC = () => {
 
               <div style={dealDividerLineStyle} />
 
+              {/* АКЦІЯ 2 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
-                <div style={{ ...dealPercentBadgeStyle, backgroundColor: '#6E473B' }}>%</div>
-                <div style={{ flex: 1 }}>
+                
+                {/* Темна зірочка */}
+                <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#6E473B" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <path d="M12 1L14.5 4.5L18.5 4L19.5 8L23.5 9.5L21.5 13L23.5 16.5L19.5 18L18.5 22L14.5 21.5L12 25L9.5 21.5L5.5 22L4.5 18L0.5 16.5L2.5 13L0.5 9.5L4.5 8L5.5 4L9.5 4.5L12 1Z" />
+                  </svg>
+                  <span style={{ position: 'relative', color: '#FFFFFF', fontSize: '24px', fontWeight: 900, fontStyle: 'italic', zIndex: 1, fontFamily: "'Alegreya', Georgia, serif" }}>%</span>
+                </div>
+
+                <div style={{ flex: 1, paddingLeft: '14px' }}>
                   <div style={dealItemTitleStyle}>Знижка 15% на Пентхаус з видом на Оперу</div>
                   <div style={dealItemTagStyle}>ЛЬВІВ, ЦЕНТР</div>
                 </div>
@@ -661,9 +715,18 @@ export const HomePage: React.FC = () => {
 
               <div style={dealDividerLineStyle} />
 
+              {/* АКЦІЯ 3 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
-                <div style={dealPercentBadgeStyle}>%</div>
-                <div style={{ flex: 1 }}>
+                
+                {/* Світла зірочка */}
+                <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#DC9666" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <path d="M12 1L14.5 4.5L18.5 4L19.5 8L23.5 9.5L21.5 13L23.5 16.5L19.5 18L18.5 22L14.5 21.5L12 25L9.5 21.5L5.5 22L4.5 18L0.5 16.5L2.5 13L0.5 9.5L4.5 8L5.5 4L9.5 4.5L12 1Z" />
+                  </svg>
+                  <span style={{ position: 'relative', color: '#FFFFFF', fontSize: '24px', fontWeight: 900, fontStyle: 'italic', zIndex: 1, fontFamily: "'Alegreya', Georgia, serif" }}>%</span>
+                </div>
+
+                <div style={{ flex: 1, paddingLeft: '14px' }}>
                   <div style={dealItemTitleStyle}>Знижка 25% на Villa Sunset &amp; Sea Pool</div>
                   <div style={dealItemTagStyle}>ОДЕСА, ФОНТАН</div>
                 </div>
@@ -671,7 +734,7 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ marginTop: '24px' }}>
+            <div style={{ marginTop: '24px', textAlign: 'center' }}>
               <button onClick={() => navigate('/promotions')} style={viewAllDealsBtnStyle}>
                 Дивитися всі акції
               </button>
@@ -680,7 +743,6 @@ export const HomePage: React.FC = () => {
 
         </section>
       </div>
-
       {/* ================= 5. ПОПУЛЯРНІ ГОТЕЛІ (8 КАРТОК) ================= */}
       <section style={darkSectionWrapperStyle}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
@@ -748,12 +810,27 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ================= ДЕКОРАТИВНА ЛІНІЯ (ОКРЕМО) ================= */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
+        <img 
+          src={promoLineBg} 
+          alt="Decorative line" 
+          style={{
+            position: 'absolute',
+            right: '170px',    /* Регулируй сдвиг вправо/влево */
+            bottom: '-350px',  /* Регулируй сдвиг вниз к блоку подписки */
+            width: '1200px', 
+            pointerEvents: 'none'
+          }}
+        />
+      </div>
+
       {/* ================= 6. БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ! ================= */}
-      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 20px 40px 20px' }}>
-        <section style={newsletterContainerCardStyle}>
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 20px 40px 20px', position: 'relative', zIndex: 1 }}>
+        <section style={{ ...newsletterContainerCardStyle, backgroundColor: 'transparent', boxShadow: 'none' }}>
           <div>
             <h2 style={newsletterHeaderTitleStyle}>БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ!</h2>
-            <div style={{ ...orangePillDividerStyle, margin: '10px 0 16px 0', width: '380px' }} />
+            <div style={{ ...orangePillDividerStyle, margin: '10px 0 16px 0', width: '720px' }} />
             <p style={newsletterSubTitleStyle}>
               Підписатися на рекламу
             </p>
@@ -764,7 +841,7 @@ export const HomePage: React.FC = () => {
               ✓ Дякуємо за підписку! Спеціальний промокод надіслано на вашу пошту.
             </div>
           ) : (
-            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '16px', maxWidth: '850px' }}>
+            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '16px', maxWidth: '700px' }}>
               <input
                 type="email"
                 required
@@ -793,7 +870,6 @@ const heroOuterCardStyle: React.CSSProperties = {
   backgroundColor: '#D7C7B1',
   borderRadius: '40px',
   padding: '44px 40px 32px 40px',
-  outline: '8px solid #A78D78',
   position: 'relative',
   boxShadow: '0 18px 40px rgba(41, 28, 14, 0.08)'
 };
@@ -1109,21 +1185,6 @@ const dealItemRowStyle: React.CSSProperties = {
   borderRadius: '16px'
 };
 
-const dealPercentBadgeStyle: React.CSSProperties = {
-  width: '56px',
-  height: '56px',
-  borderRadius: '16px',
-  backgroundColor: '#DC9666',
-  color: '#FFFFFF',
-  fontSize: '28px',
-  fontWeight: 900,
-  fontFamily: "'Alegreya', Georgia, serif",
-  fontStyle: 'italic',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
-};
-
 const dealItemTitleStyle: React.CSSProperties = {
   fontFamily: "'Iosevka Charon', sans-serif",
   fontSize: '18px',
@@ -1187,7 +1248,7 @@ const recommendationsBtnStyle: React.CSSProperties = {
 const newsletterContainerCardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '40px',
-  border: '3px solid #D7C7B1',
+  border: 'none',
   boxShadow: '0 12px 30px rgba(41, 28, 14, 0.06)',
   padding: '48px 40px',
   display: 'flex',
@@ -1197,7 +1258,7 @@ const newsletterContainerCardStyle: React.CSSProperties = {
 
 const newsletterHeaderTitleStyle: React.CSSProperties = {
   fontFamily: "'Alegreya', Georgia, serif",
-  fontSize: 'clamp(26px, 3vw, 38px)',
+  fontSize: '33px',
   fontWeight: 900,
   fontStyle: 'italic',
   textTransform: 'uppercase',
