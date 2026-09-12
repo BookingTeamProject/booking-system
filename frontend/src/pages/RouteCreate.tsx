@@ -8,7 +8,6 @@ import type { RouteItem } from '../types';
 import treesBg from '../assets/trees-bg.png';
 import birdsBg from '../assets/birds.png';
 
-// ======================== SVG ІКОНКИ ========================
 const ChevronRightIcon = ({ color = '#DC9666' }: { color?: string }) => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6" />
@@ -48,7 +47,6 @@ const MapPinIcon = ({ color = '#DC9666' }: { color?: string }) => (
   </svg>
 );
 
-// Конфігурація типів житла з Figma
 const ACCOMMODATION_TYPES = [
   { id: 'apartment', label: 'Квартира', subtitle: 'Окремі апартаменти', icon: '🏢' },
   { id: 'house', label: 'Будинок', subtitle: 'Цілий будинок для гостей', icon: '🏡' },
@@ -58,7 +56,6 @@ const ACCOMMODATION_TYPES = [
   { id: 'room', label: 'Кімната', subtitle: 'Окрема кімната у житлі', icon: '🚪' },
 ];
 
-// Категорії зручностей з Figma
 const AMENITIES_BY_CATEGORY = [
   {
     category: 'Ванна кімната',
@@ -102,45 +99,28 @@ export const RouteCreate: React.FC = () => {
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [roleSwitchConfirmed, setRoleSwitchConfirmed] = useState(false);
 
-  // Стан форми
   const [formData, setFormData] = useState({
-    type: 'chalet',
+    type: 'apartment',
     categoryId: '',
-    title: 'Панорамне шале з гарячим чаном над хмарами',
-    description: "Сучасний дерев'яний котедж у затишному куточку Яремче. Панорамні вікна з виглядом на Чорногірський хребет. На терасі встановлено просторий чан на дровах з джерельною водою. Всередині є камін, обладнана кухня та дві окремі спальні. Ідеальне місце для відновлення сил.",
-    location: 'Яремче, Івано-Франківська область',
-    address: 'вул. Свободи 12',
+    title: '',
+    description: '',
+    location: '',
+    address: '',
     rentalFormat: 'daily' as 'daily' | 'monthly' | 'longterm',
-    maxGuests: 4,
-    bedroomsCount: 2,
+    maxGuests: 1,
+    bedroomsCount: 1,
     bathroomsCount: 1,
-    amenities: [
-      'Автентичний чан',
-      'Тераса',
-      'Wi-Fi',
-      'Камін',
-      'Барбекю',
-      'Краєвид на гори',
-      'Швидкісний Wi-Fi',
-      'Кухня з усім приладдям',
-      'Гаряча вода',
-    ],
+    amenities: [] as string[],
     mealPlan: 'none' as 'none' | 'breakfast' | 'half' | 'full',
-    pricePerNight: 3500,
+    pricePerNight: 1500,
     minDays: 1,
     cancellationPolicy: 'flexible' as 'flexible' | 'moderate' | 'strict',
-    cleaningFee: 500,
-    depositFee: 2000,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=800&q=80',
-    ] as string[],
+    cleaningFee: 0,
+    depositFee: 0,
+    imageUrls: [] as string[],
   });
 
   useEffect(() => {
-    // Підвантажуємо категорії з бекенду або кешу
     const loadCategories = async () => {
       try {
         const data = await categoriesApi.getAll();
@@ -154,7 +134,6 @@ export const RouteCreate: React.FC = () => {
     loadCategories();
   }, []);
 
-  // Обробка файлів
   const processFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     Array.from(files).forEach((file) => {
@@ -201,7 +180,6 @@ export const RouteCreate: React.FC = () => {
     }
   };
 
-  // Публікація оголошення
   const handlePublish = async () => {
     if (!termsAccepted) {
       alert('Будь ласка, підтвердіть згоду з правилами публікації оголошень.');
@@ -217,6 +195,12 @@ export const RouteCreate: React.FC = () => {
     if (!formData.location.trim()) {
       alert('Будь ласка, вкажіть населений пункт та область.');
       setStep(1);
+      return;
+    }
+
+    if (formData.imageUrls.length === 0) {
+      alert('⚠️ Будь ласка, додайте щонайменше одну фотографію помешкання.');
+      setStep(4);
       return;
     }
 
@@ -244,13 +228,7 @@ export const RouteCreate: React.FC = () => {
       return;
     }
 
-    const cleanImageUrls = formData.imageUrls.filter((url) => !url.startsWith('data:'));
-    const finalImages = cleanImageUrls.length > 0 ? cleanImageUrls : [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=800&q=80',
-    ];
+    const finalImages = formData.imageUrls;
 
     try {
       const serverResponse = await routesApi.create({
@@ -314,7 +292,6 @@ export const RouteCreate: React.FC = () => {
     }
   };
 
-  // 0. ПЕРЕВІРКА РОЛІ (FIGMA "Хочеш змінити роль?")
   if (!isLandlord && !roleSwitchConfirmed) {
     return (
       <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', padding: '60px 20px', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
@@ -340,9 +317,7 @@ export const RouteCreate: React.FC = () => {
               </p>
             </div>
 
-            {/* Порівняння карток ролей */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', width: '100%' }}>
-              {/* Орендар (поточна) */}
               <div style={roleBoxRegularStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '20px', fontWeight: 700, color: '#6E473B' }}>Орендар</span>
@@ -355,7 +330,6 @@ export const RouteCreate: React.FC = () => {
                 </div>
               </div>
 
-              {/* Господар (активується) */}
               <div style={roleBoxActiveStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '20px', fontWeight: 700, color: '#DC9666' }}>Господар</span>
@@ -369,7 +343,6 @@ export const RouteCreate: React.FC = () => {
               </div>
             </div>
 
-            {/* Попередження */}
             <div style={warningNoticeBoxStyle}>
               <span style={{ fontSize: '20px' }}>⚠️</span>
               <div>
@@ -380,7 +353,6 @@ export const RouteCreate: React.FC = () => {
               </div>
             </div>
 
-            {/* Підтвердження */}
             <button
               onClick={handleRoleUpgrade}
               disabled={loading}
@@ -397,7 +369,6 @@ export const RouteCreate: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
 
-      {/* 1. ГОРИЗОНТАЛЬНИЙ СТЕППЕР З FIGMA */}
       <div style={{ ...stepperBarContainerStyle, zIndex: 50 }}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
@@ -446,13 +417,10 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. ТІЛО СТОРІНКИ (Гнучкий контейнер) */}
       <div style={{ flex: 1, position: 'relative', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
         
-        {/* ================= ФОНОВІ ЯЛИНКИ ТА ПТАШКИ ================= */}
         <div style={{ position: 'absolute', right: '-20px', bottom: '-140px', zIndex: 0, pointerEvents: 'none', width: '500px' }}>
           
-          {/* Пташки (PNG) */}
           <img 
             src={birdsBg} 
             alt="Пташки" 
@@ -468,10 +436,8 @@ export const RouteCreate: React.FC = () => {
           <img src={treesBg} alt="Декоративні ялинки" style={{ width: '100%', height: 'auto', display: 'block', opacity: 0.9 }} />
         </div>
 
-        {/* ================= ОСНОВНИЙ КОНТЕНТ ФОРМИ ================= */}
         <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
           
-          {/* ================= КРОК 1 ================= */}
           {step === 1 && (
             <div style={stepCardMainStyle}>
               <div style={{ marginBottom: '28px' }}>
@@ -532,7 +498,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* ================= КРОК 2 ================= */}
           {step === 2 && (
             <div style={stepCardMainStyle}>
               <div style={{ marginBottom: '28px' }}>
@@ -548,6 +513,7 @@ export const RouteCreate: React.FC = () => {
                     maxLength={60}
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="наприклад: Затишний будинок у Карпатах"
                     style={formInputStyle}
                   />
                 </div>
@@ -558,6 +524,7 @@ export const RouteCreate: React.FC = () => {
                     rows={4}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Розкажіть про особливості вашого помешкання..."
                     style={formTextareaStyle}
                   />
                 </div>
@@ -627,7 +594,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* ================= КРОК 3 ================= */}
           {step === 3 && (
             <div style={stepCardMainStyle}>
               <div style={{ marginBottom: '28px' }}>
@@ -689,12 +655,11 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* ================= КРОК 4 ================= */}
           {step === 4 && (
             <div style={stepCardMainStyle}>
               <div style={{ marginBottom: '28px' }}>
                 <h2 style={stepTitleStyle}>Крок 4. Світлини вашого помешкання</h2>
-                <p style={stepSubtitleStyle}>Завантажте щонайменше 4 якісних фотографій. Перша стане обкладинкою</p>
+                <p style={stepSubtitleStyle}>Завантажте хоча б одну фотографію. Перша стане обкладинкою</p>
               </div>
 
               <input
@@ -724,7 +689,7 @@ export const RouteCreate: React.FC = () => {
                   Перетягніть фото сюди або натисніть для вибору
                 </div>
                 <span style={{ color: '#A78D78', fontSize: '14px' }}>
-                  Рекомендований формат JPG/PNG, мінімум 1920x1080px
+                  Рекомендований формат JPG/PNG, мінімум одна світлина
                 </span>
               </div>
 
@@ -733,6 +698,12 @@ export const RouteCreate: React.FC = () => {
               <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
                 Завантажені світлини ({formData.imageUrls.length})
               </div>
+
+              {formData.imageUrls.length === 0 && (
+                <div style={{ color: '#C62828', fontSize: '14px', marginBottom: '16px', fontWeight: 600 }}>
+                  ⚠️ Увага: для створення оголошення необхідно додати мінімум одну фотографію.
+                </div>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
                 {formData.imageUrls.map((url, idx) => (
@@ -752,7 +723,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* ================= КРОК 5 ================= */}
           {step === 5 && (
             <div style={stepCardMainStyle}>
               <div style={{ marginBottom: '28px' }}>
@@ -846,7 +816,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* ================= КРОК 6 ================= */}
           {step === 6 && (
             <div style={stepCardMainStyle}>
               <div style={{ marginBottom: '24px' }}>
@@ -863,7 +832,7 @@ export const RouteCreate: React.FC = () => {
                   </div>
                   <div style={previewCardFigmaStyle}>
                     <img
-                      src={formData.imageUrls[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
+                      src={formData.imageUrls[0] || 'https://placehold.co/800x400/E1D4C2/6E473B?text=Немає+фотографії'}
                       alt="Preview Cover"
                       style={{ width: '100%', height: '320px', objectFit: 'cover' }}
                     />
@@ -871,19 +840,19 @@ export const RouteCreate: React.FC = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <MapPinIcon />
-                          <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location}</span>
+                          <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location || 'Локація не вказана'}</span>
                         </div>
                         <span style={previewPillTagStyle}>
-                          {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале'}
+                          {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Житло'}
                         </span>
                       </div>
 
                       <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#6E473B', margin: 0 }}>
-                        {formData.title}
+                        {formData.title || 'Назва помешкання'}
                       </h3>
 
                       <p style={{ fontSize: '14px', color: '#6E473B', lineHeight: '22px', margin: 0 }}>
-                        {formData.description}
+                        {formData.description || 'Опис відсутній'}
                       </p>
 
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -894,7 +863,7 @@ export const RouteCreate: React.FC = () => {
 
                       <div style={previewPriceFooterStyle}>
                         <div>
-                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{user?.firstName || 'Ярослав'} {user?.lastName || 'К.'}</div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{user?.firstName || 'Господар'} {user?.lastName || ''}</div>
                           <div style={{ fontSize: '12px', color: '#A78D78' }}>Власник оголошення</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
@@ -924,7 +893,7 @@ export const RouteCreate: React.FC = () => {
                         <div style={greenTickCircleStyle}><CheckIcon color="#DC9666" size={14} /></div>
                         <div>
                           <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Назва та опис</div>
-                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано локальну назву та детальне резюме</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано назву та опис</div>
                         </div>
                       </div>
 
@@ -957,7 +926,7 @@ export const RouteCreate: React.FC = () => {
                   <div style={moderationNoticeStyle}>
                     <ClockIcon />
                     <span style={{ fontSize: '14px', color: '#DC9666', lineHeight: '20px' }}>
-                      Ваше оголошення буде доступне для бронювання мандрівниками після проходження швидкої модерації (до 24 годин).
+                      Ваше оголошення буде доступне для бронювання мандрівниками після проходження модерації.
                     </span>
                   </div>
 
@@ -997,14 +966,12 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. БІЛА ПАНЕЛЬ НАВІГАЦІЇ */}
       <div style={{ 
         backgroundColor: '#FFFFFF', 
         padding: '28px 40px',
         width: '100%', 
         zIndex: 2, 
         position: 'relative',
-        
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1035,8 +1002,6 @@ export const RouteCreate: React.FC = () => {
   );
 };
 
-// ======================= СТИЛІ FIGMA =======================
-
 const stepperBarContainerStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderBottom: '1px solid #D7C7B1',
@@ -1065,7 +1030,7 @@ const stepCardMainStyle: React.CSSProperties = {
 };
 
 const stepTitleStyle: React.CSSProperties = {
-  fontSize: '24px', /*изменено*/
+  fontSize: '24px',
   fontFamily: "'Alegreya', serif",
   fontWeight: 800,
   color: '#291C0E',
@@ -1088,11 +1053,11 @@ const formDividerStyle: React.CSSProperties = {
 const typesGridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-  gap: '12px',/*изменено*/
+  gap: '12px',
 };
 
 const typeCardItemStyle: React.CSSProperties = {
-  padding: '16px 14px',/*изменено*/
+  padding: '16px 14px',
   backgroundColor: '#FFFFFF',
   borderRadius: '16px',
   border: '1px solid #D7C7B1',
@@ -1104,14 +1069,14 @@ const typeCardItemStyle: React.CSSProperties = {
 };
 
 const typeIconBoxStyle: React.CSSProperties = {
-  width: '36px',/*изменено*/
+  width: '36px',
   height: '48px',
   borderRadius: '10px',
   backgroundColor: 'rgba(220, 150, 102, 0.15)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: '20px',/*изменено*/
+  fontSize: '20px',
 };
 
 const formLabelStyle: React.CSSProperties = {
@@ -1124,7 +1089,7 @@ const formLabelStyle: React.CSSProperties = {
 
 const formInputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '10px 14px',/*изменено*/
+  padding: '10px 14px',
   backgroundColor: '#FFFFFF',
   borderRadius: '8px',
   border: '1px solid #D7C7B1',
@@ -1369,18 +1334,6 @@ const saveDraftBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-const stickyBottomBarStyle: React.CSSProperties = {
-  position: 'fixed',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: '#FFFFFF',
-  borderTop: '1px solid #D7C7B1',
-  padding: '16px 40px',
-  boxSizing: 'border-box',
-  zIndex: 100,
-};
-
 const stepCounterBadgeStyle: React.CSSProperties = {
   padding: '6px 12px',
   borderRadius: '6px',
@@ -1412,7 +1365,6 @@ const navNextBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-// СТИЛІ ЕКРАНУ ЗМІНИ РОЛІ
 const backToProfileLinkStyle: React.CSSProperties = {
   background: 'none',
   border: 'none',

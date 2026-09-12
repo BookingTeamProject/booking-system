@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { BookingModal } from '../components/BookingModal';
 import { useSettings } from '../context/SettingsContext';
 import { useRoutes } from '../context/RoutesContext';
 import type { RouteItem, Review } from '../types';
+import Line5 from '../assets/Line5.png';
+
+// Підключення реальної карти
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 // ======================== SVG ІКОНКИ З FIGMA ========================
 const MapPinIcon = ({ color = '#DC9666', size = 16 }: { color?: string; size?: number }) => (
@@ -77,7 +83,7 @@ const AmenityIcons: Record<string, React.ReactNode> = {
   car: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E473B" strokeWidth="2">
       <rect x="1" y="3" width="15" height="13" />
-      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+      <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
       <circle cx="5.5" cy="18.5" r="2.5" />
       <circle cx="18.5" cy="18.5" r="2.5" />
     </svg>
@@ -98,6 +104,51 @@ const AmenityIcons: Record<string, React.ReactNode> = {
   ),
 };
 
+const customMapIcon = L.divIcon({
+  className: 'custom-leaflet-icon',
+  html: `<div style="background-color: #DC9666; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0px 6px 14px rgba(0,0,0,0.15);">
+           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+             <circle cx="12" cy="10" r="3"></circle>
+           </svg>
+         </div>`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+  popupAnchor: [0, -36]
+});
+
+// Карта з локацією
+const LocationMap = ({ locationStr }: { locationStr: string }) => {
+  const [coords, setCoords] = useState<[number, number] | null>(null);
+
+  useEffect(() => {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationStr)}&countrycodes=ua`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setCoords([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+        } else {
+          setCoords([48.449, 24.555]);
+        }
+      })
+      .catch(() => setCoords([48.449, 24.555]));
+  }, [locationStr]);
+
+  if (!coords) return <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6E473B' }}>Завантаження карти...</div>;
+
+  return (
+    <MapContainer center={coords} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+      <TileLayer
+        url="https://mt1.google.com/vt/lyrs=m&hl=uk&gl=UA&x={x}&y={y}&z={z}"
+        attribution='&copy; Google Maps'
+      />
+      <Marker position={coords} icon={customMapIcon}>
+        <Popup>{locationStr}</Popup>
+      </Marker>
+    </MapContainer>
+  );
+};
+
 export const RouteDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -109,12 +160,11 @@ export const RouteDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
-  // Стейт бронювання
-  const nightsCount = 3;
-  const cleaningFee = 300;
-  const serviceFee = 150;
+  // СТЕЙТИ ДЛЯ КАЛЬКУЛЯТОРА
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [guests, setGuests] = useState(1);
 
-  // Форма нового відгуку
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
 
@@ -136,72 +186,39 @@ export const RouteDetails: React.FC = () => {
           title: raw.title,
           description: raw.description,
           location: raw.location,
-          price: raw.price || 1500,
+          price: raw.price || 0,
           categoryId: raw.categoryId,
-          categoryName: raw.category?.name || raw.categoryName || 'Котедж',
-          authorName: raw.user ? `${raw.user.firstName || ''} ${raw.user.lastName || ''}`.trim() : raw.authorName || 'Василь Петрович',
-          averageRating: raw.averageRating || 4.9,
-          reviewsCount: raw.reviewsCount || 127,
-          imageUrls: Array.isArray(raw.images) && raw.images.length > 0
-            ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
-            : raw.imageUrls || [
-                'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
-                'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80',
-                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
-                'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=600&q=80',
-                'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=600&q=80',
-              ],
-          amenities: raw.amenities || [
-            'Замок на дверях спальні',
-            'Фен',
-            'Wi-Fi',
-            'Кухня',
-            'Телевізор',
-            'Безкоштовна парковка на території',
-            'Пральна машина',
-            'Дозволено курити',
-            'Kондиціонування повітря',
-            'Можна з домашніми тваринами',
-          ],
-          createdAt: raw.createdAt || '2026-08-01',
+          categoryName: raw.category?.name || raw.categoryName || '',
+          authorName: raw.user ? `${raw.user.firstName || ''} ${raw.user.lastName || ''}`.trim() : raw.authorName || 'Невідомий господар',
+          averageRating: raw.averageRating || 0,
+          reviewsCount: raw.reviewsCount || 0,
+          imageUrls: (() => {
+            if (Array.isArray(raw.imageUrls) && raw.imageUrls.length > 0) {
+              return raw.imageUrls.map((img: any) => (typeof img === 'string' ? img : img.url));
+            }
+            if (Array.isArray(raw.images) && raw.images.length > 0) {
+              return raw.images.map((img: any) => (typeof img === 'string' ? img : img.url));
+            }
+            return [];
+          })(),
+          amenities: (() => {
+            if (Array.isArray(raw.amenities)) return raw.amenities;
+            if (typeof raw.amenities === 'string') {
+              try {
+                return JSON.parse(raw.amenities);
+              } catch {
+                return raw.amenities.split(',').map((a: string) => a.trim()).filter((a: string) => a); 
+              }
+            }
+            return [];
+          })(),
+          createdAt: raw.createdAt || new Date().toISOString(),
         };
         setRoute(mapped);
       }
-    } catch {
-      // Fallback на демонстраційне житло у стилі Figma
-      setRoute({
-        id: id || '1',
-        title: 'Затишний котедж у Карпатах',
-        description:
-          'Квартира для відпочинку в мальовничому куточку Карпат. Простора та світла тераса 20 м², де можна пити ранкову каву та милуватися краєвидами. Окрема двоярусна спальня, затишна кухня-вітальня та зручний ортопедичний диван. Поруч гірська річка, смерековий ліс та туристичні стежки до найгарніших полонин.',
-        location: 'Яремче, Івано-Франківська область',
-        price: 1500,
-        categoryId: 'cottage',
-        categoryName: 'Котедж',
-        authorName: 'Василь Петрович',
-        averageRating: 4.9,
-        reviewsCount: 127,
-        imageUrls: [
-          'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
-          'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80',
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
-          'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=600&q=80',
-          'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=600&q=80',
-        ],
-        amenities: [
-          'Замок на дверях спальні',
-          'Фен',
-          'Wi-Fi',
-          'Кухня',
-          'Телевізор',
-          'Безкоштовна парковка на території',
-          'Пральна машина',
-          'Дозволено курити',
-          'Kондиціонування повітря',
-          'Можна з домашніми тваринами',
-        ],
-        createdAt: '2026-08-01',
-      });
+    } catch (error) {
+      console.error("Помилка завантаження помешкання", error);
+      setRoute(null);
     } finally {
       setLoading(false);
     }
@@ -225,32 +242,10 @@ export const RouteDetails: React.FC = () => {
         }));
         setReviews([...localSaved, ...backendReviews]);
       } else {
-        setReviews(
-          localSaved.length > 0
-            ? localSaved
-            : [
-                {
-                  id: 'rev-1',
-                  routeId: id || '1',
-                  userId: 'u1',
-                  userName: 'Evgeniy',
-                  rating: 5,
-                  comment: 'Дуже надихає. 💛💙 Прекрасне місце для перезавантаження думок та відпочинку від міста.',
-                  createdAt: '1 тиждень тому',
-                },
-                {
-                  id: 'rev-2',
-                  routeId: id || '1',
-                  userId: 'u2',
-                  userName: 'Oleg',
-                  rating: 5,
-                  comment: 'Особливе житло без мейнстріму з мальовничим краєвидом на полонину. Рекомендую!',
-                  createdAt: '2 тижні тому',
-                },
-              ]
-        );
+        setReviews(localSaved);
       }
-    } catch {
+    } catch (error) {
+      console.error("Помилка завантаження відгуків", error);
       setReviews(localSaved);
     }
   };
@@ -263,7 +258,7 @@ export const RouteDetails: React.FC = () => {
       id: String(Date.now()),
       routeId: id || '1',
       userId: 'me',
-      userName: 'Анастасія П.',
+      userName: 'Миша',
       rating: Number(newRating),
       comment: newComment.trim(),
       createdAt: 'Щойно',
@@ -286,8 +281,22 @@ export const RouteDetails: React.FC = () => {
 
     setReviews([newReviewObj, ...reviews]);
     setNewComment('');
-    alert('🎉 Дякуємо за ваш відгук!');
   };
+
+  const calculatedRating = useMemo(() => {
+    if (reviews.length === 0) return route?.averageRating || 0;
+    const sum = reviews.reduce((acc, curr) => acc + curr.rating, 0);
+    return (sum / reviews.length).toFixed(1);
+  }, [reviews, route]);
+
+  // ДИНАМІЧНА МАТЕМАТИКА
+  const calculatedNights = useMemo(() => {
+    if (!checkIn || !checkOut) return 0;
+    const d1 = new Date(checkIn);
+    const d2 = new Date(checkOut);
+    const diffDays = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  }, [checkIn, checkOut]);
 
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '100px', fontSize: '18px', color: '#6E473B' }}>Завантаження помешкання...</div>;
@@ -304,35 +313,40 @@ export const RouteDetails: React.FC = () => {
     );
   }
 
-  const galleryImages =
-    route.imageUrls && route.imageUrls.length >= 5
-      ? route.imageUrls
-      : [
-          'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
-          'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80',
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80',
-          'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=600&q=80',
-          'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=600&q=80',
-        ];
-
-  const pricePerNight = route.price || 1500;
-  const accommodationTotal = pricePerNight * nightsCount;
+  const routeImgs = route.imageUrls && route.imageUrls.length > 0 ? route.imageUrls : [];
+  
+  const pricePerNight = route.price || 0;
+  const accommodationTotal = pricePerNight * calculatedNights;
+  const cleaningFee = calculatedNights > 0 ? 300 : 0;
+  const serviceFee = calculatedNights > 0 ? 150 : 0;
   const grandTotal = accommodationTotal + cleaningFee + serviceFee;
 
   return (
-    <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
-      <div style={{ maxWidth: '1720px', margin: '0 auto', padding: '24px 40px 120px 40px' }}>
+    <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif", position: 'relative', overflow: 'hidden' }}>
+      
+      <img
+        src={Line5}
+        alt="Background Line"
+        style={{
+          position: 'absolute',
+          top: '200px',
+          right: '0px',
+          width: '110vw',
+          opacity: 0.6,
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+
+      <div style={{ maxWidth: '1720px', margin: '0 auto', padding: '24px 40px 120px 40px', position: 'relative', zIndex: 1 }}>
         
-        {/* 1. ХЛІБНІ КРИХТИ (BREADCRUMBS) */}
         <div style={breadcrumbsRowStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link to="/routes" style={breadcrumbLinkStyle}>
               ← Пошук житла
             </Link>
             <span style={{ color: '#6E473B' }}>/</span>
-            <span style={{ color: '#6E473B', fontSize: '15px' }}>Івано-Франківська область</span>
-            <span style={{ color: '#6E473B' }}>/</span>
-            <span style={{ color: '#A78D78', fontSize: '15px' }}>Яремче</span>
+            <span style={{ color: '#A78D78', fontSize: '15px' }}>{route.title}</span>
           </div>
 
           <button
@@ -343,45 +357,41 @@ export const RouteDetails: React.FC = () => {
           </button>
         </div>
 
-        {/* 2. ФОТОГАЛЕРЕЯ (1 ВЕЛИКЕ ЗЛІВА + 4 СПРАВА) */}
         <div style={{ position: 'relative', marginTop: '20px', marginBottom: '40px' }}>
-          <div style={galleryContainerStyle}>
-            {/* Головне велике фото */}
-            <div style={mainPhotoBoxStyle}>
-              <img src={galleryImages[0]} alt="Main" style={imageFillStyle} />
-            </div>
+          {routeImgs.length > 0 ? (
+            <div style={galleryContainerStyle}>
+              <div style={mainPhotoBoxStyle}>
+                <img src={routeImgs[0]} alt="Main" style={imageFillStyle} />
+              </div>
 
-            {/* 4 фото сіткою 2x2 */}
-            <div style={subGridPhotosStyle}>
-              <div style={subPhotoBoxStyle}>
-                <img src={galleryImages[1]} alt="Sub 1" style={imageFillStyle} />
-              </div>
-              <div style={subPhotoBoxStyle}>
-                <img src={galleryImages[2]} alt="Sub 2" style={imageFillStyle} />
-              </div>
-              <div style={subPhotoBoxStyle}>
-                <img src={galleryImages[3]} alt="Sub 3" style={imageFillStyle} />
-              </div>
-              <div style={subPhotoBoxStyle}>
-                <img src={galleryImages[4]} alt="Sub 4" style={imageFillStyle} />
-              </div>
+              {routeImgs.length > 1 && (
+                <div style={subGridPhotosStyle}>
+                  {routeImgs.slice(1, 5).map((img, idx) => (
+                    <div key={idx} style={subPhotoBoxStyle}>
+                      <img src={img} alt={`Sub ${idx + 1}`} style={imageFillStyle} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          ) : (
+            <div style={{ ...galleryContainerStyle, backgroundColor: '#E1D4C2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#6E473B', fontSize: '18px', fontWeight: 700 }}>Немає фотографій</span>
+            </div>
+          )}
 
-          {/* Кнопка "Показати всі фото" */}
-          <button style={showAllPhotosBtnStyle}>
-            <span style={{ fontSize: '15px' }}>⊞</span>
-            <span>Показати всі фото</span>
-          </button>
+          {routeImgs.length > 5 && (
+            <button style={showAllPhotosBtnStyle}>
+              <span style={{ fontSize: '15px' }}>⊞</span>
+              <span>Показати всі фото ({routeImgs.length})</span>
+            </button>
+          )}
         </div>
 
-        {/* 3. ДВОКОЛОНКОВИЙ ЛЕЙАУТ */}
         <div style={twoColumnLayoutContainerStyle}>
           
-          {/* ЛІВА КОЛОНКА */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
             
-            {/* Заголовок та мета */}
             <div>
               <h1 style={propertyTitleStyle}>{route.title}</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -392,7 +402,7 @@ export const RouteDetails: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <StarIcon fill="#DC9666" size={16} />
                   <span style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>
-                    {route.averageRating || 4.9}
+                    {calculatedRating}
                   </span>
                   <span style={{ color: '#6E473B', fontSize: '14px' }}>
                     ({reviews.length} відгуків)
@@ -403,7 +413,6 @@ export const RouteDetails: React.FC = () => {
 
             <hr style={separatorLineStyle} />
 
-            {/* Картка господаря */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
@@ -412,59 +421,54 @@ export const RouteDetails: React.FC = () => {
               />
               <div>
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#291C0E', fontWeight: 700 }}>
-                  Господар: {route.authorName || 'Василь Петрович'}
+                  Господар: {route.authorName}
                 </h3>
                 <div style={{ color: '#6E473B', fontSize: '14px' }}>
-                  На платформі з 2023 року · Супергосподар
+                  На платформі з 2026 року
                 </div>
               </div>
             </div>
 
             <hr style={separatorLineStyle} />
 
-            {/* Про це помешкання (About Card) */}
             <div style={figmaWhiteCardStyle}>
               <h2 style={cardHeadingStyle}>Про цю квартиру</h2>
               <div style={aboutTextStyle}>
-                {route.description}
+                {route.description || 'Опис відсутній.'}
               </div>
             </div>
 
             <hr style={separatorLineStyle} />
 
-            {/* Зручності (Amenities Card) */}
-            <div style={figmaWhiteCardStyle}>
-              <h2 style={cardHeadingStyle}>Зручності</h2>
-              <div style={amenitiesGridStyle}>
-                {(route.amenities || []).map((amenity, idx) => {
-                  let icon = AmenityIcons.lock;
-                  if (amenity.toLowerCase().includes('wi-fi')) icon = AmenityIcons.wifi;
-                  if (amenity.toLowerCase().includes('кухня')) icon = AmenityIcons.kitchen;
-                  if (amenity.toLowerCase().includes('телевізор')) icon = AmenityIcons.tv;
-                  if (amenity.toLowerCase().includes('парков')) icon = AmenityIcons.car;
-                  if (amenity.toLowerCase().includes('пральна')) icon = AmenityIcons.wash;
-                  if (amenity.toLowerCase().includes('тваринами')) icon = AmenityIcons.paw;
+            {route.amenities && route.amenities.length > 0 && (
+              <>
+                <div style={figmaWhiteCardStyle}>
+                  <h2 style={cardHeadingStyle}>Зручності</h2>
+                  <div style={amenitiesGridStyle}>
+                    {route.amenities.map((amenity, idx) => {
+                      let icon = AmenityIcons.lock;
+                      if (amenity.toLowerCase().includes('wi-fi')) icon = AmenityIcons.wifi;
+                      if (amenity.toLowerCase().includes('кухня')) icon = AmenityIcons.kitchen;
+                      if (amenity.toLowerCase().includes('телевізор')) icon = AmenityIcons.tv;
+                      if (amenity.toLowerCase().includes('парков')) icon = AmenityIcons.car;
+                      if (amenity.toLowerCase().includes('пральна')) icon = AmenityIcons.wash;
+                      if (amenity.toLowerCase().includes('тваринами')) icon = AmenityIcons.paw;
 
-                  return (
-                    <div key={idx} style={amenityPillStyle}>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>{icon}</div>
-                      <span style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>
-                        {amenity}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                      return (
+                        <div key={idx} style={amenityPillStyle}>
+                          <div style={{ display: 'flex', alignItems: 'center' }}>{icon}</div>
+                          <span style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>
+                            {amenity}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <hr style={separatorLineStyle} />
+              </>
+            )}
 
-              <button style={showAllAmenitiesBtnStyle}>
-                <span style={{ fontSize: '18px', fontWeight: 700 }}>+</span>
-                <span>Показати всі зручності</span>
-              </button>
-            </div>
-
-            <hr style={separatorLineStyle} />
-
-            {/* Карта */}
             <div style={figmaWhiteCardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h2 style={cardHeadingStyle}>Карта</h2>
@@ -473,62 +477,52 @@ export const RouteDetails: React.FC = () => {
                 </span>
               </div>
               <div style={detailsMapViewportStyle}>
-                <div style={detailsMapCanvasStyle}>
-                  <div style={mapCenterPinStyle}>
-                    <MapPinIcon color="#FFFFFF" size={18} />
-                  </div>
-                  <div style={mapLocationTagStyle}>
-                    <MapPinIcon color="#A78D78" size={14} />
-                    <span>{route.location}</span>
-                  </div>
-                </div>
+                <LocationMap locationStr={route.location} />
               </div>
             </div>
 
             <hr style={separatorLineStyle} />
 
-            {/* Відгуки */}
             <div style={figmaWhiteCardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={cardHeadingStyle}>Відгуки</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <StarIcon fill="#DC9666" size={20} />
                   <span style={{ color: '#6E473B', fontSize: '18px', fontWeight: 700 }}>
-                    {route.averageRating || 4.9} · {reviews.length} відгуків
+                    {calculatedRating} · {reviews.length} відгуків
                   </span>
                 </div>
               </div>
 
-              {/* Список відгуків */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {reviews.map((rev) => (
-                  <div key={rev.id} style={reviewItemCardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={reviewAvatarCircleStyle}>
-                          {rev.userName.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div style={{ color: '#6E473B', fontSize: '16px', fontWeight: 700 }}>
-                            {rev.userName}
+              {reviews.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {reviews.map((rev) => (
+                    <div key={rev.id} style={reviewItemCardStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={reviewAvatarCircleStyle}>
+                            {rev.userName.charAt(0).toUpperCase()}
                           </div>
-                          <div style={{ color: '#A78D78', fontSize: '13px' }}>Київ, Україна</div>
+                          <div>
+                            <div style={{ color: '#6E473B', fontSize: '16px', fontWeight: 700 }}>
+                              {rev.userName}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#A78D78', fontSize: '13px' }}>
+                          <span>{rev.createdAt}</span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#A78D78', fontSize: '13px' }}>
-                        <span>{rev.createdAt}</span>
-                        <span>·</span>
-                        <span>Перебування: кілька ночей</span>
+                      <div style={{ color: '#A78D78', fontSize: '15px', lineHeight: '24px', marginTop: '6px' }}>
+                        {rev.comment}
                       </div>
                     </div>
-                    <div style={{ color: '#A78D78', fontSize: '15px', lineHeight: '24px', marginTop: '6px' }}>
-                      {rev.comment}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: '#A78D78', fontSize: '15px' }}>Поки що немає відгуків. Будьте першими!</div>
+              )}
 
-              {/* Форма додавання відгуку */}
               <div style={{ marginTop: '28px', backgroundColor: '#F8F5F0', padding: '20px', borderRadius: '16px', border: '1px solid #D7C7B1' }}>
                 <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#291C0E' }}>Залишити відгук про житло</h4>
                 <form onSubmit={handleAddReview}>
@@ -542,6 +536,8 @@ export const RouteDetails: React.FC = () => {
                       <option value={5}>5 ⭐⭐⭐⭐⭐ (Відмінно)</option>
                       <option value={4}>4 ⭐⭐⭐⭐ (Добре)</option>
                       <option value={3}>3 ⭐⭐⭐ (Нормально)</option>
+                      <option value={2}>2 ⭐⭐ (Погано)</option>
+                      <option value={1}>1 ⭐ (Жахливо)</option>
                     </select>
                   </div>
 
@@ -561,11 +557,8 @@ export const RouteDetails: React.FC = () => {
             </div>
           </div>
 
-          {/* ПРАВА КОЛОНКА: СТІКІ-КАРТКА БРОНЮВАННЯ (407px) */}
           <div style={{ width: '407px', flexShrink: 0, position: 'sticky', top: '24px' }}>
             <div style={bookingStickyCardStyle}>
-              
-              {/* Верхній рядок з ціною */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', width: '100%' }}>
                 <div>
                   <span style={{ color: '#291C0E', fontSize: '28px', fontWeight: 700 }}>
@@ -576,84 +569,82 @@ export const RouteDetails: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <StarIcon fill="#DC9666" size={16} />
                   <span style={{ color: '#6E473B', fontSize: '14px', fontWeight: 700 }}>
-                    {route.averageRating || 4.9}
+                    {calculatedRating}
                   </span>
                 </div>
               </div>
 
-              {/* Вибір дат та гостей */}
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  {/* Заїзд */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={inputSubLabelStyle}>ЗАЇЗД</span>
                     <div style={dateBoxStyle}>
-                      <CalendarIcon />
-                      <span style={{ color: '#6E473B', fontSize: '14px', fontWeight: 700 }}>12.12.2026</span>
+                      <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} style={dateInputStyle} />
                     </div>
                   </div>
 
-                  {/* Виїзд */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={inputSubLabelStyle}>ВИЇЗД</span>
                     <div style={dateBoxStyle}>
-                      <CalendarIcon />
-                      <span style={{ color: '#6E473B', fontSize: '14px', fontWeight: 700 }}>18.12.2026</span>
+                      <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} style={dateInputStyle} />
                     </div>
                   </div>
                 </div>
 
-                {/* Гості */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={inputSubLabelStyle}>ГРУПА МАНДРІВНИКІВ</span>
+                  <span style={inputSubLabelStyle}>КІЛЬКІСТЬ ГОСТЕЙ</span>
                   <div style={guestsSelectBoxStyle}>
-                    <span style={{ color: '#6E473B', fontSize: '14px', fontWeight: 700 }}>4 дорослих, 1 дитина</span>
-                    <ChevronDownIcon />
+                    <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} style={guestsInputStyle}>
+                      <option value={1}>1 гість</option>
+                      <option value={2}>2 гостя</option>
+                      <option value={3}>3 гостя</option>
+                      <option value={4}>4+ гостей</option>
+                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* Розрахунок вартості */}
-              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={costBreakdownRowStyle}>
-                  <span style={{ color: '#A78D78' }}>{formatPrice(pricePerNight)} × {nightsCount} ночі</span>
-                  <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(accommodationTotal)}</span>
+              {calculatedNights > 0 ? (
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={costBreakdownRowStyle}>
+                    <span style={{ color: '#A78D78' }}>{formatPrice(pricePerNight)} × {calculatedNights} ночі</span>
+                    <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(accommodationTotal)}</span>
+                  </div>
+                  <div style={costBreakdownRowStyle}>
+                    <span style={{ color: '#A78D78' }}>Прибирання</span>
+                    <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(cleaningFee)}</span>
+                  </div>
+                  <div style={costBreakdownRowStyle}>
+                    <span style={{ color: '#A78D78' }}>Сервісний збір платформи</span>
+                    <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(serviceFee)}</span>
+                  </div>
+                  <hr style={separatorLineStyle} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#291C0E', fontSize: '18px', fontWeight: 700 }}>Всього</span>
+                    <span style={{ color: '#DC9666', fontSize: '24px', fontWeight: 700 }}>{formatPrice(grandTotal)}</span>
+                  </div>
                 </div>
-                <div style={costBreakdownRowStyle}>
-                  <span style={{ color: '#A78D78' }}>Прибирання</span>
-                  <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(cleaningFee)}</span>
+              ) : (
+                <div style={{ color: '#A78D78', fontSize: '14px', textAlign: 'center', margin: '10px 0' }}>
+                  Оберіть дати, щоб побачити точний розрахунок
                 </div>
-                <div style={costBreakdownRowStyle}>
-                  <span style={{ color: '#A78D78' }}>Сервісний збір платформи</span>
-                  <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(serviceFee)}</span>
-                </div>
+              )}
 
-                <hr style={separatorLineStyle} />
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#291C0E', fontSize: '18px', fontWeight: 700 }}>Всього</span>
-                  <span style={{ color: '#DC9666', fontSize: '24px', fontWeight: 700 }}>
-                    {formatPrice(grandTotal)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Кнопка бронювання */}
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                 <button
-                  style={btnBookPrimaryStyle}
+                  style={{ ...btnBookPrimaryStyle, opacity: calculatedNights > 0 ? 1 : 0.5 }}
                   onClick={() => setIsBookingOpen(true)}
+                  disabled={calculatedNights === 0}
                 >
                   Забронювати помешкання
                 </button>
                 <span style={{ color: '#A78D78', fontSize: '13px' }}>
-                  На цьому етапі кошти не списуються
+                  {calculatedNights === 0 ? "Оберіть дати для бронювання" : "На цьому етапі кошти не списуються"}
                 </span>
               </div>
 
               <hr style={separatorLineStyle} />
 
-              {/* Повідомити про проблему */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }}>
                 <AlertTriangleIcon />
                 <button
@@ -669,13 +660,15 @@ export const RouteDetails: React.FC = () => {
 
       </div>
 
-      {/* Модальне вікно фіналізації бронювання */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
         routeTitle={route.title}
         pricePerNight={pricePerNight}
         location={route.location}
+        initialCheckIn={checkIn}
+        initialCheckOut={checkOut}
+        initialGuests={guests}
       />
     </div>
   );
@@ -858,45 +851,6 @@ const detailsMapViewportStyle: React.CSSProperties = {
   position: 'relative',
 };
 
-const detailsMapCanvasStyle: React.CSSProperties = {
-  width: '100%',
-  height: '100%',
-  backgroundColor: '#EAE5DB',
-  backgroundImage: 'radial-gradient(#D7C7B1 1px, transparent 1px)',
-  backgroundSize: '20px 20px',
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const mapCenterPinStyle: React.CSSProperties = {
-  width: '36px',
-  height: '36px',
-  backgroundColor: '#DC9666',
-  borderRadius: '50%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  boxShadow: '0px 6px 14px rgba(0,0,0,0.15)',
-};
-
-const mapLocationTagStyle: React.CSSProperties = {
-  position: 'absolute',
-  bottom: '40px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '999px',
-  border: '1px solid #D7C7B1',
-  padding: '8px 18px',
-  color: '#A78D78',
-  fontSize: '13px',
-  fontWeight: 700,
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-};
-
 const reviewItemCardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '18px',
@@ -928,7 +882,6 @@ const submitReviewBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-// СТИЛІ СТІКІ-КАРТКИ БРОНЮВАННЯ
 const bookingStickyCardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '20px',
@@ -996,4 +949,28 @@ const reportIssueBtnStyle: React.CSSProperties = {
   textDecoration: 'underline',
   cursor: 'pointer',
   padding: 0,
+};
+
+const dateInputStyle: React.CSSProperties = {
+  background: 'transparent',
+  border: 'none',
+  outline: 'none',
+  color: '#6E473B',
+  fontWeight: 700,
+  width: '100%',
+  fontFamily: 'inherit',
+  fontSize: '14px',
+  cursor: 'pointer'
+};
+
+const guestsInputStyle: React.CSSProperties = {
+  background: 'transparent',
+  border: 'none',
+  outline: 'none',
+  color: '#6E473B',
+  fontWeight: 700,
+  width: '100%',
+  fontFamily: 'inherit',
+  fontSize: '14px',
+  cursor: 'pointer'
 };

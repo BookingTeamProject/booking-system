@@ -127,12 +127,40 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const loadBookingsAndProperties = () => {
-    const savedBookings: Booking[] = JSON.parse(localStorage.getItem('bookings') || '[]');
-    setBookings(savedBookings);
+  // Розумне завантаження з перевіркою актуальності даних на бекенді
+  const loadBookingsAndProperties = async () => {
+    try {
+      // 1. Запитуємо всі реально існуючі маршрути з бекенду
+      const res = await api.get('/routes');
+      const liveRoutes = Array.isArray(res.data) ? res.data : [];
+      const liveRouteTitles = liveRoutes.map((r: any) => r.title);
+      const liveRouteIds = liveRoutes.map((r: any) => String(r.id));
 
-    const savedCustom: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
-    setMyProperties(savedCustom);
+      // 2. Фільтруємо зомбі-бронювання
+      const localBookings: Booking[] = JSON.parse(localStorage.getItem('bookings') || '[]');
+      const validBookings = localBookings.filter(b => liveRouteTitles.includes(b.title));
+
+      if (validBookings.length !== localBookings.length) {
+        localStorage.setItem('bookings', JSON.stringify(validBookings)); // Очищаємо кеш
+      }
+      setBookings(validBookings);
+
+      // 3. Фільтруємо зомбі-помешкання
+      const localProperties: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
+      const validProperties = localProperties.filter(p => 
+        liveRouteIds.includes(String(p.id)) || liveRouteTitles.includes(p.title)
+      );
+
+      if (validProperties.length !== localProperties.length) {
+        localStorage.setItem('custom_routes', JSON.stringify(validProperties));
+      }
+      setMyProperties(validProperties);
+
+    } catch (error) {
+      // Фолбек: якщо бекенд недоступний, просто малюємо те, що є
+      setBookings(JSON.parse(localStorage.getItem('bookings') || '[]'));
+      setMyProperties(JSON.parse(localStorage.getItem('custom_routes') || '[]'));
+    }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
