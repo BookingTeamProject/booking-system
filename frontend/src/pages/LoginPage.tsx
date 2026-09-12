@@ -77,6 +77,10 @@ export const LoginPage: React.FC = () => {
 
   // 2. Вхід через Google (Отримуємо справжній idToken "eyJ...")
   const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (!credentialResponse?.credential) {
+      return;
+    }
+
     setError('');
     setLoading(true);
 
@@ -220,24 +224,25 @@ export const LoginPage: React.FC = () => {
               Зареєструватись
             </Link>
 
-            {/* КНОПКА GOOGLE LOGIN (Оригінальний віджет у фірмовій рамці) */}
+            {/* КНОПКА GOOGLE LOGIN З НАДІЙНИМ ПЕРЕХОПЛЕННЯМ КЛІКУ */}
             <div style={googleButtonContainerStyle}>
               
-              {/* 1. Наш візуальний дизайн із Figma */}
+              {/* 1. Візуальна підкладка за макетом Figma */}
               <div style={googleFigmaCustomBtnStyle}>
                 <GoogleIcon />
                 <span>Увійти за допомогою Google</span>
               </div>
 
-              {/* 2. Невидимий шар Google поверх (перехоплює клік і дає правильний JWT id_token) */}
-              <div style={googleHiddenOverlayStyle}>
+              {/* 2. Шар Google: розтягнутий на всю ширину без Clickjacking-блокувань */}
+              <div style={googleInteractiveOverlayStyle}>
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
-                  onError={() => setError('Помилка авторизації Google')}
+                  onError={() => setError('Google заблокував вхід для цієї адреси сайту')}
                   theme="outline"
                   size="large"
                   shape="rectangular"
-                  width="400"
+                  text="continue_with"
+                  width="100%"
                 />
               </div>
 
@@ -476,7 +481,6 @@ const googleButtonContainerStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-// Візуальна кнопка (точно як у Figma)
 const googleFigmaCustomBtnStyle: React.CSSProperties = {
   width: '100%',
   height: '100%',
@@ -492,21 +496,22 @@ const googleFigmaCustomBtnStyle: React.CSSProperties = {
   justifyContent: 'center',
   gap: '12px',
   boxSizing: 'border-box',
-  pointerEvents: 'none', // Клік проходить крізь текст на шар Google
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  zIndex: 1,
 };
 
-// Повністю прозорий шар Google
-const googleHiddenOverlayStyle: React.CSSProperties = {
+const googleInteractiveOverlayStyle: React.CSSProperties = {
   position: 'absolute',
   top: 0,
   left: 0,
   width: '100%',
   height: '100%',
-  opacity: 0.01, // Повністю невидима, ніяких білих прямокутників!
+  opacity: 0.001, // Мінімальна видимість, щоб Google не вважав це спробою фішингу/Clickjacking
+  zIndex: 2, // Обов'язково поверх підкладки (щоб клік потрапляв на Google)
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  transform: 'scale(2.5)', // Розтягує віджет на всю ширину 700px
-  transformOrigin: 'center center',
 };

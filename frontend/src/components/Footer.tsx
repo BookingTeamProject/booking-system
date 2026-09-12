@@ -1,11 +1,14 @@
 // src/components/Footer.tsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSettings } from '../context/SettingsContext';
+import type { AppLanguage, AppCurrency } from '../services/storage.service';
 
 export const Footer: React.FC = () => {
-  const [selectedCurrency, setSelectedCurrency] = useState('UAH');
+  // БЕРЕМО МОВУ ТА ВАЛЮТУ З ЄДИНОГО КОНТЕКСТУ:
+  const { language, setLanguage, currency, setCurrency } = useSettings();
+
   const [currencyOpen, setCurrencyOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState('UA');
   const [langOpen, setLangOpen] = useState(false);
 
   return (
@@ -61,47 +64,45 @@ export const Footer: React.FC = () => {
                 Надійний український сервіс перевіреного житла. Робимо подорожі рідним краєм доступними, комфортними та незабутніми.
               </p>
 
-              {/* Віджети вибору мови та валюти з Figma */}
+              {/* Віджети вибору мови та валюти */}
               <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                 
                 {/* Мова з динамічним круглим прапором */}
                 <div style={{ position: 'relative' }}>
                   <button
-                    onClick={() => setLangOpen(!langOpen)}
+                    onClick={() => {
+                      setLangOpen(!langOpen);
+                      setCurrencyOpen(false);
+                    }}
                     style={flagLanguagePickerStyle}
-                    title={`Обрана мова: ${selectedLang}`}
-                    aria-label={`Обрана мова: ${selectedLang}`}
+                    title={`Обрана мова: ${language}`}
+                    aria-label={`Обрана мова: ${language}`}
                   >
-                    {selectedLang === 'UA' && (
+                    {language === 'UA' && (
                       <div style={roundFlagContainer}>
                         <div style={{ width: '100%', height: '50%', backgroundColor: '#0057B7' }} />
                         <div style={{ width: '100%', height: '50%', backgroundColor: '#FFD700' }} />
                       </div>
                     )}
-                    {selectedLang === 'EN' && (
+                    {language === 'EN' && (
                       <div style={roundFlagContainer}>
                         <svg width="100%" height="100%" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          {/* Синє тло */}
                           <rect width="64" height="64" fill="#012169" />
-                          {/* Білі діагоналі */}
                           <path d="M-10 -10L74 74M74 -10L-10 74" stroke="#FFFFFF" strokeWidth="12" />
-                          {/* Червоні діагоналі */}
                           <path d="M-10 -10L74 74M74 -10L-10 74" stroke="#C8102E" strokeWidth="4" />
-                          {/* Білий прямий хрест */}
                           <path d="M32 0V64M0 32H64" stroke="#FFFFFF" strokeWidth="16" />
-                          {/* Червоний прямий хрест */}
                           <path d="M32 0V64M0 32H64" stroke="#C8102E" strokeWidth="10" />
                         </svg>
                       </div>
                     )}
-                    {selectedLang === 'DE' && (
+                    {language === 'DE' && (
                       <div style={roundFlagContainer}>
                         <div style={{ width: '100%', height: '33.3%', backgroundColor: '#000000' }} />
                         <div style={{ width: '100%', height: '33.3%', backgroundColor: '#DD0000' }} />
                         <div style={{ width: '100%', height: '33.3%', backgroundColor: '#FFCE00' }} />
                       </div>
                     )}
-                    {selectedLang === 'PL' && (
+                    {language === 'PL' && (
                       <div style={roundFlagContainer}>
                         <div style={{ width: '100%', height: '50%', backgroundColor: '#FFFFFF' }} />
                         <div style={{ width: '100%', height: '50%', backgroundColor: '#DC143C' }} />
@@ -117,12 +118,12 @@ export const Footer: React.FC = () => {
                         { code: 'DE', title: 'Deutsch (DE)' },
                         { code: 'PL', title: 'Polski (PL)' }
                       ].map((l) => {
-                        const isSelected = selectedLang === l.code;
+                        const isSelected = language === l.code;
                         return (
                           <div
                             key={l.code}
                             onClick={() => {
-                              setSelectedLang(l.code);
+                              setLanguage(l.code as AppLanguage);
                               setLangOpen(false);
                             }}
                             style={footerDropdownItemStyle}
@@ -145,15 +146,18 @@ export const Footer: React.FC = () => {
                   )}
                 </div>
 
-                {/* Валюта UAH з Figma */}
+                {/* Вибір валюти */}
                 <div style={{ position: 'relative' }}>
                   <button
-                    onClick={() => setCurrencyOpen(!currencyOpen)}
+                    onClick={() => {
+                      setCurrencyOpen(!currencyOpen);
+                      setLangOpen(false);
+                    }}
                     style={currencyPillButtonStyle}
-                    title={`Обрана валюта: ${selectedCurrency}`}
-                    aria-label={`Обрана валюта: ${selectedCurrency}`}
+                    title={`Обрана валюта: ${currency}`}
+                    aria-label={`Обрана валюта: ${currency}`}
                   >
-                    <span>{selectedCurrency}</span>
+                    <span>{currency}</span>
                   </button>
 
                   {currencyOpen && (
@@ -164,12 +168,12 @@ export const Footer: React.FC = () => {
                         { code: 'EUR', title: 'Євро (€)' },
                         { code: 'PLN', title: 'Польський злотий (zł)' }
                       ].map((c) => {
-                        const isSelected = selectedCurrency === c.code;
+                        const isSelected = currency === c.code;
                         return (
                           <div
                             key={c.code}
                             onClick={() => {
-                              setSelectedCurrency(c.code);
+                              setCurrency(c.code as AppCurrency);
                               setCurrencyOpen(false);
                             }}
                             style={footerDropdownItemStyle}
@@ -229,20 +233,18 @@ export const Footer: React.FC = () => {
               <Link to="/faq" style={footerNavLinkStyle}>Служба підтримки</Link>
             </div>
 
-            {/* КОЛОНКА 5: ОСОБИСТИЙ КАБІНЕТ ТА 4 КНОПКИ СОЦМЕРЕЖ З FIGMA */}
+            {/* КОЛОНКА 5: ОСОБИСТИЙ КАБІНЕТ ТА СОЦМЕРЕЖІ */}
             <div style={footerNavColumnStyle}>
               <h4 style={footerColTitleStyle}>Особистий кабінет</h4>
-              <Link to="/profile" style={footerNavLinkStyle}>Обліковий запис</Link>
+              <Link to="/profile?tab=account" style={footerNavLinkStyle}>Обліковий запис</Link>
               <Link to="/profile?tab=payments" style={footerNavLinkStyle}>Платежі</Link>
               <Link to="/profile?tab=finance" style={footerNavLinkStyle}>Фінанси</Link>
               <Link to="/profile?tab=analytics" style={footerNavLinkStyle}>Аналітика</Link>
               <Link to="/profile?tab=settings" style={footerNavLinkStyle}>Налаштування</Link>
               <Link to="/profile?tab=security" style={footerNavLinkStyle}>Безпека</Link>
 
-              {/* 4 ОРИГІНАЛЬНІ КРУГЛІ КНОПКИ СОЦМЕРЕЖ З FIGMA */}
+              {/* 4 ОРИГІНАЛЬНІ КРУГЛІ КНОПКИ СОЦМЕРЕЖ */}
               <div style={{ display: 'flex', gap: '14px', marginTop: '24px' }}>
-                
-                {/* 1. YouTube (Play) */}
                 <a href="https://youtube.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="YouTube">
                   <div style={socialInnerCircle}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="#DC9666">
@@ -251,7 +253,6 @@ export const Footer: React.FC = () => {
                   </div>
                 </a>
 
-                {/* 2. X (Twitter) */}
                 <a href="https://x.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="X">
                   <div style={socialInnerCircle}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="#DC9666">
@@ -260,7 +261,6 @@ export const Footer: React.FC = () => {
                   </div>
                 </a>
 
-                {/* 3. TikTok (Оригінальна SVG нота) */}
                 <a href="https://tiktok.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="TikTok">
                   <div style={socialInnerCircle}>
                     <svg width="22" height="22" viewBox="0 0 50 50" fill="none">
@@ -269,7 +269,6 @@ export const Footer: React.FC = () => {
                   </div>
                 </a>
 
-                {/* 4. Instagram */}
                 <a href="https://instagram.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="Instagram">
                   <div style={socialInnerCircle}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2.5">
@@ -279,14 +278,13 @@ export const Footer: React.FC = () => {
                     </svg>
                   </div>
                 </a>
-
               </div>
 
             </div>
 
           </div>
 
-          {/* Помаранчева роздільна лінія з Figma */}
+          {/* Помаранчева лінія-розділювач */}
           <div style={footerOrangeDividerStyle} />
 
           {/* Копірайт */}

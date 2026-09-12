@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { RoutesProvider } from './context/RoutesContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { FinanceProvider } from './context/FinanceContext';
 
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -37,6 +38,7 @@ const NewsDetailsPage = lazyRetry(() => import('./pages/NewsDetailsPage').then(m
 const ContactPage = lazyRetry(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const ReportIssuePage = lazyRetry(() => import('./pages/ReportIssuePage').then(m => ({ default: m.ReportIssuePage })));
 const LegalPage = lazyRetry(() => import('./pages/LegalPage').then(m => ({ default: m.LegalPage })));
+const ChangeRolePage = lazyRetry(() => import('./pages/ChangeRolePage').then(m => ({ default: m.ChangeRolePage })));
 
 // Меню кабінету з сайдбаром
 const MenuWorkspacePage = lazyRetry(() => import('./pages/MenuWorkspacePage').then(m => ({ default: m.MenuWorkspacePage })));
@@ -61,56 +63,59 @@ function App() {
       <AuthProvider>
         <SettingsProvider>
           <RoutesProvider>
-            <Router>
-              <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F7F2EB' }}>
-                <Navbar />
-                <main style={{ flex: 1 }}>
-                  {/* Suspense перехоплює завантаження чанка кожної сторінки */}
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      {/* Головна та каталог */}
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/routes" element={<RoutesCatalog />} />
-                      <Route path="/routes/create" element={<RouteCreate />} />
-                      <Route path="/routes/:id" element={<RouteDetails />} />
-                      <Route path="/favorites" element={<FavoritesPage />} />
+            <FinanceProvider>
+              <Router>
+                <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F7F2EB' }}>
+                  <Navbar />
+                  <main style={{ flex: 1 }}>
+                    {/* Suspense перехоплює завантаження чанка кожної сторінки */}
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        {/* Головна та каталог */}
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/routes" element={<RoutesCatalog />} />
+                        <Route path="/routes/create" element={<RouteCreate />} />
+                        <Route path="/routes/:id" element={<RouteDetails />} />
+                        <Route path="/favorites" element={<FavoritesPage />} />
 
-                      {/* Розділ "☰ Меню" */}
-                      <Route path="/menu" element={<MenuWorkspacePage />} />
-                      <Route path="/messages" element={<MessagesPage />} />
-                      <Route path="/my-bookings" element={<TenantBookingsPage />} />
-                      <Route path="/host/properties" element={<HostAccommodationsPage />} />
-                      <Route path="/host/accommodations" element={<HostAccommodationsPage />} />
-                      <Route path="/account-status" element={<AccountStatusPage />} />
+                        {/* Розділ "☰ Меню" */}
+                        <Route path="/menu" element={<MenuWorkspacePage />} />
+                        <Route path="/messages" element={<MessagesPage />} />
+                        <Route path="/my-bookings" element={<TenantBookingsPage />} />
+                        <Route path="/host/properties" element={<HostAccommodationsPage />} />
+                        <Route path="/host/accommodations" element={<HostAccommodationsPage />} />
+                        <Route path="/account-status" element={<AccountStatusPage />} />
 
-                      {/* Інформаційні сторінки та акції */}
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/promotions" element={<PromotionsPage />} />
-                      <Route path="/news" element={<NewsPage />} />
-                      <Route path="/news/:id" element={<NewsDetailsPage />} />
+                        {/* Інформаційні сторінки та акції */}
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/promotions" element={<PromotionsPage />} />
+                        <Route path="/news" element={<NewsPage />} />
+                        <Route path="/news/:id" element={<NewsDetailsPage />} />
 
-                      {/* Підтримка та юридичні документи */}
-                      <Route path="/faq" element={<FAQPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
-                      <Route path="/report-issue" element={<ReportIssuePage />} />
-                      <Route path="/legal" element={<LegalPage />} />
-                      <Route path="/legal/:docType" element={<LegalPage />} />
+                        {/* Підтримка та юридичні документи */}
+                        <Route path="/faq" element={<FAQPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/report-issue" element={<ReportIssuePage />} />
+                        <Route path="/legal" element={<LegalPage />} />
+                        <Route path="/legal/:docType" element={<LegalPage />} />
 
-                      {/* Авторизація та кабінети */}
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/register" element={<RegisterPage />} />
-                      <Route path="/select-role" element={<RoleSelectionPage />} />
-                      <Route path="/profile" element={<ProfilePage />} />
-                      <Route path="/admin" element={<AdminPage />} />
+                        {/* Авторизація та кабінети */}
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/select-role" element={<RoleSelectionPage />} />
+                        <Route path="/change-role" element={<ChangeRolePage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/admin" element={<AdminPage />} />
 
-                      {/* 404 */}
-                      <Route path="*" element={<NotFoundPage />} />
-                    </Routes>
-                  </Suspense>
-                </main>
-                <Footer />
-              </div>
-            </Router>
+                        {/* 404 */}
+                        <Route path="*" element={<NotFoundPage />} />
+                      </Routes>
+                    </Suspense>
+                  </main>
+                  <Footer />
+                </div>
+              </Router>
+            </FinanceProvider>
           </RoutesProvider>
         </SettingsProvider>
       </AuthProvider>

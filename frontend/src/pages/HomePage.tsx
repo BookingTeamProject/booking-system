@@ -1185,21 +1185,6 @@ const dealItemRowStyle: React.CSSProperties = {
   borderRadius: '16px'
 };
 
-const dealPercentBadgeStyle: React.CSSProperties = {
-  width: '56px',
-  height: '56px',
-  borderRadius: '16px',
-  backgroundColor: '#DC9666',
-  color: '#FFFFFF',
-  fontSize: '28px',
-  fontWeight: 900,
-  fontFamily: "'Alegreya', Georgia, serif",
-  fontStyle: 'italic',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
-};
-
 const dealItemTitleStyle: React.CSSProperties = {
   fontFamily: "'Iosevka Charon', sans-serif",
   fontSize: '18px',

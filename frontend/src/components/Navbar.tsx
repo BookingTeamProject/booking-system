@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
+import type { AppLanguage } from '../services/storage.service';
 
 const formatAvatar = (url?: string | null): string => {
   if (!url) return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
@@ -12,6 +14,9 @@ const formatAvatar = (url?: string | null): string => {
 
 export const Navbar: React.FC = () => {
   const { user, isLandlord, logout } = useAuth();
+  // ЄДИНЕ ДЖЕРЕЛО ДЛЯ МОВИ:
+  const { language, setLanguage } = useSettings();
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,7 +24,6 @@ export const Navbar: React.FC = () => {
   const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState('UA');
 
   const menuRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
@@ -87,7 +91,7 @@ export const Navbar: React.FC = () => {
 
             <div style={verticalSeparatorStyle} />
 
-            {/* МЕНЮ (ПОВНИЙ СПИСОК З 7 ПУНКТІВ ТА ТОЧНИМИ SVG З FIGMA) */}
+            {/* МЕНЮ */}
             <div ref={menuRef} style={{ position: 'relative' }}>
               <button onClick={() => setMenuDropdownOpen(!menuDropdownOpen)} style={navDropdownButtonStyle}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -126,7 +130,6 @@ export const Navbar: React.FC = () => {
 
                   <div style={dropdownDividerStyle} />
 
-                  {/* 3. Керування помешканням */}
                   {/* 3. Керування помешканням */}
                   <Link to="/menu?tab=properties" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
@@ -231,7 +234,7 @@ export const Navbar: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             
             {/* Кнопка "Зареєструвати своє помешкання" */}
-            <Link to={isLandlord ? "/routes/create" : "/menu?tab=properties"} style={ctaHouseButtonStyle}>
+            <Link to="/routes/create" style={ctaHouseButtonStyle}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <svg width="22" height="11" viewBox="0 0 26 13" fill="none">
                   <path d="M1.5 11.5L12.5055 1.5L23.5111 11.5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -245,11 +248,11 @@ export const Navbar: React.FC = () => {
 
             <div style={verticalSeparatorStyle} />
 
-            {/* Мова з радіо-індикатором з вашого файлу */}
+            {/* Мова з вибором з SettingsContext */}
             <div ref={langRef} style={{ position: 'relative' }}>
               <button onClick={() => setLangDropdownOpen(!langDropdownOpen)} style={langBadgePillStyle}>
                 <span style={{ fontSize: '16px' }}>🌐</span>
-                <span style={{ fontWeight: 700, fontSize: '16px', color: '#FFFFFF' }}>{selectedLang}</span>
+                <span style={{ fontWeight: 700, fontSize: '16px', color: '#FFFFFF' }}>{language}</span>
                 <svg width="10" height="6" viewBox="0 0 12 7" fill="none">
                   <path d="M1 1L6 6L11 1" stroke="white" strokeWidth="2"/>
                 </svg>
@@ -266,7 +269,7 @@ export const Navbar: React.FC = () => {
                     <div
                       key={l.code}
                       onClick={() => {
-                        setSelectedLang(l.code);
+                        setLanguage(l.code as AppLanguage);
                         setLangDropdownOpen(false);
                       }}
                       style={langRadioRowStyle}
@@ -276,8 +279,8 @@ export const Navbar: React.FC = () => {
                           width: '18px',
                           height: '18px',
                           borderRadius: '9px',
-                          backgroundColor: selectedLang === l.code ? '#DC9666' : '#6E473B',
-                          border: selectedLang === l.code ? 'none' : '1px solid #D7C7B1',
+                          backgroundColor: language === l.code ? '#DC9666' : '#6E473B',
+                          border: language === l.code ? 'none' : '1px solid #D7C7B1',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -352,7 +355,7 @@ export const Navbar: React.FC = () => {
                     <Link to="/profile?tab=finance" onClick={() => setProfileDropdownOpen(false)} style={dropdownRowStyle}>
                       <div style={dropdownIconBoxStyle}>
                         <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
-                          <path d="M21.75 18V21C21.75 21.1989 21.6754 21.3897 21.5425 21.5303C21.4097 21.671 21.2295 21.75 21.0417 21.75H10.4167C10.0409 21.75 9.68061 21.592 9.41493 21.3107C9.14926 21.0294 9 20.6478 9 20.25V9.75C9 9.35218 9.14926 8.97064 9.41493 8.68934C9.68061 8.40804 10.0409 8.25 10.4167 8.25H19.625C19.8129 8.25 19.993 8.32902 20.1259 8.46967C20.2587 8.61032 20.3333 8.80109 20.3333 9V11.25M9 9.75C9 10.1478 9.14926 10.5294 9.41493 10.8107C9.68061 11.092 10.0409 11.25 10.4167 11.25H21.0417C21.2295 11.25 21.4097 11.329 21.5425 11.4697C21.6754 11.6103 21.75 11.8011 21.75 12V15M21.75 15H19.625C19.2493 15 18.8889 15.158 18.6233 15.4393C18.3576 15.7206 18.2083 16.1022 18.2083 16.5C18.2083 16.8978 18.3576 17.2794 18.6233 17.5607C18.8889 17.842 19.2493 18 19.625 18H21.75M21.75 15C21.9379 15 22.118 15.079 22.2509 15.2197C22.3837 15.3603 22.4583 15.5511 22.4583 15.75V17.25C22.4583 17.4489 22.3837 17.6397 22.2509 17.7803C22.118 17.921 21.9379 18 21.75 18" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                          <path d="M21.75 18V21C21.75 21.1989 21.6754 21.3897 21.5425 21.5303C21.4097 21.671 21.2295 21.75 21.0417 21.75H10.4167C10.0409 21.75 9.68061 21.592 9.41493 21.3107C9.14926 21.0294 9 20.6478 9 20.25V9.75C9 9.35218 9.14926 8.97064 9.41493 8.68934C9.68061 8.40804 10.0409 8.25 10.4167 8.25H19.625C19.8129 8.25 19.993 8.32902 20.1259 8.46967C20.3837 8.61032 20.3333 8.80109 20.3333 9V11.25M9 9.75C9 10.1478 9.14926 10.5294 9.41493 10.8107C9.68061 11.092 10.0409 11.25 10.4167 11.25H21.0417C21.2295 11.25 21.4097 11.329 21.5425 11.4697C21.6754 11.6103 21.75 11.8011 21.75 12V15M21.75 15H19.625C19.2493 15 18.8889 15.158 18.6233 15.4393C18.3576 15.7206 18.2083 16.1022 18.2083 16.5C18.2083 16.8978 18.3576 17.2794 18.6233 17.5607C18.8889 17.842 19.2493 18 19.625 18H21.75M21.75 15C21.9379 15 22.118 15.079 22.2509 15.2197C22.3837 15.3603 22.4583 15.5511 22.4583 15.75V17.25C22.4583 17.4489 22.3837 17.6397 22.2509 17.7803C22.118 17.921 21.9379 18 21.75 18" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
                         </svg>
                       </div>
                       <span style={{ flex: 1 }}>Фінанси</span>
