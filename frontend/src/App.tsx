@@ -1,6 +1,6 @@
 // src/App.tsx
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { RoutesProvider } from './context/RoutesContext';
@@ -19,7 +19,7 @@ const lazyRetry = (importFn: () => Promise<any>) =>
     })
   );
 
-// Лінивий імпорт сторінок (код кожної сторінки завантажується лише при переході)
+// Лінивий імпорт дійсних сторінок
 const HomePage = lazyRetry(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
 const FavoritesPage = lazyRetry(() => import('./pages/FavoritesPage').then(m => ({ default: m.FavoritesPage })));
 const LoginPage = lazyRetry(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -37,14 +37,11 @@ const NewsPage = lazyRetry(() => import('./pages/NewsPage').then(m => ({ default
 const NewsDetailsPage = lazyRetry(() => import('./pages/NewsDetailsPage').then(m => ({ default: m.NewsDetailsPage })));
 const ContactPage = lazyRetry(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const ReportIssuePage = lazyRetry(() => import('./pages/ReportIssuePage').then(m => ({ default: m.ReportIssuePage })));
-const LegalPage = lazyRetry(() => import('./pages/LegalPage').then(m => ({ default: m.LegalPage })));
 const ChangeRolePage = lazyRetry(() => import('./pages/ChangeRolePage').then(m => ({ default: m.ChangeRolePage })));
 
-// Меню кабінету з сайдбаром
+// Робочий простір Меню
 const MenuWorkspacePage = lazyRetry(() => import('./pages/MenuWorkspacePage').then(m => ({ default: m.MenuWorkspacePage })));
-const HostAccommodationsPage = lazyRetry(() => import('./pages/HostAccommodationsPage').then(m => ({ default: m.HostAccommodationsPage })));
 const MessagesPage = lazyRetry(() => import('./pages/MessagesPage').then(m => ({ default: m.MessagesPage })));
-const TenantBookingsPage = lazyRetry(() => import('./pages/TenantBookingsPage').then(m => ({ default: m.TenantBookingsPage })));
 const AccountStatusPage = lazyRetry(() => import('./pages/AccountStatusPage').then(m => ({ default: m.AccountStatusPage })));
 const NotFoundPage = lazyRetry(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
@@ -68,7 +65,6 @@ function App() {
                 <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F7F2EB' }}>
                   <Navbar />
                   <main style={{ flex: 1 }}>
-                    {/* Suspense перехоплює завантаження чанка кожної сторінки */}
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
                         {/* Головна та каталог */}
@@ -78,12 +74,13 @@ function App() {
                         <Route path="/routes/:id" element={<RouteDetails />} />
                         <Route path="/favorites" element={<FavoritesPage />} />
 
-                        {/* Розділ "☰ Меню" */}
+                        {/* Розділ "☰ Меню" та редіректи на відповідні вкладки */}
                         <Route path="/menu" element={<MenuWorkspacePage />} />
                         <Route path="/messages" element={<MessagesPage />} />
-                        <Route path="/my-bookings" element={<TenantBookingsPage />} />
-                        <Route path="/host/properties" element={<HostAccommodationsPage />} />
-                        <Route path="/host/accommodations" element={<HostAccommodationsPage />} />
+                        <Route path="/my-bookings" element={<Navigate to="/menu?tab=bookings" replace />} />
+                        <Route path="/tenant/bookings" element={<Navigate to="/menu?tab=bookings" replace />} />
+                        <Route path="/host/properties" element={<Navigate to="/menu?tab=properties" replace />} />
+                        <Route path="/host/accommodations" element={<Navigate to="/menu?tab=properties" replace />} />
                         <Route path="/account-status" element={<AccountStatusPage />} />
 
                         {/* Інформаційні сторінки та акції */}
@@ -92,12 +89,12 @@ function App() {
                         <Route path="/news" element={<NewsPage />} />
                         <Route path="/news/:id" element={<NewsDetailsPage />} />
 
-                        {/* Підтримка та юридичні документи */}
+                        {/* Підтримка та редіректи юридичних документів */}
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/report-issue" element={<ReportIssuePage />} />
-                        <Route path="/legal" element={<LegalPage />} />
-                        <Route path="/legal/:docType" element={<LegalPage />} />
+                        <Route path="/legal" element={<Navigate to="/profile?tab=legal" replace />} />
+                        <Route path="/legal/:docType" element={<Navigate to="/profile?tab=legal" replace />} />
 
                         {/* Авторизація та кабінети */}
                         <Route path="/login" element={<LoginPage />} />
