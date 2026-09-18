@@ -714,7 +714,7 @@ export const HostAccommodationsPage: React.FC = () => {
         </>
       )}
 
-      {/* Модалки залишаються без змін */}
+      {/* Модалки */}
       {propertyToDelete && (
         <div style={modalBackdropStyle} onClick={() => setPropertyToDelete(null)}>
           <div style={deletePropertyModalCardStyle} onClick={(e) => e.stopPropagation()}>
@@ -755,7 +755,7 @@ export const HostAccommodationsPage: React.FC = () => {
   );
 };
 
-// СТИЛІ (залишаються як у тебе)
+// СТИЛІ
 const headerTitleStyle: React.CSSProperties = { fontSize: '32px', fontFamily: "'Alegreya', serif", fontWeight: 800, color: '#291C0E', margin: 0 };
 const headerSubtitleStyle: React.CSSProperties = { fontSize: '14px', color: '#6E473B', margin: '4px 0 0 0' };
 const primaryAddBtnStyle: React.CSSProperties = { padding: '12px 24px', backgroundColor: '#DC9666', color: '#FFFFFF', borderRadius: '8px', border: 'none', fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' };
@@ -785,7 +785,7 @@ const backToControlLinkStyle: React.CSSProperties = { background: 'none', border
 const calendarViewGridStyle: React.CSSProperties = { display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' };
 const calendarContainerBoxStyle: React.CSSProperties = { flex: 1, backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #D7C7B1', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' };
 const monthArrowBtnStyle: React.CSSProperties = { width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #D7C7B1', backgroundColor: 'white', cursor: 'pointer', fontSize: '16px' };
-const calendarDaysOfWeekGridStyle: React.CSSProperties = { display: '24px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', paddingBottom: '8px', borderBottom: '1px solid #F4ECE4' };
+const calendarDaysOfWeekGridStyle: React.CSSProperties = { display: '24px', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', paddingBottom: '8px', borderBottom: '1px solid #F4ECE4' };
 const calendarMonthDaysGridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' };
 const dayMutedBoxStyle: React.CSSProperties = { height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, color: '#A78D78', fontSize: '15px' };
 const calendarDayCellStyle: React.CSSProperties = { height: '56px', borderRadius: '8px', border: '1px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 700, cursor: 'pointer' };

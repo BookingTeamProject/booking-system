@@ -71,6 +71,7 @@ export interface Booking {
   guestName?: string;
   guestAvatar?: string;
   date?: string;
+  imageUrl?: string;
 }
 
 export interface AccommodationFormData {
