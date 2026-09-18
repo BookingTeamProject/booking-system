@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoutes } from '../context/RoutesContext';
 import { useSettings } from '../context/SettingsContext';
+import Line4 from '../assets/Line4.png';
 
 // ======================== SVG ІКОНКИ ========================
 const SearchIcon = () => (
@@ -140,7 +141,7 @@ export const RoutesCatalog: React.FC = () => {
   }, [routes, search, minPrice, maxPrice, selectedTypes, minRating]);
 
   return (
-    <div style={{ backgroundColor: '#F8F5F0', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif", position: 'relative' }}>
+    <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif", position: 'relative', overflow: 'hidden' }}>
       
       {/* 1. ВЕРХНІЙ ПОШУКОВИЙ БАР (FIGMA) */}
       <div style={searchBarSectionStyle}>
@@ -439,6 +440,21 @@ export const RoutesCatalog: React.FC = () => {
         </div>
       )}
 
+      {/* ДЕКОРАТИВНА ЛІНІЯ НА ФОНІ (ТІЛЬКИ ДЛЯ КРАСИ, ПІД КОНТЕНТОМ) */}
+      <img
+        src={Line4}
+        alt="Background Line"
+        style={{
+          position: 'absolute',
+          top: '-40px',
+          left: '30px',
+          width: '70vw',
+          opacity: 0.8,
+          pointerEvents: 'none',
+          zIndex: 0
+        }}
+      />
+
       {/* 3. ГОЛОВНА СІТКА: ФІЛЬТРИ + СПИСОК ЖИТЛА */}
       <div style={mainGridContainerStyle}>
         
@@ -638,6 +654,13 @@ export const RoutesCatalog: React.FC = () => {
               const isFav = favorites.includes(route.id);
               const calculatedTotal = (route.price || 0) * nights;
 
+              // ЛОГІКА ДЛЯ ОБРІЗКИ ТЕГІВ (МАКСИМУМ 4)
+              const allTags = route.amenities && route.amenities.length > 0
+                ? route.amenities
+                : ['Еко-чан', 'Власна кухня', 'Гірський вид', 'Wi-Fi', 'Тераса', 'Мангал'];
+              const visibleTags = allTags.slice(0, 4);
+              const extraTagsCount = allTags.length - 4;
+
               return (
                 <div key={route.id} style={propertyCardStyle}>
                   <img
@@ -672,15 +695,18 @@ export const RoutesCatalog: React.FC = () => {
                         {route.description}
                       </p>
 
+                      {/* ВИВЕДЕННЯ ОБРІЗАНИХ ТЕГІВ */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {(route.amenities && route.amenities.length > 0
-                          ? route.amenities
-                          : ['Еко-чан', 'Кухня', 'Гірський вид', 'Wi-Fi']
-                        ).map((tag) => (
+                        {visibleTags.map((tag) => (
                           <span key={tag} style={amenityChipStyle}>
                             {tag}
                           </span>
                         ))}
+                        {extraTagsCount > 0 && (
+                          <span style={{ ...amenityChipStyle, backgroundColor: '#F4ECE4', color: '#A78D78' }}>
+                            +{extraTagsCount}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -738,6 +764,8 @@ const searchBarSectionStyle: React.CSSProperties = {
   gap: '20px',
   flexWrap: 'wrap',
   boxSizing: 'border-box',
+  position: 'relative',
+  zIndex: 10,
 };
 
 const searchBarContainerStyle: React.CSSProperties = {
@@ -799,7 +827,7 @@ const mapToggleBtnStyle: React.CSSProperties = {
   padding: '12px 20px',
   borderRadius: '10px',
   border: '1.5px solid #DC9666',
-  backgroundColor: 'transparent',
+  backgroundColor: '#FFFFFF', // додано білий фон, щоб не зливалося
   color: '#DC9666',
   fontSize: '14px',
   fontWeight: 700,
@@ -809,7 +837,6 @@ const mapToggleBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-// ПОПОВЕР КАЛЕНДАРЯ
 const datePickerPopoverStyle: React.CSSProperties = {
   position: 'absolute',
   top: '56px',
@@ -875,7 +902,6 @@ const saveActionBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-// ПОПОВЕР ГОСТЕЙ
 const guestsPickerPopoverStyle: React.CSSProperties = {
   position: 'absolute',
   top: '56px',
@@ -920,7 +946,6 @@ const circlePlusBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-// МОДАЛКА КАРТИ
 const modalBackdropStyle: React.CSSProperties = {
   position: 'fixed',
   top: 0,
@@ -1021,7 +1046,6 @@ const mapLocationChipStyle: React.CSSProperties = {
   boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
 };
 
-// СОРТУВАННЯ (FRAME 341)
 const customSortTriggerStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   border: '1px solid #D7C7B1',
@@ -1074,7 +1098,6 @@ const sortRadioInnerStyle: React.CSSProperties = {
   backgroundColor: '#DC9666',
 };
 
-// ГОЛОВНА СІТКА
 const mainGridContainerStyle: React.CSSProperties = {
   maxWidth: '1560px',
   margin: '0 auto',
@@ -1083,14 +1106,17 @@ const mainGridContainerStyle: React.CSSProperties = {
   gap: '32px',
   alignItems: 'flex-start',
   boxSizing: 'border-box',
+  position: 'relative',
+  zIndex: 1,
 };
 
 const sidebarFiltersStyle: React.CSSProperties = {
-  width: '360px',
+  width: '320px',
   flexShrink: 0,
   backgroundColor: '#FFFFFF',
-  borderRadius: '16px',
+  borderRadius: '24px',
   border: '1px solid #D7C7B1',
+  boxShadow: '0 8px 24px rgba(41,28,14,0.06)',
   padding: '32px',
   display: 'flex',
   flexDirection: 'column',
@@ -1197,25 +1223,25 @@ const destinationBadgeStyle: React.CSSProperties = {
 
 const propertyCardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
-  borderRadius: '16px',
+  borderRadius: '24px',
   border: '1px solid #D7C7B1',
+  boxShadow: '0 8px 24px rgba(41,28,14,0.06)',
   display: 'flex',
   overflow: 'hidden',
-  minHeight: '280px',
   boxSizing: 'border-box',
 };
 
 const propertyImageStyle: React.CSSProperties = {
-  width: '360px',
-  height: '100%',
-  minHeight: '280px',
+  width: '300px',
+  minHeight: '100%',
+  alignSelf: 'stretch',
   objectFit: 'cover',
   flexShrink: 0,
 };
 
 const cardContentStyle: React.CSSProperties = {
   flex: 1,
-  padding: '24px 28px',
+  padding: '20px 24px',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',

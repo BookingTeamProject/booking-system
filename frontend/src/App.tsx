@@ -6,7 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { RoutesProvider } from './context/RoutesContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { FinanceProvider } from './context/FinanceContext';
-
+import { RouteEdit } from './pages/RouteEdit';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
@@ -73,6 +73,7 @@ function App() {
                         <Route path="/routes/create" element={<RouteCreate />} />
                         <Route path="/routes/:id" element={<RouteDetails />} />
                         <Route path="/favorites" element={<FavoritesPage />} />
+                        <Route path="/routes/edit/:id" element={<RouteEdit />} />
 
                         {/* Розділ "☰ Меню" та редіректи на відповідні вкладки */}
                         <Route path="/menu" element={<MenuWorkspacePage />} />

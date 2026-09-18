@@ -1,0 +1,1 @@
+var e=`/assets/Tree-7MoNvnUv.png`;export{e as t};

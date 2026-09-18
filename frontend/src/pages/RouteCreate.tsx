@@ -197,41 +197,25 @@ export const RouteCreate: React.FC = () => {
   const [roleCheckbox, setRoleCheckbox] = useState(false);
   const [roleError, setRoleError] = useState('');
 
-  // Стан форми
   const [formData, setFormData] = useState({
-    type: 'chalet',
+    type: 'apartment',
     categoryId: '',
-    title: 'Панорамне шале з гарячим чаном над хмарами',
-    description: "Сучасний дерев'яний котедж у затишному куточку Яремче. Панорамні вікна з виглядом на Чорногірський хребет. На терасі встановлено просторий чан на дровах з джерельною водою. Всередині є камін, обладнана кухня та дві окремі спальні. Ідеальне місце для відновлення сил.",
-    location: 'Яремче, Івано-Франківська область',
-    address: 'вул. Свободи 12',
+    title: '',
+    description: '',
+    location: '',
+    address: '',
     rentalFormat: 'daily' as 'daily' | 'monthly' | 'longterm',
-    maxGuests: 4,
-    bedroomsCount: 2,
+    maxGuests: 1,
+    bedroomsCount: 1,
     bathroomsCount: 1,
-    amenities: [
-      'Автентичний чан',
-      'Тераса',
-      'Wi-Fi',
-      'Камін',
-      'Барбекю',
-      'Краєвид на гори',
-      'Швидкісний Wi-Fi',
-      'Кухня з усім приладдям',
-      'Гаряча вода',
-    ],
+    amenities: [] as string[],
     mealPlan: 'none' as 'none' | 'breakfast' | 'half' | 'full',
-    pricePerNight: 3500,
+    pricePerNight: 1500,
     minDays: 1,
     cancellationPolicy: 'flexible' as 'flexible' | 'moderate' | 'strict',
-    cleaningFee: 500,
-    depositFee: 2000,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=800&q=80',
-    ] as string[],
+    cleaningFee: 0,
+    depositFee: 0,
+    imageUrls: [] as string[],
   });
 
   useEffect(() => {
@@ -313,6 +297,12 @@ export const RouteCreate: React.FC = () => {
     if (!formData.location.trim()) {
       alert('Будь ласка, вкажіть населений пункт та область.');
       setStep(1);
+      return;
+    }
+
+    if (formData.imageUrls.length === 0) {
+      alert('⚠️ Будь ласка, додайте щонайменше одну фотографію помешкання.');
+      setStep(4);
       return;
     }
 
@@ -872,7 +862,7 @@ export const RouteCreate: React.FC = () => {
                   Перетягніть фото сюди або натисніть для вибору
                 </div>
                 <span style={{ color: '#A78D78', fontSize: '14px' }}>
-                  Рекомендований формат JPG/PNG, мінімум 1920x1080px
+                  Рекомендований формат JPG/PNG, мінімум одна світлина
                 </span>
               </div>
 
@@ -881,6 +871,12 @@ export const RouteCreate: React.FC = () => {
               <div style={{ fontSize: '18px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
                 Завантажені світлини ({formData.imageUrls.length})
               </div>
+
+              {formData.imageUrls.length === 0 && (
+                <div style={{ color: '#C62828', fontSize: '14px', marginBottom: '16px', fontWeight: 600 }}>
+                  ⚠️ Увага: для створення оголошення необхідно додати мінімум одну фотографію.
+                </div>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
                 {formData.imageUrls.map((url, idx) => (
@@ -1011,7 +1007,7 @@ export const RouteCreate: React.FC = () => {
                   </div>
                   <div style={styles.previewCardFigma}>
                     <img
-                      src={formData.imageUrls[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
+                      src={formData.imageUrls[0] || 'https://placehold.co/800x400/E1D4C2/6E473B?text=Немає+фотографії'}
                       alt="Preview Cover"
                       style={{ width: '100%', height: '320px', objectFit: 'cover' }}
                     />
@@ -1019,7 +1015,7 @@ export const RouteCreate: React.FC = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <MapPinIcon />
-                          <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location}</span>
+                          <span style={{ fontSize: '14px', color: '#A78D78', fontWeight: 700 }}>{formData.location || 'Локація не вказана'}</span>
                         </div>
                         <span style={styles.previewPillTag}>
                           {ACCOMMODATION_TYPES.find((t) => t.id === formData.type)?.label || 'Шале'}
@@ -1027,11 +1023,11 @@ export const RouteCreate: React.FC = () => {
                       </div>
 
                       <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#6E473B', margin: 0 }}>
-                        {formData.title}
+                        {formData.title || 'Назва помешкання'}
                       </h3>
 
                       <p style={{ fontSize: '14px', color: '#6E473B', lineHeight: '22px', margin: 0 }}>
-                        {formData.description}
+                        {formData.description || 'Опис відсутній'}
                       </p>
 
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -1042,7 +1038,7 @@ export const RouteCreate: React.FC = () => {
 
                       <div style={styles.previewPriceFooter}>
                         <div>
-                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{user?.firstName || 'Ярослав'} {user?.lastName || 'К.'}</div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{user?.firstName || 'Господар'} {user?.lastName || ''}</div>
                           <div style={{ fontSize: '12px', color: '#A78D78' }}>Власник оголошення</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
@@ -1072,7 +1068,7 @@ export const RouteCreate: React.FC = () => {
                         <div style={styles.greenTickCircle}><CheckIcon color="#DC9666" size={14} /></div>
                         <div>
                           <div style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>Назва та опис</div>
-                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано локальну назву та детальне резюме</div>
+                          <div style={{ fontSize: '12px', color: '#A78D78' }}>Вказано назву та опис</div>
                         </div>
                       </div>
 
@@ -1105,7 +1101,7 @@ export const RouteCreate: React.FC = () => {
                   <div style={styles.moderationNotice}>
                     <ClockIcon />
                     <span style={{ fontSize: '14px', color: '#DC9666', lineHeight: '20px' }}>
-                      Ваше оголошення буде доступне для бронювання мандрівниками після проходження швидкої модерації (до 24 годин).
+                      Ваше оголошення буде доступне для бронювання мандрівниками після проходження модерації.
                     </span>
                   </div>
 

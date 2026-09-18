@@ -1,5 +1,6 @@
+// src/pages/NewsDetailsPage.tsx
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import {
   MOCK_BLOG_POSTS,
@@ -31,11 +32,16 @@ export const NewsDetailsPage: React.FC = () => {
       <div
         style={{
           ...styles.articleHero,
-          backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 100%), url(${article.heroImage})`,
+          backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.35) 100%), url(${article.heroImage || article.thumbnail})`,
         }}
       >
         <div style={styles.heroMetaWrap}>
-          <div style={styles.categoryBadgeTag}>Приховані Перлини</div>
+          {/* Кнопка повернення */}
+          <Link to="/news" style={styles.backLinkWhite}>
+            ← Назад до списку статей
+          </Link>
+
+          <div style={styles.categoryBadgeTag}>{article.category}</div>
           <h1 style={styles.articleHeroTitleAlegreya}>{article.title}</h1>
 
           <div style={styles.authorDateReadRow}>
@@ -58,7 +64,7 @@ export const NewsDetailsPage: React.FC = () => {
 
       {/* 2. ТІЛО СТОРІНКИ: ОСНОВНИЙ ТЕКСТ + ПРАВИЙ САЙДБАР З FIGMA */}
       <div style={styles.articleBodyContainer}>
-        {/* ЛІВА КОЛОНКА З ТЕКСТОМ СТАТТІ (1283px) */}
+        {/* ЛІВА КОЛОНКА З ТЕКСТОМ СТАТТІ */}
         <div style={styles.mainContentColumn}>
           {/* Вступний абзац */}
           <p style={styles.introParagraph}>{article.excerpt}</p>
@@ -156,7 +162,7 @@ export const NewsDetailsPage: React.FC = () => {
           </section>
         </div>
 
-        {/* ПРАВИЙ САЙДБАР З FIGMA (407px) */}
+        {/* ПРАВИЙ САЙДБАР З FIGMA */}
         <aside style={styles.articleRightSidebar}>
           {/* Віджет "Популярне зараз" */}
           <div style={styles.popularArticlesWidget}>
@@ -226,7 +232,6 @@ export const NewsDetailsPage: React.FC = () => {
   );
 };
 
-// SVG Іконка годинника
 const ClockIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
     <circle cx="12" cy="12" r="10" />
@@ -237,7 +242,7 @@ const ClockIcon = () => (
 const styles: Record<string, React.CSSProperties> = {
   articleHero: {
     width: '100%',
-    minHeight: '520px',
+    minHeight: '500px',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     display: 'flex',
@@ -251,24 +256,32 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '16px',
+  },
+  backLinkWhite: {
+    color: '#E1D4C2',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: 700,
+    marginBottom: '8px',
+    display: 'inline-block',
   },
   categoryBadgeTag: {
     padding: '6px 14px',
     backgroundColor: '#DC9666',
     borderRadius: '4px',
     color: 'white',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: 700,
     textTransform: 'uppercase',
     alignSelf: 'flex-start',
   },
   articleHeroTitleAlegreya: {
     color: '#FFFFFF',
-    fontSize: '48px',
+    fontSize: '44px',
     fontFamily: "'Alegreya', Georgia, serif",
     fontWeight: 700,
-    lineHeight: '56px',
+    lineHeight: '52px',
     margin: 0,
     maxWidth: '1000px',
   },
@@ -301,7 +314,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   pubDateText: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: '15px',
+    fontSize: '14px',
   },
   readTimeFlex: {
     display: 'flex',
@@ -342,14 +355,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   subheadAlegreya: {
     color: '#291C0E',
-    fontSize: '32px',
+    fontSize: '30px',
     fontFamily: "'Alegreya', Georgia, serif",
     fontWeight: 700,
     margin: 0,
   },
   bodyText: {
     color: '#6E473B',
-    fontSize: '17px',
+    fontSize: '16px',
     lineHeight: '28px',
     margin: 0,
   },
@@ -360,14 +373,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   inlineImg: {
     width: '100%',
-    height: '460px',
+    height: '440px',
     borderRadius: '16px',
     objectFit: 'cover',
   },
   imageCaptionText: {
     textAlign: 'center',
     color: '#6E473B',
-    fontSize: '14px',
+    fontSize: '13px',
     fontStyle: 'italic',
   },
   pullQuoteBox: {
@@ -378,7 +391,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   quoteTextItalic: {
     color: '#FFFFFF',
-    fontSize: '20px',
+    fontSize: '18px',
     fontStyle: 'italic',
     lineHeight: '28px',
   },
@@ -389,19 +402,19 @@ const styles: Record<string, React.CSSProperties> = {
   },
   relatedTitleAlegreya: {
     color: '#291C0E',
-    fontSize: '28px',
+    fontSize: '26px',
     fontFamily: "'Alegreya', Georgia, serif",
     fontWeight: 700,
     margin: 0,
   },
   relatedCardsRow: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: '24px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '20px',
   },
   destCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: '24px',
+    borderRadius: '20px',
     overflow: 'hidden',
     border: '1px solid #D7C7B1',
     cursor: 'pointer',
@@ -411,43 +424,41 @@ const styles: Record<string, React.CSSProperties> = {
   },
   destImg: {
     width: '100%',
-    height: '180px',
+    height: '160px',
     objectFit: 'cover',
   },
   destBody: {
-    padding: '20px',
+    padding: '18px',
     display: 'flex',
     flexDirection: 'column',
     gap: '6px',
   },
   destTitleText: {
-    fontSize: '18px',
+    fontSize: '17px',
     fontWeight: 700,
     color: '#6E473B',
   },
   destLocText: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#A78D78',
   },
   destPriceText: {
-    fontSize: '22px',
+    fontSize: '20px',
     fontWeight: 700,
     color: '#DC9666',
-    marginTop: '6px',
+    marginTop: '4px',
   },
   destLinkDetails: {
     color: '#6E473B',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: 700,
     marginTop: '4px',
   },
-
-  // ПРАВИЙ САЙДБАР
   articleRightSidebar: {
-    width: '407px',
+    width: '380px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '36px',
+    gap: '32px',
     flexShrink: 0,
   },
   popularArticlesWidget: {
@@ -457,10 +468,10 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #D7C7B1',
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '18px',
   },
   widgetTitleAlegreya: {
-    fontSize: '22px',
+    fontSize: '20px',
     fontFamily: "'Alegreya', Georgia, serif",
     fontWeight: 700,
     color: '#291C0E',
@@ -469,17 +480,17 @@ const styles: Record<string, React.CSSProperties> = {
   popularListCol: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: '14px',
   },
   popularItemRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px',
+    gap: '14px',
     cursor: 'pointer',
   },
   popularThumb80: {
-    width: '80px',
-    height: '80px',
+    width: '72px',
+    height: '72px',
     borderRadius: '8px',
     objectFit: 'cover',
   },
@@ -491,18 +502,18 @@ const styles: Record<string, React.CSSProperties> = {
   },
   popularTagPill: {
     color: '#DC9666',
-    fontSize: '12px',
+    fontSize: '11px',
     fontWeight: 700,
     textTransform: 'uppercase',
   },
   popularHeadline: {
     color: '#6E473B',
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: 700,
-    lineHeight: '20px',
+    lineHeight: '19px',
   },
   newsletterWidgetBox: {
-    padding: '28px',
+    padding: '24px',
     backgroundColor: '#FFFFFF',
     borderRadius: '16px',
     border: '1px solid #D7C7B1',
@@ -512,31 +523,31 @@ const styles: Record<string, React.CSSProperties> = {
   },
   newsWidgetTag: {
     color: '#DC9666',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: 700,
     textTransform: 'uppercase',
   },
   newsWidgetTitleAlegreya: {
     color: '#291C0E',
-    fontSize: '24px',
+    fontSize: '22px',
     fontFamily: "'Alegreya', Georgia, serif",
     fontWeight: 700,
     margin: 0,
   },
   newsWidgetDesc: {
     color: '#6E473B',
-    fontSize: '14px',
-    lineHeight: '20px',
+    fontSize: '13px',
+    lineHeight: '19px',
     margin: 0,
   },
   newsWidgetForm: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: '10px',
     marginTop: '6px',
   },
   newsWidgetInput: {
-    padding: '14px 16px',
+    padding: '12px 14px',
     backgroundColor: '#FFFFFF',
     borderRadius: '8px',
     border: '1px solid #D7C7B1',
@@ -545,18 +556,18 @@ const styles: Record<string, React.CSSProperties> = {
     outline: 'none',
   },
   newsWidgetBtnSubmit: {
-    padding: '14px',
+    padding: '12px',
     backgroundColor: '#DC9666',
     borderRadius: '8px',
     border: 'none',
     color: 'white',
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: 700,
     cursor: 'pointer',
   },
   promoBannerSquare: {
-    height: '340px',
-    padding: '32px',
+    height: '320px',
+    padding: '28px',
     borderRadius: '16px',
     backgroundImage:
       'linear-gradient(0deg, rgba(27, 46, 36, 0.75) 0%, rgba(27, 46, 36, 0.5) 100%), url(https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=80)',
@@ -570,25 +581,25 @@ const styles: Record<string, React.CSSProperties> = {
   },
   promoTagWhite: {
     color: 'white',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: 700,
     textTransform: 'uppercase',
   },
   promoHeadlineWhite: {
     color: 'white',
-    fontSize: '26px',
+    fontSize: '24px',
     fontFamily: "'Alegreya', Georgia, serif",
     fontWeight: 700,
-    lineHeight: '32px',
+    lineHeight: '30px',
     margin: 0,
   },
   btnBookNowWhite: {
-    padding: '12px 24px',
+    padding: '10px 20px',
     backgroundColor: '#FFFFFF',
     borderRadius: '8px',
     border: 'none',
     color: '#291C0E',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: 700,
     cursor: 'pointer',
   },
