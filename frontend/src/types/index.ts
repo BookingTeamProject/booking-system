@@ -56,18 +56,21 @@ export interface Review {
 
 export interface Booking {
   id: string | number;
-  routeId: string;
+  routeId?: string | number;
   title: string;
   location: string;
-  imageUrl?: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  totalSum: number;
-  paidAmount: number;
-  paymentType: 'full' | 'part';
-  status: 'Очікує' | 'Підтверджено' | 'Завершено' | 'Скасовано';
-  date: string;
+  checkIn?: string;
+  checkOut?: string;
+  dates?: string;
+  guests?: number;
+  price?: number;
+  totalSum?: number;
+  paidAmount?: number;
+  paymentType?: string;
+  status: string;
+  guestName?: string;
+  guestAvatar?: string;
+  date?: string;
 }
 
 export interface AccommodationFormData {

@@ -1,13 +1,15 @@
-// src/components/BookingModal.tsx
 import React, { useState, useEffect, useMemo } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import api from '../api/axios';
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  routeId: string; // <-- ВАЖЛИВО! Тепер модалка вимагає ID маршруту для роботи з БД
   routeTitle: string;
   pricePerNight: number;
   location: string;
-  // Нові пропси для передачі даних з бокової панелі
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: number;
@@ -16,6 +18,7 @@ interface BookingModalProps {
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
+  routeId,
   routeTitle,
   pricePerNight,
   location,
@@ -23,34 +26,61 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   initialCheckOut,
   initialGuests,
 }) => {
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [guests, setGuests] = useState(1);
   const [paymentType, setPaymentType] = useState<'full' | 'part'>('full');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [excludedDates, setExcludedDates] = useState<Date[]>([]);
+  const [isLoadingDates, setIsLoadingDates] = useState(false);
 
-  // Коли модалка відкривається, підтягуємо сюди те, що користувач обрав на сторінці
+  // Підтягуємо ініціальні дані та завантажуємо зайняті дати з БД
   useEffect(() => {
     if (isOpen) {
-      if (initialCheckIn) setCheckIn(initialCheckIn);
-      if (initialCheckOut) setCheckOut(initialCheckOut);
+      if (initialCheckIn) setStartDate(new Date(initialCheckIn));
+      if (initialCheckOut) setEndDate(new Date(initialCheckOut));
       if (initialGuests) setGuests(initialGuests);
       setPaymentType('full');
       setIsSuccess(false);
+
+      // Запит до БД: отримуємо зайняті дати
+      const fetchUnavailableDates = async () => {
+        if (!routeId) return;
+        setIsLoadingDates(true);
+        try {
+          const response = await api.get(`/Bookings/route/${routeId}/unavailable-dates`);
+          const datesToExclude: Date[] = [];
+          
+          response.data.forEach((booking: any) => {
+            let currentDate = new Date(booking.start);
+            const bookingEndDate = new Date(booking.end);
+            // Проходимось по всіх днях бронювання і додаємо їх у масив блокування
+            while (currentDate <= bookingEndDate) {
+              datesToExclude.push(new Date(currentDate));
+              currentDate.setDate(currentDate.getDate() + 1);
+            }
+          });
+          setExcludedDates(datesToExclude);
+        } catch (error) {
+          console.error("Помилка завантаження зайнятих дат", error);
+        } finally {
+          setIsLoadingDates(false);
+        }
+      };
+
+      fetchUnavailableDates();
     }
-  }, [isOpen, initialCheckIn, initialCheckOut, initialGuests]);
+  }, [isOpen, routeId, initialCheckIn, initialCheckOut, initialGuests]);
 
   // Рахуємо реальні дні та гроші
   const { totalSum, payNow } = useMemo(() => {
     let diffDays = 0;
-    if (checkIn && checkOut) {
-      const d1 = new Date(checkIn);
-      const d2 = new Date(checkOut);
-      diffDays = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24));
+    if (startDate && endDate) {
+      diffDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
     }
     
     const nights = diffDays > 0 ? diffDays : 0;
-    let sum = pricePerNight; // Якщо дати не обрані, показуємо хоча б базову ціну за ніч
+    let sum = pricePerNight;
     
     if (nights > 0) {
       const accommodationTotal = pricePerNight * nights;
@@ -62,33 +92,35 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     const toPay = paymentType === 'full' ? sum : Math.round(sum / 2);
     
     return { totalSum: sum, payNow: toPay };
-  }, [checkIn, checkOut, pricePerNight, paymentType]);
+  }, [startDate, endDate, pricePerNight, paymentType]);
 
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
-    // Зберігаємо РЕАЛЬНІ дані в історію браузера (поки без бекенду)
-    const currentBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    currentBookings.unshift({
-      id: Date.now(),
-      title: routeTitle,
-      location,
-      checkIn,
-      checkOut,
-      guests,
-      totalSum,
-      paidAmount: payNow,
-      paymentType,
-      status: 'Підтверджено',
-      date: new Date().toLocaleDateString('uk-UA'),
-    });
-    localStorage.setItem('bookings', JSON.stringify(currentBookings));
+  const handleConfirm = async () => {
+    if (!startDate || !endDate || !routeId) return;
 
-    setIsSuccess(true);
-    setTimeout(() => {
-      setIsSuccess(false);
-      onClose();
-    }, 1800);
+    try {
+      // ВІДПРАВЛЯЄМО РЕАЛЬНИЙ ЗАПИТ НА СЕРВЕР (C# БЕКЕНД)
+      await api.post('/Bookings', {
+        routeId: routeId,
+        checkIn: startDate.toISOString(),
+        checkOut: endDate.toISOString(),
+        totalPrice: totalSum
+      });
+
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+      }, 1800);
+
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        alert(`Помилка: ${error.response.data.message}`);
+      } else {
+        alert('Сталася помилка при бронюванні. Спробуйте пізніше.');
+      }
+    }
   };
 
   return (
@@ -98,9 +130,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <h3 style={{ margin: 0, color: '#291C0E', fontSize: '20px', fontWeight: 800 }}>
             Бронювання житла
           </h3>
-          <button onClick={onClose} style={closeBtnStyle}>
-            ✕
-          </button>
+          <button onClick={onClose} style={closeBtnStyle}>✕</button>
         </div>
 
         {isSuccess ? (
@@ -110,7 +140,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               Бронювання успішно оформлено!
             </h3>
             <p style={{ color: '#6E473B', fontSize: '14px', margin: 0 }}>
-              Деталі замовлення додано у ваш особистий кабінет.
+              Деталі замовлення додано у ваш особистий кабінет. Хост вже отримав заявку.
             </p>
           </div>
         ) : (
@@ -125,20 +155,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label style={labelStyle}>Дата заїзду</label>
-                <input
-                  type="date"
-                  value={checkIn}
-                  onChange={(e) => setCheckIn(e.target.value)}
-                  style={inputStyle}
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date: Date | null) => setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={new Date()}
+                  excludeDates={excludedDates}
+                  dateFormat="dd.MM.yyyy"
+                  placeholderText="Оберіть дату"
+                  customInput={<input style={inputStyle} disabled={isLoadingDates} />}
                 />
               </div>
               <div>
                 <label style={labelStyle}>Дата виїзду</label>
-                <input
-                  type="date"
-                  value={checkOut}
-                  onChange={(e) => setCheckOut(e.target.value)}
-                  style={inputStyle}
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date: Date | null) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate || new Date()}
+                  excludeDates={excludedDates}
+                  dateFormat="dd.MM.yyyy"
+                  placeholderText="Оберіть дату"
+                  customInput={<input style={inputStyle} disabled={isLoadingDates || !startDate} />}
                 />
               </div>
             </div>
@@ -190,7 +232,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <strong style={{ fontSize: '20px', color: '#291C0E', fontWeight: 800 }}>₴ {payNow}</strong>
             </div>
 
-            <button onClick={handleConfirm} style={{...confirmBtnStyle, opacity: (!checkIn || !checkOut) ? 0.5 : 1}} disabled={!checkIn || !checkOut}>
+            <button 
+              onClick={handleConfirm} 
+              style={{...confirmBtnStyle, opacity: (!startDate || !endDate) ? 0.5 : 1}} 
+              disabled={!startDate || !endDate}
+            >
               Підтвердити та забронювати
             </button>
           </div>

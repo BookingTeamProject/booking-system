@@ -1,6 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import TreeBg from '../assets/Tree.png';
+import image1 from '../assets/image1.png';
+import image2 from '../assets/image2.png';
+import image3 from '../assets/image3.png';
+
 // ======================== SVG ІКОНКИ ========================
 const MapPinIcon = () => (
   <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -47,6 +52,8 @@ export const AboutPage: React.FC = () => {
         
         {/* 1. HERO СЕКЦІЯ (ФІГМА: СТИЛІЗОВАНА РАМКА ТА ГАСЛО) */}
         <div style={heroWrapperStyle}>
+          <img src={TreeBg} alt="Декоративні дерева" style={heroTreeBgStyle} />
+          
           <div style={{ flex: '1.1', display: 'flex', flexDirection: 'column', gap: '20px', zIndex: 2 }}>
             <h1 style={heroBigTitleStyle}>
               Ми відкриваємо Україну для вас
@@ -72,37 +79,67 @@ export const AboutPage: React.FC = () => {
 
         {/* 2. ПОКАЗНИКИ ТА ДОСЯГНЕННЯ (3 КАРТКИ З FIGMA) */}
         <div style={milestonesRowStyle}>
-          {/* Картка 1 */}
+          {/* Картка 1: Локації (image1) */}
           <div style={milestoneCardStyle}>
             <div style={milestoneIconCircleStyle}>
               <MapPinIcon />
             </div>
-            <div>
+            <div style={milestoneInfoStyle}>
               <div style={milestoneNumberStyle}>120</div>
               <div style={milestoneLabelStyle}>локацій</div>
             </div>
+            <img 
+              src={image1} 
+              alt="Локації" 
+              style={{
+                ...milestoneSilhouetteStyle,
+                right: '10px',
+                bottom: '-60px',
+                height: '130%',
+              }} 
+            />
           </div>
 
-          {/* Картка 2 */}
+          {/* Картка 2: Помешкання (image2) */}
           <div style={milestoneCardStyle}>
             <div style={milestoneIconCircleStyle}>
               <HomeIcon />
             </div>
-            <div>
+            <div style={milestoneInfoStyle}>
               <div style={milestoneNumberStyle}>175</div>
               <div style={milestoneLabelStyle}>помешкань</div>
             </div>
+            <img 
+              src={image2} 
+              alt="Помешкання" 
+              style={{
+                ...milestoneSilhouetteStyle,
+                right: '0px',
+                bottom: '-10px',
+                height: '100%',
+              }} 
+            />
           </div>
 
-          {/* Картка 3 */}
+          {/* Картка 3: Партнери (image3 - Руки) */}
           <div style={milestoneCardStyle}>
             <div style={milestoneIconCircleStyle}>
               <UsersIcon />
             </div>
-            <div>
+            <div style={milestoneInfoStyle}>
               <div style={milestoneNumberStyle}>25</div>
               <div style={milestoneLabelStyle}>партнерів</div>
             </div>
+            <img 
+              src={image3} 
+              alt="Партнери" 
+              style={{
+                ...milestoneSilhouetteStyle,
+                right: '-80px',
+                bottom: '-50px',
+                height: '130%',
+              }} 
+            />
           </div>
         </div>
 
@@ -235,26 +272,34 @@ export const AboutPage: React.FC = () => {
 
         {/* 7. ФІНАЛЬНИЙ СЕКЦІЙНИЙ CTA-БАННЕР З КОМПАСОМ */}
         <div style={finalCtaBannerStyle}>
-          {/* Кругла іконка компаса на верхній грані */}
-          <div style={compassIconWrapperStyle}>
+          
+          {/* Обгортка для фону з ялинками (щоб вони не вилазили за круглі краї) */}
+          <div style={ctaBackgroundWrapperStyle}>
+            <img src={TreeBg} alt="Ялинки" style={ctaTreeBgStyle} />
+          </div>
+
+          {/* Кругла іконка компаса на верхній грані (має бути поверх фону) */}
+          <div style={{ ...compassIconWrapperStyle, zIndex: 3 }}>
             <CompassIcon />
           </div>
 
-          <h2 style={ctaHeadingStyle}>
-            Готові розпочати свою наступну автентичну історію?
-          </h2>
-          <p style={ctaSubtextStyle}>
-            Приєднуйтесь до нашої великої спільноти мандрівників та хостів. Знайдіть своє ідеальне місце сили вже сьогодні.
-          </p>
+          {/* Контент банера (текст і кнопка мають бути поверх ялинок) */}
+          <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <h2 style={ctaHeadingStyle}>
+              Готові розпочати свою наступну автентичну історію?
+            </h2>
+            <p style={ctaSubtextStyle}>
+              Приєднуйтесь до нашої великої спільноти мандрівників та хостів. Знайдіть своє ідеальне місце сили вже сьогодні.
+            </p>
 
-          <button
-            style={ctaActionBtnStyle}
-            onClick={() => navigate('/routes')}
-          >
-            Приєднуйтесь до TrailsUA
-          </button>
+            <button
+              style={ctaActionBtnStyle}
+              onClick={() => navigate('/routes')}
+            >
+              Приєднуйтесь до TrailsUA
+            </button>
+          </div>
         </div>
-
       </div>
     </div>
   );
@@ -262,7 +307,29 @@ export const AboutPage: React.FC = () => {
 
 // ======================= СТИЛІ FIGMA =======================
 
+const ctaBackgroundWrapperStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  borderRadius: '32px',
+  overflow: 'hidden',
+  zIndex: 1,
+};
+
+const ctaTreeBgStyle: React.CSSProperties = {
+  position: 'absolute',
+  right: '-250px',
+  bottom: '-30px',
+  height: '280px',
+  opacity: 0.4,
+  pointerEvents: 'none',
+};
+
 const heroWrapperStyle: React.CSSProperties = {
+  position: 'relative',
+  overflow: 'hidden',
   backgroundColor: '#D7C7B1',
   borderRadius: '40px',
   outline: '12px solid #6E473B',
@@ -273,6 +340,16 @@ const heroWrapperStyle: React.CSSProperties = {
   gap: '40px',
   marginBottom: '60px',
   boxSizing: 'border-box',
+};
+
+const heroTreeBgStyle: React.CSSProperties = {
+  position: 'absolute',
+  bottom: '-60px',
+  left: '-20px',
+  width: '500px',
+  opacity: 0.95,
+  zIndex: 1,
+  pointerEvents: 'none',
 };
 
 const heroBigTitleStyle: React.CSSProperties = {
@@ -299,6 +376,7 @@ const heroPhotoWrapperStyle: React.CSSProperties = {
   width: '560px',
   height: '380px',
   flexShrink: 0,
+  zIndex: 2,
 };
 
 const photoLayerBackStyle: React.CSSProperties = {
@@ -349,6 +427,8 @@ const milestoneCardStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '24px',
   boxShadow: '0px 10px 24px -10px rgba(0, 0, 0, 0.06)',
+  position: 'relative',
+  overflow: 'hidden',
 };
 
 const milestoneIconCircleStyle: React.CSSProperties = {
@@ -360,6 +440,13 @@ const milestoneIconCircleStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0,
+  zIndex: 2,
+};
+
+const milestoneInfoStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  zIndex: 2,
 };
 
 const milestoneNumberStyle: React.CSSProperties = {
@@ -374,6 +461,16 @@ const milestoneLabelStyle: React.CSSProperties = {
   color: '#6E473B',
   fontSize: '22px',
   fontWeight: 700,
+};
+
+const milestoneSilhouetteStyle: React.CSSProperties = {
+  position: 'absolute',
+  right: '-20px',
+  bottom: '-10px',
+  height: '130%',
+  opacity: 0.9,
+  zIndex: 1,
+  pointerEvents: 'none',
 };
 
 // ІСТОРІЯ

@@ -663,12 +663,13 @@ export const RouteDetails: React.FC = () => {
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
+        routeId={String(route.id)}
         routeTitle={route.title}
-        pricePerNight={pricePerNight}
+        pricePerNight={pricePerNight || 0}
         location={route.location}
         initialCheckIn={checkIn}
         initialCheckOut={checkOut}
-        initialGuests={guests}
+        initialGuests={guests || 1}
       />
     </div>
   );
