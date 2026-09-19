@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoutes } from '../context/RoutesContext';
 import { useSettings } from '../context/SettingsContext';
-import { MOCK_ROUTES } from '../data/mockData';
 import type { RouteItem } from '../types';
 import promoLineBg from '../assets/Line1.png';
 import Line2 from '../assets/Line2.png';
@@ -97,13 +96,11 @@ export const HomePage: React.FC = () => {
 
   // Оптимізовані списки: беремо дані з RoutesContext або централізованого MOCK_ROUTES
   const displayPopularHotels: RouteItem[] = useMemo(() => {
-    const source = routes && routes.length > 0 ? routes : MOCK_ROUTES;
-    return source.slice(0, 8);
+    return (routes || []).slice(0, 8);
   }, [routes]);
 
   const displayRecentItems: RouteItem[] = useMemo(() => {
-    const source = routes && routes.length > 0 ? routes : MOCK_ROUTES;
-    return source.slice(0, 4);
+    return (routes || []).slice(0, 4);
   }, [routes]);
 
   return (

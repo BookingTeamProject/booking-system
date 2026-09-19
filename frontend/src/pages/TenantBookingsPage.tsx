@@ -1,13 +1,36 @@
-// src/pages/TenantBookingsPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { storage } from '../services/storage.service';
+import api from '../api/axios';
 import type { Booking } from '../types';
 
 export const TenantBookingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'current' | 'history'>('current');
-  const [bookings, setBookings] = useState<Booking[]>(() => storage.bookings.get());
+  const [bookings, setBookings] = useState<Booking[]>([]);
+
+  // Підтягуємо реальні бронювання гостя з C# бекенду
+  useEffect(() => {
+    const fetchMyBookings = async () => {
+      try {
+        const response = await api.get('/Bookings/my');
+        const mapped = response.data.map((b: any) => ({
+          id: b.id,
+          title: b.route?.title || 'Помешкання',
+          location: b.route?.location || '',
+          checkIn: new Date(b.checkIn).toLocaleDateString(),
+          checkOut: new Date(b.checkOut).toLocaleDateString(),
+          totalSum: b.totalPrice,
+          status: b.status === 'Pending' ? 'Очікує' : b.status === 'Approved' ? 'Підтверджено' : 'Скасовано',
+          imageUrl: b.route?.imageUrls?.[0]
+        }));
+        setBookings(mapped);
+      } catch (error) {
+        console.error("Помилка завантаження моїх бронювань", error);
+      }
+    };
+
+    fetchMyBookings();
+  }, []);
 
   // Модалка деталей
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -15,13 +38,20 @@ export const TenantBookingsPage: React.FC = () => {
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
   const [cancelReason, setCancelReason] = useState('Мої плани змінилися');
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (!cancelTarget) return;
-    const updated = storage.bookings.cancel(cancelTarget.id, cancelReason);
-    setBookings(updated);
-    setCancelTarget(null);
-    setSelectedBooking(null);
-    alert('Бронювання успішно скасовано.');
+    try {
+      await api.put(`/Bookings/${cancelTarget.id}/status`, JSON.stringify("Declined"), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      setBookings(prev => prev.map(b => b.id === cancelTarget.id ? { ...b, status: 'Скасовано' } : b));
+      setCancelTarget(null);
+      setSelectedBooking(null);
+      alert('Бронювання успішно скасовано.');
+    } catch (error) {
+      console.error("Помилка скасування", error);
+      alert('Не вдалося скасувати бронь.');
+    }
   };
 
   const currentBookings = bookings.filter((b) => b.status !== 'Скасовано');
@@ -67,7 +97,7 @@ export const TenantBookingsPage: React.FC = () => {
               <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#291C0E', margin: '6px 0 4px 0' }}>{b.title}</h3>
               <p style={{ fontSize: '13px', color: '#6E473B', margin: '0 0 8px 0' }}>📍 {b.location}</p>
               <div style={{ fontSize: '13px', color: '#A78D78' }}>
-                📅 {b.checkIn} — {b.checkOut} • 👥 {b.guests} гостей
+                📅 {b.checkIn} — {b.checkOut} • 👥 {b.guests || 2} гостей
               </div>
             </div>
 

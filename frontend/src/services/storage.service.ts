@@ -1,7 +1,5 @@
-// src/services/storage.service.ts
 import type { User, RouteItem, Booking, Review, UserRole } from '../types';
 import {
-  MOCK_ROUTES,
   MOCK_BOOKINGS,
   MOCK_MESSAGES,
   MOCK_BLACKLIST,
@@ -102,12 +100,12 @@ export const storage = {
   routes: {
     getCustom: (): RouteItem[] => {
       const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_ROUTES);
-      if (!raw) return MOCK_ROUTES;
+      if (!raw) return [];
       try {
         const parsed = JSON.parse(raw) as RouteItem[];
-        return parsed.length > 0 ? parsed : MOCK_ROUTES;
+        return parsed.length > 0 ? parsed : [];
       } catch {
-        return MOCK_ROUTES;
+        return [];
       }
     },
     addCustom: (route: RouteItem): RouteItem[] => {

@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<Image> Images => Set<Image>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +54,12 @@ public class AppDbContext : DbContext
             .HasOne(c => c.Route)
             .WithMany(rt => rt.Comments)
             .HasForeignKey(c => c.RouteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne(m => m.Sender)
+            .WithMany()
+            .HasForeignKey(m => m.SenderId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
