@@ -6,13 +6,13 @@ import { useSettings } from '../context/SettingsContext';
 import { useRoutes } from '../context/RoutesContext';
 import type { RouteItem, Review } from '../types';
 import Line5 from '../assets/Line5.png';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
-// Підключення реальної карти
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// ======================== SVG ІКОНКИ З FIGMA ========================
 const MapPinIcon = ({ color = '#DC9666', size = 16 }: { color?: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -49,7 +49,6 @@ const AlertTriangleIcon = () => (
   </svg>
 );
 
-// Іконки зручностей
 const AmenityIcons: Record<string, React.ReactNode> = {
   lock: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6E473B" strokeWidth="2">
@@ -117,7 +116,6 @@ const customMapIcon = L.divIcon({
   popupAnchor: [0, -36]
 });
 
-// Карта з локацією
 const LocationMap = ({ locationStr }: { locationStr: string }) => {
   const [coords, setCoords] = useState<[number, number] | null>(null);
 
@@ -160,10 +158,11 @@ export const RouteDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
-  // СТЕЙТИ ДЛЯ КАЛЬКУЛЯТОРА
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const [checkIn, setCheckIn] = useState<Date | null>(null);
+  const [checkOut, setCheckOut] = useState<Date | null>(null);
   const [guests, setGuests] = useState(1);
+  const [excludedDates, setExcludedDates] = useState<Date[]>([]);
+  const [isLoadingDates, setIsLoadingDates] = useState(false);
 
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
@@ -173,6 +172,33 @@ export const RouteDetails: React.FC = () => {
   useEffect(() => {
     fetchRouteDetails();
     fetchReviews();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchUnavailableDates = async () => {
+      if (!id) return;
+      setIsLoadingDates(true);
+      try {
+        const response = await api.get(`/Bookings/route/${id}/unavailable-dates`);
+        const datesToExclude: Date[] = [];
+        
+        response.data.forEach((booking: any) => {
+          let currentDate = new Date(booking.start);
+          const bookingEndDate = new Date(booking.end);
+          while (currentDate <= bookingEndDate) {
+            datesToExclude.push(new Date(currentDate));
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+        });
+        setExcludedDates(datesToExclude);
+      } catch (error) {
+        console.error("Помилка завантаження зайнятих дат", error);
+      } finally {
+        setIsLoadingDates(false);
+      }
+    };
+
+    fetchUnavailableDates();
   }, [id]);
 
   const fetchRouteDetails = async () => {
@@ -289,12 +315,9 @@ export const RouteDetails: React.FC = () => {
     return (sum / reviews.length).toFixed(1);
   }, [reviews, route]);
 
-  // ДИНАМІЧНА МАТЕМАТИКА
   const calculatedNights = useMemo(() => {
     if (!checkIn || !checkOut) return 0;
-    const d1 = new Date(checkIn);
-    const d2 = new Date(checkOut);
-    const diffDays = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24));
+    const diffDays = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 3600 * 24));
     return diffDays > 0 ? diffDays : 0;
   }, [checkIn, checkOut]);
 
@@ -324,6 +347,23 @@ export const RouteDetails: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif", position: 'relative', overflow: 'hidden' }}>
       
+      <style>{`
+        .react-datepicker-wrapper {
+          width: 100%;
+        }
+        .react-datepicker__day--excluded {
+          background-color: #f5f5f5 !important;
+          color: #a8a29e !important;
+          text-decoration: line-through !important;
+          cursor: not-allowed !important;
+          opacity: 0.5 !important;
+        }
+        .react-datepicker__day--excluded:hover {
+          background-color: #f5f5f5 !important;
+          border-radius: 0 !important;
+        }
+      `}</style>
+
       <img
         src={Line5}
         alt="Background Line"
@@ -579,14 +619,36 @@ export const RouteDetails: React.FC = () => {
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={inputSubLabelStyle}>ЗАЇЗД</span>
                     <div style={dateBoxStyle}>
-                      <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} style={dateInputStyle} />
+                      <DatePicker
+                        selected={checkIn}
+                        onChange={(date: Date | null) => setCheckIn(date)}
+                        selectsStart
+                        startDate={checkIn}
+                        endDate={checkOut}
+                        minDate={new Date()}
+                        excludeDates={excludedDates}
+                        dateFormat="dd.MM.yyyy"
+                        placeholderText="Оберіть дату"
+                        customInput={<input style={dateInputStyle} disabled={isLoadingDates} />}
+                      />
                     </div>
                   </div>
 
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <span style={inputSubLabelStyle}>ВИЇЗД</span>
                     <div style={dateBoxStyle}>
-                      <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} style={dateInputStyle} />
+                      <DatePicker
+                        selected={checkOut}
+                        onChange={(date: Date | null) => setCheckOut(date)}
+                        selectsEnd
+                        startDate={checkIn}
+                        endDate={checkOut}
+                        minDate={checkIn || new Date()}
+                        excludeDates={excludedDates}
+                        dateFormat="dd.MM.yyyy"
+                        placeholderText="Оберіть дату"
+                        customInput={<input style={dateInputStyle} disabled={isLoadingDates || !checkIn} />}
+                      />
                     </div>
                   </div>
                 </div>
@@ -667,15 +729,13 @@ export const RouteDetails: React.FC = () => {
         routeTitle={route.title}
         pricePerNight={pricePerNight || 0}
         location={route.location}
-        initialCheckIn={checkIn}
-        initialCheckOut={checkOut}
+        initialCheckIn={checkIn ? checkIn.toISOString() : undefined}
+        initialCheckOut={checkOut ? checkOut.toISOString() : undefined}
         initialGuests={guests || 1}
       />
     </div>
   );
 };
-
-// ======================= СТИЛІ FIGMA =======================
 
 const breadcrumbsRowStyle: React.CSSProperties = {
   display: 'flex',
@@ -827,21 +887,6 @@ const amenityPillStyle: React.CSSProperties = {
   borderRadius: '16px',
   border: '1px solid #D7C7B1',
   backgroundColor: '#FFFFFF',
-};
-
-const showAllAmenitiesBtnStyle: React.CSSProperties = {
-  padding: '12px 22px',
-  backgroundColor: '#DC9666',
-  borderRadius: '999px',
-  border: 'none',
-  color: '#FFFFFF',
-  fontSize: '15px',
-  fontWeight: 700,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '8px',
-  cursor: 'pointer',
-  boxShadow: '0px 6px 16px -8px rgba(0, 0, 0, 0.1)',
 };
 
 const detailsMapViewportStyle: React.CSSProperties = {

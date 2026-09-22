@@ -6,7 +6,7 @@ import api from '../api/axios';
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  routeId: string; // <-- ВАЖЛИВО! Тепер модалка вимагає ID маршруту для роботи з БД
+  routeId: string;
   routeTitle: string;
   pricePerNight: number;
   location: string;
@@ -34,7 +34,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [excludedDates, setExcludedDates] = useState<Date[]>([]);
   const [isLoadingDates, setIsLoadingDates] = useState(false);
 
-  // Підтягуємо ініціальні дані та завантажуємо зайняті дати з БД
   useEffect(() => {
     if (isOpen) {
       if (initialCheckIn) setStartDate(new Date(initialCheckIn));
@@ -43,7 +42,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setPaymentType('full');
       setIsSuccess(false);
 
-      // Запит до БД: отримуємо зайняті дати
       const fetchUnavailableDates = async () => {
         if (!routeId) return;
         setIsLoadingDates(true);
@@ -72,7 +70,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
   }, [isOpen, routeId, initialCheckIn, initialCheckOut, initialGuests]);
 
-  // Рахуємо реальні дні та гроші
   const { totalSum, payNow } = useMemo(() => {
     let diffDays = 0;
     if (startDate && endDate) {
@@ -100,7 +97,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (!startDate || !endDate || !routeId) return;
 
     try {
-      // ВІДПРАВЛЯЄМО РЕАЛЬНИЙ ЗАПИТ НА СЕРВЕР (C# БЕКЕНД)
       await api.post('/Bookings', {
         routeId: routeId,
         checkIn: startDate.toISOString(),
@@ -125,6 +121,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div style={overlayStyle} onClick={onClose}>
+      {/* СТИЛІ ДЛЯ ПЕРЕКРЕСЛЕНИХ ДАТ */}
+      <style>{`
+        .react-datepicker__day--excluded {
+          background-color: #f5f5f5 !important;
+          color: #a8a29e !important;
+          text-decoration: line-through !important;
+          cursor: not-allowed !important;
+          opacity: 0.5 !important;
+        }
+        .react-datepicker__day--excluded:hover {
+          background-color: #f5f5f5 !important;
+          border-radius: 0 !important;
+        }
+      `}</style>
+
       <div style={modalBoxStyle} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <h3 style={{ margin: 0, color: '#291C0E', fontSize: '20px', fontWeight: 800 }}>
