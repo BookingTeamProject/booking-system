@@ -36,6 +36,7 @@ builder.Services.AddScoped<IRouteService, RouteService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 // 4. Настраиваем JWT аутентификацию
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

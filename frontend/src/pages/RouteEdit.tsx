@@ -44,7 +44,7 @@ const AMENITIES_BY_CATEGORY = [
 export const RouteEdit: React.FC = () => {
   const { id } = useParams(); // Отримуємо ID з URL
   const navigate = useNavigate();
-  const { user, isLandlord } = useAuth();
+  const { isLandlord } = useAuth();
   const { formatPrice } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

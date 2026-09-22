@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoutes } from '../context/RoutesContext';
 import { useSettings } from '../context/SettingsContext';
-import { MOCK_ROUTES } from '../data/mockData';
 import type { RouteItem } from '../types';
 import promoLineBg from '../assets/Line1.png';
 import Line2 from '../assets/Line2.png';

@@ -105,7 +105,7 @@ export const Navbar: React.FC = () => {
               {menuDropdownOpen && (
                 <div style={figmaFullMenuDropdownStyle}>
                   {/* 1. Повідомлення */}
-                  <Link to="/messages" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  <Link to="/menu?tab=messages" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M21.6192 18.7374C21.863 18.5005 22 18.1791 22 17.844V10.2634C22 9.92835 21.863 9.60699 21.6192 9.37005C21.3754 9.13311 21.0448 9 20.7 9H10.3C9.95522 9 9.62456 9.13311 9.38076 9.37005C9.13696 9.60699 9 9.92835 9 10.2634V20.5515C9.00001 20.6402 9.02708 20.7269 9.0778 20.8007C9.12851 20.8744 9.20058 20.9319 9.2849 20.9659C9.36922 20.9998 9.462 21.0087 9.55152 20.9914C9.64103 20.9741 9.72326 20.9314 9.7878 20.8687L11.2191 19.4776C11.4628 19.2407 11.7934 19.1075 12.1382 19.1074H20.7C21.0448 19.1074 21.3754 18.9743 21.6192 18.7374Z" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -118,7 +118,7 @@ export const Navbar: React.FC = () => {
                   <div style={dropdownDividerStyle} />
 
                   {/* 2. Бронювання */}
-                  <Link to="/profile" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  <Link to="/menu?tab=bookings" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M12.6111 9V11.4M18.3889 9V11.4M9 13.8H22M10.4444 10.2H20.5556C21.3533 10.2 22 10.7373 22 11.4V19.8C22 20.4627 21.3533 21 20.5556 21H10.4444C9.6467 21 9 20.4627 9 19.8V11.4C9 10.7373 9.6467 10.2 10.4444 10.2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -144,7 +144,7 @@ export const Navbar: React.FC = () => {
                   <div style={dropdownDividerStyle} />
 
                   {/* 4. Новини */}
-                  <Link to="/news" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  <Link to="/menu?tab=news" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M17.45 19.2H14.2M19.4 16.4H14.2M10.3 22H20.7C21.0448 22 21.3754 21.8525 21.6192 21.5899C21.863 21.3274 22 20.9713 22 20.6V9.4C22 9.0287 21.863 8.6726 21.6192 8.41005C21.3754 8.1475 21.0448 8 20.7 8H12.9C12.5552 8 12.2246 8.1475 11.9808 8.41005C11.737 8.6726 11.6 9.0287 11.6 9.4V20.6C11.6 20.9713 11.463 21.3274 11.2192 21.5899C10.9754 21.8525 10.6448 22 10.3 22ZM10.3 22C9.95522 22 9.62456 21.8525 9.38076 21.5899C9.13696 21.3274 9 20.9713 9 20.6V14.3C9 13.9287 9.13696 13.5726 9.38076 13.3101C9.62456 13.0475 9.95522 12.9 10.3 12.9H11.6M14.85 10.8H18.75C19.109 10.8 19.4 11.1134 19.4 11.5V12.9C19.4 13.2866 19.109 13.6 18.75 13.6H14.85C14.491 13.6 14.2 13.2866 14.2 12.9V11.5C14.2 11.1134 14.491 10.8 14.85 10.8Z" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -157,7 +157,7 @@ export const Navbar: React.FC = () => {
                   <div style={dropdownDividerStyle} />
 
                   {/* 5. Контакти */}
-                  <Link to="/contact" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  <Link to="/menu?tab=contacts" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M9 14.3H11.1667C11.5498 14.3 11.9172 14.4475 12.188 14.7101C12.4589 14.9726 12.6111 15.3287 12.6111 15.7V17.8C12.6111 18.1713 12.4589 18.5274 12.188 18.7899C11.9172 19.0525 11.5498 19.2 11.1667 19.2H10.4444C10.0614 19.2 9.69395 19.0525 9.42307 18.7899C9.15218 18.5274 9 18.1713 9 17.8V14.3ZM9 14.3C9 13.4727 9.16813 12.6534 9.49478 11.8891C9.82144 11.1247 10.3002 10.4302 10.9038 9.84523C11.5074 9.26022 12.2239 8.79616 13.0126 8.47956C13.8012 8.16295 14.6464 8 15.5 8C16.3536 8 17.1988 8.16295 17.9874 8.47956C18.7761 8.79616 19.4926 9.26022 20.0962 9.84523C20.6998 10.4302 21.1786 11.1247 21.5052 11.8891C21.8319 12.6534 22 13.4727 22 14.3M22 14.3V17.8M22 14.3H19.8333C19.4502 14.3 19.0828 14.4475 18.812 14.7101C18.5411 14.9726 18.3889 15.3287 18.3889 15.7V17.8C18.3889 18.1713 18.5411 18.5274 18.812 18.7899C19.0828 19.0525 19.4502 19.2 19.8333 19.2H20.5556C20.9386 19.2 21.306 19.0525 21.5769 18.7899C21.8478 18.5274 22 18.1713 22 17.8M22 17.8V19.2C22 19.9426 21.6956 20.6548 21.1539 21.1799C20.6121 21.705 19.8773 22 19.1111 22H15.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -170,7 +170,7 @@ export const Navbar: React.FC = () => {
                   <div style={dropdownDividerStyle} />
 
                   {/* 6. Обмеження акаунта */}
-                  <Link to="/legal" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  <Link to="/menu?tab=restrictions" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M15.5 12.1993V14.9988M15.5 17.7984H15.5069M21 15.699C21 19.1984 18.5938 20.9481 15.7338 21.963C15.584 22.0146 15.4213 22.0122 15.2731 21.956C12.4062 20.9481 10 19.1984 10 15.699V10.7998C10 10.6142 10.0724 10.4362 10.2014 10.305C10.3303 10.1737 10.5052 10.1 10.6875 10.1C12.0625 10.1 13.7812 9.2601 14.9775 8.19628C15.1232 8.0696 15.3084 8 15.5 8C15.6916 8 15.8768 8.0696 16.0225 8.19628C17.2256 9.2671 18.9375 10.1 20.3125 10.1C20.4948 10.1 20.6697 10.1737 20.7986 10.305C20.9276 10.4362 21 10.6142 21 10.7998V15.699Z" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -183,7 +183,7 @@ export const Navbar: React.FC = () => {
                   <div style={dropdownDividerStyle} />
 
                   {/* 7. Служба підтримки */}
-                  <Link to="/faq" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
+                  <Link to="/menu?tab=support" onClick={() => setMenuDropdownOpen(false)} style={dropdownRowStyle}>
                     <div style={dropdownIconBoxStyle}>
                       <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                         <path d="M13.6084 13.0497C13.7612 12.6153 14.0628 12.249 14.4599 12.0157C14.8569 11.7823 15.3237 11.697 15.7776 11.7749C16.2314 11.8528 16.6431 12.0887 16.9397 12.441C17.2363 12.7933 17.3986 13.2392 17.3979 13.6997C17.3979 14.9997 15.4479 15.6497 15.4479 15.6497M15.5 18.25H15.5065M22 15C22 18.5899 19.0899 21.5 15.5 21.5C11.9101 21.5 9 18.5899 9 15C9 11.4101 11.9101 8.5 15.5 8.5C19.0899 8.5 22 11.4101 22 15Z" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -326,7 +326,7 @@ export const Navbar: React.FC = () => {
                 {profileDropdownOpen && (
                   <div style={figmaFullCabinetDropdownStyle}>
                     {/* 1. Обліковий запис */}
-                    <Link to="/profile" onClick={() => setProfileDropdownOpen(false)} style={dropdownRowStyle}>
+                    <Link to="/profile?tab=account" onClick={() => setProfileDropdownOpen(false)} style={dropdownRowStyle}>
                       <div style={dropdownIconBoxStyle}>
                         <svg width="18" height="18" viewBox="0 0 30 30" fill="none">
                           <path d="M20.3344 21V19.6667C20.3344 18.9594 20.0534 18.2811 19.5533 17.781C19.0531 17.281 18.3748 17 17.6674 17H13.667C12.9596 17 12.2813 17.281 11.7811 17.781C11.281 18.2811 11 18.9594 11 19.6667V21M18.3342 11.6667C18.3342 13.1394 17.1401 14.3333 15.6672 14.3333C14.1943 14.3333 13.0002 13.1394 13.0002 11.6667C13.0002 10.1939 14.1943 9 15.6672 9C17.1401 9 18.3342 10.1939 18.3342 11.6667Z" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
