@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 
 namespace TrailsUA.Domain.Entities;
 
@@ -21,6 +21,11 @@ public class User : BaseEntity
 
     // Поле для входа через Google
     public string? GoogleId { get; set; }
+
+    public bool IsSystemAdmin { get; set; }
+    public bool IsBlocked { get; set; }
+    public bool IsDeleted { get; set; }
+    public int AuthVersion { get; set; }
 
     public UserRole Role { get; set; } = UserRole.User;
 

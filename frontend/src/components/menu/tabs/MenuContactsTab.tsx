@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import {
-  MOCK_CONTACT_OFFICE_INFO,
-  MOCK_CONTACT_SUBJECTS,
-} from '../../../data/mockData';
+import { AssistanceGate } from '../AssistanceGate';
+import { useAppData } from '../../../context/AppDataContext';
+import type { AssistanceSnapshot } from '../../../data/contracts';
+import { requestError } from '../../../services/bookings.service';
 
-export const MenuContactsTab: React.FC = () => {
+export const MenuContactsTab: React.FC = () => <AssistanceGate>{snapshot => <ContactsContent snapshot={snapshot} />}</AssistanceGate>;
+
+const ContactsContent: React.FC<{ snapshot: AssistanceSnapshot }> = ({ snapshot }) => {
+  const { assistance } = useAppData();
+  const [feedback, setFeedback] = useState('');
   const { user } = useAuth();
 
   // Стан форми
   const [name, setName] = useState(
-    user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Олександр Шевченко'
+    user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : ''
   );
-  const [email, setEmail] = useState(user?.email || 'alex@example.com');
-  const [subject, setSubject] = useState(MOCK_CONTACT_SUBJECTS[0]);
+  const [email, setEmail] = useState(user?.email || '');
+  const [subject, setSubject] = useState(snapshot.subjects[0]);
   const [message, setMessage] = useState(
     "Вітаю! Хотів дізнатися деталі щодо раннього заїзду в апартаменти 'Leopolis Aura' у Львові. Дякую!"
   );
@@ -22,20 +26,20 @@ export const MenuContactsTab: React.FC = () => {
   const [isSubjectDropdownOpen, setIsSubjectDropdownOpen] = useState(false);
   const [isSent, setIsSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
-
-    setIsSent(true);
-    setTimeout(() => {
-      alert('🎉 Ваше повідомлення успішно надіслано до служби турботи TrailsUA! Ми зв’яжемося з вами найближчим часом.');
-      setIsSent(false);
-      setMessage('');
-    }, 400);
+    if (isSent || !message.trim()) return;
+    setIsSent(true); setFeedback('');
+    try {
+      await assistance.submitContact({ name, email, subject, message });
+      setMessage(''); setFeedback('Демонстраційне повідомлення збережено у браузері. Лист не надсилався.');
+    } catch (error) { setFeedback(requestError(error)); }
+    finally { setIsSent(false); }
   };
 
   return (
     <div style={styles.container}>
+      {feedback && <p role="status">{feedback}</p>}
       {/* 1. ЗАГОЛОВОК СТОРІНКИ З FIGMA */}
       <header style={styles.welcomeSection}>
         <h1 style={styles.mainTitleAlegreya}>Зв&apos;яжіться з нами</h1>
@@ -56,7 +60,7 @@ export const MenuContactsTab: React.FC = () => {
                 <MapPinIcon />
               </div>
               <div style={styles.infoCardTitle}>Адреса офісу</div>
-              <div style={styles.infoCardSub}>{MOCK_CONTACT_OFFICE_INFO.address}</div>
+              <div style={styles.infoCardSub}>{snapshot.office.address}</div>
             </div>
 
             {/* 2. Контактні телефони */}
@@ -66,7 +70,7 @@ export const MenuContactsTab: React.FC = () => {
               </div>
               <div style={styles.infoCardTitle}>Контактні телефони</div>
               <div style={styles.infoCardSub}>
-                {MOCK_CONTACT_OFFICE_INFO.phones.map((p) => (
+                {snapshot.office.phones.map((p) => (
                   <div key={p}>{p}</div>
                 ))}
               </div>
@@ -79,7 +83,7 @@ export const MenuContactsTab: React.FC = () => {
               </div>
               <div style={styles.infoCardTitle}>Електронна пошта</div>
               <div style={styles.infoCardSub}>
-                {MOCK_CONTACT_OFFICE_INFO.emails.map((m) => (
+                {snapshot.office.emails.map((m) => (
                   <div key={m}>{m}</div>
                 ))}
               </div>
@@ -158,7 +162,7 @@ export const MenuContactsTab: React.FC = () => {
             {/* ========================================================================= */}
             {isSubjectDropdownOpen && (
               <div style={styles.frame352DropdownMenu}>
-                {MOCK_CONTACT_SUBJECTS.map((item) => {
+                {snapshot.subjects.map((item) => {
                   const isSelected = item === subject;
                   return (
                     <div

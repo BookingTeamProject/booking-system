@@ -1,24 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_BLOG_POSTS  } from '../../../data/mockData';
+import { useAppData } from '../../../context/AppDataContext';
 
 export const MenuNewsTab: React.FC = () => {
   const navigate = useNavigate();
+  const { news } = useAppData();
   const [selectedCategory, setSelectedCategory] = useState<string>('Усі статті');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [emailInput, setEmailInput] = useState<string>('');
 
-  const featuredPost = MOCK_BLOG_POSTS[0];
+  const featuredPost = news[0];
 
-  const categoriesList = [
-    { label: 'Усі статті', count: 24 },
-    { label: 'Подорожі', count: 12 },
-    { label: 'Поради', count: 6 },
-    { label: 'Оновлення платформи', count: 4 },
-    { label: 'Регіони України', count: 8 },
-  ];
+  const categoriesList = [{ label: 'Усі статті', count: news.slice(1).length },
+    ...[...new Set(news.slice(1).map(p => p.category))].map(label => ({ label, count: news.slice(1).filter(p => p.category === label).length }))];
 
-  const filteredPosts = MOCK_BLOG_POSTS.slice(1).filter((post) => {
+  const filteredPosts = news.slice(1).filter((post) => {
     if (selectedCategory === 'Усі статті') return true;
     if (selectedCategory === 'Оновлення платформи') return post.category === 'Оновлення';
     return post.category === selectedCategory;
@@ -27,8 +23,7 @@ export const MenuNewsTab: React.FC = () => {
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput.trim()) return;
-    alert('🎉 Дякуємо за підписку на новини TrailsUA!');
-    setEmailInput('');
+    alert('Розсилка ще не реалізована. Email не збережено, підписку не оформлено.');
   };
 
   return (
@@ -77,7 +72,7 @@ export const MenuNewsTab: React.FC = () => {
                 return (
                   <div
                     key={cat.label}
-                    onClick={() => setSelectedCategory(cat.label)}
+                    onClick={() => { setSelectedCategory(cat.label); setCurrentPage(1); }}
                     style={styles.catItemRow}
                   >
                     <span
@@ -115,7 +110,7 @@ export const MenuNewsTab: React.FC = () => {
         {/* Правий блок: Сітка карток статей + Пагінація */}
         <div style={styles.postsSectionCol}>
           <div style={styles.postsGrid}>
-            {filteredPosts.map((post) => (
+            {filteredPosts.slice((currentPage - 1) * 6, currentPage * 6).map((post) => (
               <div
                 key={post.id}
                 onClick={() => navigate(`/news/${post.id}`)}
@@ -140,7 +135,7 @@ export const MenuNewsTab: React.FC = () => {
 
           {/* Пагінація з Figma */}
           <div style={styles.paginationRow}>
-            {[1, 2, 3].map((num) => {
+            {Array.from({ length: Math.ceil(filteredPosts.length / 6) }, (_, index) => index + 1).map((num) => {
               const isCurrent = currentPage === num;
               return (
                 <div

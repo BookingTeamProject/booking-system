@@ -144,24 +144,24 @@ export const RoutesCatalog: React.FC = () => {
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif", position: 'relative', overflow: 'hidden' }}>
       
       {/* 1. ВЕРХНІЙ ПОШУКОВИЙ БАР (FIGMA) */}
-      <div style={searchBarSectionStyle}>
-        <div style={searchBarContainerStyle}>
+      <div className="r-searchBarSectionStyle" style={searchBarSectionStyle}>
+        <div className="r-searchBarContainerStyle" style={searchBarContainerStyle}>
           {/* Поле 1: Напрямок */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1.2 }}>
             <SearchIcon />
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <span style={searchLabelStyle}>{t('destination')}</span>
+              <span className="r-searchLabelStyle" style={searchLabelStyle}>{t('destination')}</span>
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Карпати, Україна"
-                style={searchInputStyle}
+                className="r-searchInputStyle" style={searchInputStyle}
               />
             </div>
           </div>
 
-          <div style={verticalDividerStyle} />
+          <div className="r-verticalDividerStyle" style={verticalDividerStyle} />
 
           {/* Поле 2: Дати (клікабельно -> відкриває календар) */}
           <div
@@ -171,33 +171,33 @@ export const RoutesCatalog: React.FC = () => {
               setShowGuestsPicker(false);
             }}
           >
-            <span style={searchLabelStyle}>{t('dates')}</span>
-            <span style={searchValueStyle}>
+            <span className="r-searchLabelStyle" style={searchLabelStyle}>{t('dates')}</span>
+            <span className="r-searchValueStyle" style={searchValueStyle}>
               {startDate} – {endDate} {activeMonth === 'dec' ? 'грудня' : 'січня'}
             </span>
 
             {/* ПОПОВЕР КАЛЕНДАРЯ (FIGMA ДАТИ ПОЇЗДКИ) */}
             {showDatePicker && (
               <div
-                style={datePickerPopoverStyle}
+                className="r-datePickerPopoverStyle" style={datePickerPopoverStyle}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
                   Дати поїздки
                 </div>
 
-                <div style={doubleCalendarBoxStyle}>
+                <div className="r-doubleCalendarBoxStyle" style={doubleCalendarBoxStyle}>
                   {/* Місяць 1: Грудень 2026 */}
                   <div style={{ flex: 1 }}>
-                    <div style={calendarMonthTitleStyle}>Грудень 2026</div>
-                    <div style={weekHeaderStyle}>
+                    <div className="r-calendarMonthTitleStyle" style={calendarMonthTitleStyle}>Грудень 2026</div>
+                    <div className="r-weekHeaderStyle" style={weekHeaderStyle}>
                       {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((d) => (
                         <div key={d} style={{ flex: 1, textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
                           {d}
                         </div>
                       ))}
                     </div>
-                    <div style={daysGridStyle}>
+                    <div className="r-daysGridStyle" style={daysGridStyle}>
                       {/* Порожні дні до 1 грудня (вівторок) */}
                       <div style={{ height: '34px' }} />
                       {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
@@ -223,15 +223,15 @@ export const RoutesCatalog: React.FC = () => {
 
                   {/* Місяць 2: Січень 2027 */}
                   <div style={{ flex: 1 }}>
-                    <div style={calendarMonthTitleStyle}>Січень 2027</div>
-                    <div style={weekHeaderStyle}>
+                    <div className="r-calendarMonthTitleStyle" style={calendarMonthTitleStyle}>Січень 2027</div>
+                    <div className="r-weekHeaderStyle" style={weekHeaderStyle}>
                       {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((d) => (
                         <div key={d} style={{ flex: 1, textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
                           {d}
                         </div>
                       ))}
                     </div>
-                    <div style={daysGridStyle}>
+                    <div className="r-daysGridStyle" style={daysGridStyle}>
                       {/* Порожні дні до 1 січня (п'ятниця) */}
                       <div style={{ height: '34px' }} />
                       <div style={{ height: '34px' }} />
@@ -241,7 +241,7 @@ export const RoutesCatalog: React.FC = () => {
                         <button
                           key={day}
                           onClick={() => handleDateClick(day, 'jan')}
-                          style={daySquareStyle}
+                          className="r-daySquareStyle" style={daySquareStyle}
                         >
                           {day}
                         </button>
@@ -251,7 +251,7 @@ export const RoutesCatalog: React.FC = () => {
                 </div>
 
                 <button
-                  style={saveActionBtnStyle}
+                  className="r-saveActionBtnStyle" style={saveActionBtnStyle}
                   onClick={() => setShowDatePicker(false)}
                 >
                   Зберегти
@@ -260,7 +260,7 @@ export const RoutesCatalog: React.FC = () => {
             )}
           </div>
 
-          <div style={verticalDividerStyle} />
+          <div className="r-verticalDividerStyle" style={verticalDividerStyle} />
 
           {/* Поле 3: Гості (клікабельно -> відкриває степпери людей) */}
           <div
@@ -270,38 +270,38 @@ export const RoutesCatalog: React.FC = () => {
               setShowDatePicker(false);
             }}
           >
-            <span style={searchLabelStyle}>{t('guests')}</span>
-            <span style={searchValueStyle}>
+            <span className="r-searchLabelStyle" style={searchLabelStyle}>{t('guests')}</span>
+            <span className="r-searchValueStyle" style={searchValueStyle}>
               {adults + children} гостя {infants > 0 ? `(${infants} нем.)` : ''}
             </span>
 
             {/* ПОПОВЕР КІЛЬКОСТІ ЛЮДЕЙ (FIGMA) */}
             {showGuestsPicker && (
               <div
-                style={guestsPickerPopoverStyle}
+                className="r-guestsPickerPopoverStyle" style={guestsPickerPopoverStyle}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#6E473B', marginBottom: '8px' }}>
                   Кількість людей
                 </div>
-                <hr style={filterDividerStyle} />
+                <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
                 {/* Дорослі */}
-                <div style={stepperRowStyle}>
+                <div className="r-stepperRowStyle" style={stepperRowStyle}>
                   <div>
                     <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>Дорослі</div>
                     <div style={{ color: '#6E473B', fontSize: '12px' }}>Вік 13+</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <button
-                      style={circleMinusBtnStyle}
+                      className="r-circleMinusBtnStyle" style={circleMinusBtnStyle}
                       onClick={() => setAdults(Math.max(1, adults - 1))}
                     >
                       -
                     </button>
                     <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{adults}</span>
                     <button
-                      style={circlePlusBtnStyle}
+                      className="r-circlePlusBtnStyle" style={circlePlusBtnStyle}
                       onClick={() => setAdults(adults + 1)}
                     >
                       +
@@ -309,24 +309,24 @@ export const RoutesCatalog: React.FC = () => {
                   </div>
                 </div>
 
-                <hr style={filterDividerStyle} />
+                <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
                 {/* Діти */}
-                <div style={stepperRowStyle}>
+                <div className="r-stepperRowStyle" style={stepperRowStyle}>
                   <div>
                     <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>Діти</div>
                     <div style={{ color: '#6E473B', fontSize: '12px' }}>Вік 2–12</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <button
-                      style={circleMinusBtnStyle}
+                      className="r-circleMinusBtnStyle" style={circleMinusBtnStyle}
                       onClick={() => setChildren(Math.max(0, children - 1))}
                     >
                       -
                     </button>
                     <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{children}</span>
                     <button
-                      style={circlePlusBtnStyle}
+                      className="r-circlePlusBtnStyle" style={circlePlusBtnStyle}
                       onClick={() => setChildren(children + 1)}
                     >
                       +
@@ -334,24 +334,24 @@ export const RoutesCatalog: React.FC = () => {
                   </div>
                 </div>
 
-                <hr style={filterDividerStyle} />
+                <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
                 {/* Немовлята */}
-                <div style={stepperRowStyle}>
+                <div className="r-stepperRowStyle" style={stepperRowStyle}>
                   <div>
                     <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>Немовлята</div>
                     <div style={{ color: '#6E473B', fontSize: '12px' }}>До 2 років</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <button
-                      style={circleMinusBtnStyle}
+                      className="r-circleMinusBtnStyle" style={circleMinusBtnStyle}
                       onClick={() => setInfants(Math.max(0, infants - 1))}
                     >
                       -
                     </button>
                     <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{infants}</span>
                     <button
-                      style={circlePlusBtnStyle}
+                      className="r-circlePlusBtnStyle" style={circlePlusBtnStyle}
                       onClick={() => setInfants(infants + 1)}
                     >
                       +
@@ -359,10 +359,10 @@ export const RoutesCatalog: React.FC = () => {
                   </div>
                 </div>
 
-                <hr style={filterDividerStyle} />
+                <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
                 <button
-                  style={saveActionBtnStyle}
+                  className="r-saveActionBtnStyle" style={saveActionBtnStyle}
                   onClick={() => setShowGuestsPicker(false)}
                 >
                   Зберегти
@@ -371,13 +371,13 @@ export const RoutesCatalog: React.FC = () => {
             )}
           </div>
 
-          <button style={searchSubmitBtnStyle}>
+          <button className="r-searchSubmitBtnStyle" style={searchSubmitBtnStyle}>
             <ArrowRightIcon />
           </button>
         </div>
 
         {/* Кнопка "Показати мапу" */}
-        <button style={mapToggleBtnStyle} onClick={() => setShowMapModal(true)}>
+        <button className="r-mapToggleBtnStyle" style={mapToggleBtnStyle} onClick={() => setShowMapModal(true)}>
           <MapPinIcon color="#DC9666" size={16} />
           <span>{t('showMap')}</span>
         </button>
@@ -385,13 +385,13 @@ export const RoutesCatalog: React.FC = () => {
 
       {/* 2. МОДАЛЬНЕ ВІКНО КАРТИ (FIGMA MAP-CARD) */}
       {showMapModal && (
-        <div style={modalBackdropStyle} onClick={() => setShowMapModal(false)}>
-          <div style={mapCardModalStyle} onClick={(e) => e.stopPropagation()}>
+        <div className="r-modalBackdropStyle" style={modalBackdropStyle} onClick={() => setShowMapModal(false)}>
+          <div className="r-mapCardModalStyle" style={mapCardModalStyle} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <div style={{ color: '#291C0E', fontSize: '30px', fontWeight: 700 }}>Карта</div>
               
               {/* Пошук на карті */}
-              <div style={mapSearchBoxStyle}>
+              <div className="r-mapSearchBoxStyle" style={mapSearchBoxStyle}>
                 <MapPinIcon color="#6E473B" size={18} />
                 <input
                   type="text"
@@ -401,15 +401,15 @@ export const RoutesCatalog: React.FC = () => {
               </div>
 
               {/* Червона кнопка закриття як у Figma */}
-              <button style={closeRedBtnStyle} onClick={() => setShowMapModal(false)}>
+              <button className="r-closeRedBtnStyle" style={closeRedBtnStyle} onClick={() => setShowMapModal(false)}>
                 ✕
               </button>
             </div>
 
             {/* В'юпорт карти з пінами */}
-            <div style={mapViewportStyle}>
+            <div className="r-mapViewportStyle" style={mapViewportStyle}>
               {/* Фонова карта */}
-              <div style={mapCanvasStyle}>
+              <div className="r-mapCanvasStyle" style={mapCanvasStyle}>
                 {/* Піни садиб */}
                 <div style={{ ...mapPinIconWrapperStyle, left: '20%', top: '35%' }}>
                   <MapPinIcon color="#FFFFFF" size={18} />
@@ -456,29 +456,29 @@ export const RoutesCatalog: React.FC = () => {
       />
 
       {/* 3. ГОЛОВНА СІТКА: ФІЛЬТРИ + СПИСОК ЖИТЛА */}
-      <div style={mainGridContainerStyle}>
+      <div className="r-mainGridContainerStyle" style={mainGridContainerStyle}>
         
         {/* ЛІВА КОЛОНКА: ФІЛЬТРИ */}
-        <aside style={sidebarFiltersStyle}>
+        <aside className="r-sidebarFiltersStyle" style={sidebarFiltersStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#6E473B', margin: 0 }}>{t('filters')}</h2>
-            <button onClick={handleResetFilters} style={resetBtnStyle}>
+            <button onClick={handleResetFilters} className="r-resetBtnStyle" style={resetBtnStyle}>
               {t('clearAll')}
             </button>
           </div>
 
-          <hr style={filterDividerStyle} />
+          <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
           {/* Ціна */}
           <div>
-            <span style={filterSectionTitleStyle}>{t('pricePerNight')}</span>
+            <span className="r-filterSectionTitleStyle" style={filterSectionTitleStyle}>{t('pricePerNight')}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
-              <div style={priceBoxStyle}>
+              <div className="r-priceBoxStyle" style={priceBoxStyle}>
                 <span style={{ fontSize: '11px', color: '#6E473B' }}>від</span>
                 <span style={{ fontSize: '14px', fontWeight: 700, color: '#291C0E' }}>{formatPrice(minPrice)}</span>
               </div>
               <span style={{ color: '#6E473B' }}>—</span>
-              <div style={priceBoxStyle}>
+              <div className="r-priceBoxStyle" style={priceBoxStyle}>
                 <span style={{ fontSize: '11px', color: '#6E473B' }}>до</span>
                 <span style={{ fontSize: '14px', fontWeight: 700, color: '#291C0E' }}>{formatPrice(maxPrice)}</span>
               </div>
@@ -497,11 +497,11 @@ export const RoutesCatalog: React.FC = () => {
             </div>
           </div>
 
-          <hr style={filterDividerStyle} />
+          <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
           {/* Тип помешкання */}
           <div>
-            <span style={filterSectionTitleStyle}>{t('propertyType')}</span>
+            <span className="r-filterSectionTitleStyle" style={filterSectionTitleStyle}>{t('propertyType')}</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
               {[
                 { id: 'chalet', label: 'Шале та котеджі', count: 15 },
@@ -510,7 +510,7 @@ export const RoutesCatalog: React.FC = () => {
               ].map((item) => {
                 const checked = selectedTypes.includes(item.id);
                 return (
-                  <label key={item.id} style={checkboxRowStyle} onClick={() => toggleType(item.id)}>
+                  <label key={item.id} className="r-checkboxRowStyle" style={checkboxRowStyle} onClick={() => toggleType(item.id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ ...customCheckboxStyle, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
                         {checked && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
@@ -524,11 +524,11 @@ export const RoutesCatalog: React.FC = () => {
             </div>
           </div>
 
-          <hr style={filterDividerStyle} />
+          <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
           {/* Зручності */}
           <div>
-            <span style={filterSectionTitleStyle}>{t('amenities')}</span>
+            <span className="r-filterSectionTitleStyle" style={filterSectionTitleStyle}>{t('amenities')}</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
               {[
                 { id: 'chan', label: 'Еко-чан / Гаряча бочка', count: 19 },
@@ -538,7 +538,7 @@ export const RoutesCatalog: React.FC = () => {
               ].map((item) => {
                 const checked = selectedAmenities.includes(item.id);
                 return (
-                  <label key={item.id} style={checkboxRowStyle} onClick={() => toggleAmenity(item.id)}>
+                  <label key={item.id} className="r-checkboxRowStyle" style={checkboxRowStyle} onClick={() => toggleAmenity(item.id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ ...customCheckboxStyle, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
                         {checked && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
@@ -552,11 +552,11 @@ export const RoutesCatalog: React.FC = () => {
             </div>
           </div>
 
-          <hr style={filterDividerStyle} />
+          <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
           {/* Рейтинг */}
           <div>
-            <span style={filterSectionTitleStyle}>{t('rating')}</span>
+            <span className="r-filterSectionTitleStyle" style={filterSectionTitleStyle}>{t('rating')}</span>
             <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
               {[5, 4, 3].map((val) => {
                 const active = minRating === val;
@@ -579,15 +579,15 @@ export const RoutesCatalog: React.FC = () => {
             </div>
           </div>
 
-          <hr style={filterDividerStyle} />
+          <hr className="r-filterDividerStyle" style={filterDividerStyle} />
 
           {/* Кімнати */}
           <div>
-            <span style={filterSectionTitleStyle}>{t('roomsCount')}</span>
-            <div style={counterBoxStyle}>
-              <button style={counterBtnStyle} onClick={() => setRoomsCount(Math.max(1, roomsCount - 1))}>-</button>
+            <span className="r-filterSectionTitleStyle" style={filterSectionTitleStyle}>{t('roomsCount')}</span>
+            <div className="r-counterBoxStyle" style={counterBoxStyle}>
+              <button className="r-counterBtnStyle" style={counterBtnStyle} onClick={() => setRoomsCount(Math.max(1, roomsCount - 1))}>-</button>
               <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{roomsCount}</span>
-              <button style={counterBtnStyle} onClick={() => setRoomsCount(roomsCount + 1)}>+</button>
+              <button className="r-counterBtnStyle" style={counterBtnStyle} onClick={() => setRoomsCount(roomsCount + 1)}>+</button>
             </div>
           </div>
         </aside>
@@ -600,7 +600,7 @@ export const RoutesCatalog: React.FC = () => {
               <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#6E473B', margin: 0 }}>
                 Знайдено {filteredRoutes.length} варіантів
               </h1>
-              <span style={destinationBadgeStyle}>Карпати · 2026</span>
+              <span className="r-destinationBadgeStyle" style={destinationBadgeStyle}>Карпати · 2026</span>
             </div>
 
             {/* КАСТОМНИЙ СЕЛЕКТОР СОРТУВАННЯ (FRAME 341) */}
@@ -608,7 +608,7 @@ export const RoutesCatalog: React.FC = () => {
               <span style={{ fontSize: '13px', color: '#6E473B' }}>{t('sortBy')}</span>
               
               <button
-                style={customSortTriggerStyle}
+                className="r-customSortTriggerStyle" style={customSortTriggerStyle}
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
               >
                 <span>{currentSortLabel}</span>
@@ -616,20 +616,20 @@ export const RoutesCatalog: React.FC = () => {
               </button>
 
               {showSortDropdown && (
-                <div style={sortDropdownMenuStyle}>
+                <div className="r-sortDropdownMenuStyle" style={sortDropdownMenuStyle}>
                   {sortOptions.map((opt) => {
                     const isCurrent = sortBy === opt.id;
                     return (
                       <div
                         key={opt.id}
-                        style={sortMenuItemStyle}
+                        className="r-sortMenuItemStyle" style={sortMenuItemStyle}
                         onClick={() => {
                           setSortBy(opt.id);
                           setShowSortDropdown(false);
                         }}
                       >
-                        <div style={sortRadioOuterStyle}>
-                          {isCurrent && <div style={sortRadioInnerStyle} />}
+                        <div className="r-sortRadioOuterStyle" style={sortRadioOuterStyle}>
+                          {isCurrent && <div className="r-sortRadioInnerStyle" style={sortRadioInnerStyle} />}
                         </div>
                         <span style={{ color: '#DC9666', fontSize: '14px', fontWeight: 700 }}>
                           {opt.label}
@@ -643,9 +643,9 @@ export const RoutesCatalog: React.FC = () => {
           </div>
 
           {loading ? (
-            <div style={messageBoxStyle}>Завантаження варіантів...</div>
+            <div className="r-messageBoxStyle" style={messageBoxStyle}>Завантаження варіантів...</div>
           ) : filteredRoutes.length === 0 ? (
-            <div style={messageBoxStyle}>
+            <div className="r-messageBoxStyle" style={messageBoxStyle}>
               <h3 style={{ color: '#6E473B', margin: '0 0 8px 0' }}>{t('notFound')}</h3>
             </div>
           ) : (
@@ -662,14 +662,14 @@ export const RoutesCatalog: React.FC = () => {
               const extraTagsCount = allTags.length - 4;
 
               return (
-                <div key={route.id} style={propertyCardStyle}>
+                <div key={route.id} className="r-propertyCardStyle" style={propertyCardStyle}>
                   <img
                     src={route.imageUrls?.[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=700&q=80'}
                     alt={route.title}
-                    style={propertyImageStyle}
+                    className="r-propertyImageStyle" style={propertyImageStyle}
                   />
 
-                  <div style={cardContentStyle}>
+                  <div className="r-cardContentStyle" style={cardContentStyle}>
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                         <div>
@@ -682,7 +682,7 @@ export const RoutesCatalog: React.FC = () => {
                           </div>
                         </div>
 
-                        <div style={ratingBadgeStyle}>
+                        <div className="r-ratingBadgeStyle" style={ratingBadgeStyle}>
                           <StarIcon size={14} fill="#DC9666" />
                           <span style={{ fontSize: '13px', fontWeight: 700, color: '#DC9666' }}>
                             {route.averageRating || 4.9}
@@ -698,7 +698,7 @@ export const RoutesCatalog: React.FC = () => {
                       {/* ВИВЕДЕННЯ ОБРІЗАНИХ ТЕГІВ */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {visibleTags.map((tag) => (
-                          <span key={tag} style={amenityChipStyle}>
+                          <span key={tag} className="r-amenityChipStyle" style={amenityChipStyle}>
                             {tag}
                           </span>
                         ))}
@@ -710,7 +710,7 @@ export const RoutesCatalog: React.FC = () => {
                       </div>
                     </div>
 
-                    <div style={cardBottomRowStyle}>
+                    <div className="r-cardBottomRowStyle" style={cardBottomRowStyle}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                           <span style={{ fontSize: '22px', fontWeight: 700, color: '#DC9666' }}>
@@ -725,7 +725,7 @@ export const RoutesCatalog: React.FC = () => {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
-                          style={favoriteBtnStyle}
+                          className="r-favoriteBtnStyle" style={favoriteBtnStyle}
                           onClick={() => toggleFavorite(route.id)}
                           title="В обране"
                         >
@@ -733,7 +733,7 @@ export const RoutesCatalog: React.FC = () => {
                         </button>
 
                         <button
-                          style={detailsBtnStyle}
+                          className="r-detailsBtnStyle" style={detailsBtnStyle}
                           onClick={() => navigate(`/routes/${route.id}`)}
                         >
                           {t('details')}

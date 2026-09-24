@@ -1,132 +1,93 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { requestError } from '../services/bookings.service';
+import '../components/bookings/bookings.css';
+import './admin.css';
 
-export const AdminPage: React.FC = () => {
-  const [users, setUsers] = useState<any[]>([]);
-  const [stats] = useState({ totalUsers: 14, activeBookings: 8, totalRevenue: '84,200 ₴' });
+interface Account { id: string; email: string; firstName: string; lastName: string; role: string; createdAt: string; isSystemAdmin: boolean; isBlocked: boolean; isDeleted: boolean }
+interface Page { items: Account[]; total: number; page: number; pageSize: number }
+interface Statistics { users: number; guests: number; hosts: number; blocked: number; deleted: number; registeredThisMonth: number; properties: number; bookings: number; activeBookings: number; cancelledBookings: number; reviews: number }
+const roles = ['User', 'Landlord', 'Moderator', 'Admin'];
+const roleNames = ['Гість', 'Власник', 'Модератор', 'Адміністратор'];
+type Action = { account: Account; kind: 'role' | 'block' | 'delete' | 'restore'; role?: number; label: string };
 
+export function AdminPage() {
+  const { user } = useAuth();
+  if (!user) return <section className="admin-page"><h1>Адміністрування</h1><Link to="/login">Увійдіть до акаунта адміністратора</Link></section>;
+  if (user.role !== 'Admin' && user.role !== 3) return <section className="admin-page"><h1>Доступ заборонено</h1><p>Потрібна роль адміністратора.</p></section>;
+  return <AdminWorkspace key={user.id} userId={user.id} />;
+}
+
+function AdminWorkspace({ userId }: { userId: string }) {
+  const [query, setQuery] = useState({ search: '', role: '', status: 'active', page: 1 });
+  const [search, setSearch] = useState('');
+  const [result, setResult] = useState<Page | null>(null);
+  const [statistics, setStatistics] = useState<Statistics | null>(null);
+  const [revision, refresh] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [action, setAction] = useState<Action | null>(null);
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
   useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+    const abort = new AbortController();
+    Promise.all([
+      api.get<Page>('/admin/users', { params: { ...query, role: query.role || undefined }, signal: abort.signal }),
+      api.get<Statistics>('/admin/statistics', { signal: abort.signal }),
+    ]).then(([users, stats]) => { if (!abort.signal.aborted) { setResult(users.data); setStatistics(stats.data); } })
+      .catch(e => { if (!abort.signal.aborted) { setResult(null); setStatistics(null); setError(requestError(e)); } })
+      .finally(() => { if (!abort.signal.aborted) setLoading(false); });
+    return () => abort.abort();
+  }, [query, revision]);
+  const changeQuery = (next: typeof query) => { setLoading(true); setError(''); setQuery(next); };
+  const find = (event: FormEvent) => { event.preventDefault(); changeQuery({ ...query, search: search.trim(), page: 1 }); };
+  const execute = async () => {
+    if (!action || pending.current) return;
+    pending.current = true; setBusy(true); setError(''); setNotice('');
     try {
-      const res = await api.get('/admin/users');
-      setUsers(Array.isArray(res.data) ? res.data : []);
-    } catch (e) {
-      // Демо-пользователи если бэкенд пустой
-      setUsers([
-        { id: '1', firstName: 'Олександр', lastName: 'Петренко', email: 'oleksandr@gmail.com', role: 'User', createdAt: '2026-08-10' },
-        { id: '2', firstName: 'Анастасія', lastName: 'Приходько', email: 'anastasia@gmail.com', role: 'Landlord', createdAt: '2026-08-12' },
-        { id: '3', firstName: 'Михайло', lastName: 'Романюк', email: 'misha@trails.ua', role: 'Moderator', createdAt: '2026-08-15' },
-      ]);
-    }
+      const path = `/admin/users/${action.account.id}`;
+      if (action.kind === 'role') await api.put(`${path}/role`, action.role);
+      else if (action.kind === 'block') await api.put(`${path}/blocked`, !action.account.isBlocked);
+      else if (action.kind === 'delete') await api.delete(path);
+      else await api.post(`${path}/restore`);
+      setNotice('Зміни збережено. Попередні сесії користувача відкликано.');
+      setAction(null); setLoading(true); refresh(n => n + 1);
+    } catch (e) { setError(requestError(e)); }
+    finally { pending.current = false; setBusy(false); }
   };
-
-  const handleRoleChange = async (userId: string, newRole: number) => {
-    try {
-      await api.put(`/admin/users/${userId}/role`, newRole);
-      alert('Роль успішно змінено!');
-      loadUsers();
-    } catch (e) {
-      alert('Роль оновлено локально');
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole === 3 ? 'Admin' : newRole === 2 ? 'Moderator' : newRole === 1 ? 'Landlord' : 'User' } : u));
-    }
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    if (confirm('Ви впевнені, що хочете заблокувати/видалити цього користувача?')) {
-      setUsers(users.filter(u => u.id !== userId));
-    }
-  };
-
-  return (
-    <div style={{ maxWidth: '1200px', margin: '30px auto', padding: '0 24px 60px 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-        <div>
-          <h1 style={{ fontSize: '28px', color: '#291C0E', fontWeight: 800, margin: 0 }}>🛡️ Адміністративна панель</h1>
-          <p style={{ color: '#6E473B', margin: '4px 0 0 0', fontSize: '14px' }}>Керування користувачами, модерацією контенту та аналітикою системи Trails UA.</p>
+  const metrics: [string, keyof Statistics][] = [['Акаунти', 'users'], ['Гості', 'guests'], ['Власники', 'hosts'], ['Заблоковані', 'blocked'], ['Видалені', 'deleted'], ['Нові за місяць (UTC)', 'registeredThisMonth'], ['Помешкання', 'properties'], ['Бронювання', 'bookings'], ['Активні бронювання', 'activeBookings'], ['Скасовані', 'cancelledBookings'], ['Відгуки', 'reviews']];
+  return <section className="admin-page booking-workspace">
+    <div className="booking-toolbar"><h1>Адміністративна панель</h1><button disabled={loading || busy} onClick={() => { setLoading(true); setError(''); refresh(n => n + 1); }}>Оновити</button></div>
+    <p>Статистика з бази даних. Онлайн-платежі не виконуються.</p>
+    {error && <p role="alert" className="booking-error">{error}</p>}
+    {notice && <p role="status">{notice}</p>}
+    {loading && <p role="status">Завантаження…</p>}
+    {statistics && <div className="admin-metrics">{metrics.map(([label, key]) => <article key={key}><span>{label}</span><strong>{statistics[key]}</strong></article>)}</div>}
+    <form className="admin-filters" onSubmit={find}>
+      <label>Пошук за ім’ям, email або ID<input value={search} onChange={e => setSearch(e.target.value)} maxLength={150} /></label>
+      <label>Роль<select value={query.role} onChange={e => changeQuery({ ...query, role: e.target.value, page: 1 })}><option value="">Усі ролі</option>{roles.map((role, i) => <option key={role} value={i}>{roleNames[i]}</option>)}</select></label>
+      <label>Стан<select value={query.status} onChange={e => changeQuery({ ...query, status: e.target.value, page: 1 })}><option value="active">Активні</option><option value="blocked">Заблоковані</option><option value="deleted">Видалені</option><option value="all">Усі</option></select></label>
+      <button type="submit">Знайти</button>
+    </form>
+    {!loading && result && <><p>Знайдено: {result.total}</p><div className="admin-accounts">{result.items.map(account => {
+      const protectedAccount = account.isSystemAdmin || account.id === userId;
+      return <article className="admin-account" key={account.id}>
+        <div><h2>{account.firstName} {account.lastName}</h2><p>{account.email}</p><small>{account.id}</small><p>Реєстрація: {new Date(account.createdAt).toLocaleDateString('uk-UA')}</p></div>
+        <div><p>{account.isSystemAdmin ? 'Головний адміністратор' : roleNames[roles.indexOf(account.role)]}</p><p>{account.isDeleted ? 'Видалений' : account.isBlocked ? 'Заблокований' : 'Активний'}</p>
+          <label>Роль користувача<select aria-label={`Роль ${account.email}`} value={roles.indexOf(account.role)} disabled={protectedAccount || account.isDeleted || busy} onChange={e => setAction({ account, kind: 'role', role: Number(e.target.value), label: `Змінити роль на «${roleNames[Number(e.target.value)]}»` })}>{roles.map((role, i) => <option key={role} value={i}>{roleNames[i]}</option>)}</select></label>
+          <div className="booking-actions">{account.isDeleted ? <button disabled={protectedAccount || busy} onClick={() => setAction({ account, kind: 'restore', label: 'Відновити акаунт' })}>Відновити</button> : <>
+            <button disabled={protectedAccount || busy} onClick={() => setAction({ account, kind: 'block', label: account.isBlocked ? 'Розблокувати акаунт' : 'Заблокувати акаунт' })}>{account.isBlocked ? 'Розблокувати' : 'Заблокувати'}</button>
+            <button disabled={protectedAccount || busy} onClick={() => setAction({ account, kind: 'delete', label: 'Видалити акаунт' })}>Видалити</button></>}
+          </div>
         </div>
-        <span style={{ backgroundColor: '#BA2D2D', color: '#fff', padding: '6px 14px', borderRadius: '16px', fontSize: '12px', fontWeight: 700 }}>
-          SuperAdmin
-        </span>
-      </div>
-
-      {/* Метрики системы */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
-        <div style={statBoxStyle}>
-          <span style={statLabelStyle}>Усього користувачів</span>
-          <strong style={statValStyle}>{users.length || stats.totalUsers}</strong>
-        </div>
-        <div style={statBoxStyle}>
-          <span style={statLabelStyle}>Активні бронювання</span>
-          <strong style={statValStyle}>{stats.activeBookings}</strong>
-        </div>
-        <div style={statBoxStyle}>
-          <span style={statLabelStyle}>Оборот платформи</span>
-          <strong style={{ ...statValStyle, color: '#059669' }}>{stats.totalRevenue}</strong>
-        </div>
-      </div>
-
-      {/* Таблица пользователей */}
-      <div style={tableCardStyle}>
-        <h3 style={{ fontSize: '18px', margin: '0 0 16px 0', color: '#291C0E' }}>Список користувачів платформи</h3>
-        
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #E1D4C2', color: '#6E473B', fontSize: '13px' }}>
-              <th style={{ padding: '12px 8px' }}>Користувач</th>
-              <th style={{ padding: '12px 8px' }}>Email</th>
-              <th style={{ padding: '12px 8px' }}>Поточна роль</th>
-              <th style={{ padding: '12px 8px' }}>Змінити роль</th>
-              <th style={{ padding: '12px 8px', textAlign: 'right' }}>Дії</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id} style={{ borderBottom: '1px solid #F4ECE4', fontSize: '14px' }}>
-                <td style={{ padding: '14px 8px', fontWeight: 600 }}>{u.firstName} {u.lastName}</td>
-                <td style={{ padding: '14px 8px', color: '#6E473B' }}>{u.email}</td>
-                <td style={{ padding: '14px 8px' }}>
-                  <span style={getRoleBadgeStyle(u.role)}>{u.role}</span>
-                </td>
-                <td style={{ padding: '14px 8px' }}>
-                  <select
-                    defaultValue={u.role === 'Admin' ? 3 : u.role === 'Moderator' ? 2 : u.role === 'Landlord' ? 1 : 0}
-                    onChange={(e) => handleRoleChange(u.id, Number(e.target.value))}
-                    style={selectStyle}
-                  >
-                    <option value={0}>Орендар (User)</option>
-                    <option value={1}>Орендодавець (Landlord)</option>
-                    <option value={2}>Модератор</option>
-                    <option value={3}>Адміністратор</option>
-                  </select>
-                </td>
-                <td style={{ padding: '14px 8px', textAlign: 'right' }}>
-                  <button onClick={() => handleDeleteUser(u.id)} style={deleteBtnStyle}>
-                    🗑️ Заблокувати
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-const statBoxStyle: React.CSSProperties = { backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '20px', border: '1px solid #E1D4C2', boxShadow: '0 4px 15px rgba(41,28,14,0.04)' };
-const statLabelStyle: React.CSSProperties = { fontSize: '13px', color: '#A78D78', fontWeight: 600 };
-const statValStyle: React.CSSProperties = { fontSize: '24px', fontWeight: 800, color: '#291C0E', display: 'block', marginTop: '6px' };
-const tableCardStyle: React.CSSProperties = { backgroundColor: '#FFFFFF', borderRadius: '20px', padding: '24px', border: '1px solid #E1D4C2', boxShadow: '0 4px 18px rgba(41,28,14,0.04)' };
-const selectStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: '8px', border: '1px solid #BEB5A9', fontSize: '13px', outline: 'none' };
-const deleteBtnStyle: React.CSSProperties = { padding: '6px 12px', backgroundColor: '#FEE2E2', color: '#DC2626', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' };
-const getRoleBadgeStyle = (role: string): React.CSSProperties => ({
-  padding: '4px 10px',
-  borderRadius: '12px',
-  fontSize: '12px',
-  fontWeight: 700,
-  backgroundColor: role === 'Admin' ? '#FEE2E2' : role === 'Landlord' ? '#FEF3C7' : '#EFF6FF',
-  color: role === 'Admin' ? '#DC2626' : role === 'Landlord' ? '#D97706' : '#2563EB',
-});
+      </article>;
+    })}</div><div className="booking-toolbar"><button disabled={query.page === 1} onClick={() => changeQuery({ ...query, page: query.page - 1 })}>Назад</button><span>Сторінка {query.page}</span><button disabled={query.page * result.pageSize >= result.total} onClick={() => changeQuery({ ...query, page: query.page + 1 })}>Далі</button></div></>}
+    {action && <div className="booking-overlay"><section role="dialog" aria-modal="true" aria-labelledby="admin-confirm-title" className="booking-dialog">
+      <h2 id="admin-confirm-title">{action.label}?</h2><p>{action.account.email}</p><p>Поточні сесії буде відкликано. Видалення закриває доступ і зберігає історію бронювань; акаунт можна відновити.</p>
+      {error && <p role="alert">{error}</p>}<div className="booking-actions"><button autoFocus disabled={busy} onClick={() => setAction(null)}>Скасувати</button><button disabled={busy} onClick={execute}>{busy ? 'Збереження…' : 'Підтвердити'}</button></div>
+    </section></div>}
+  </section>;
+}

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace TrailsUA.Domain.DTOs.Route;
 
@@ -10,9 +10,12 @@ public class UpdateRouteDto
     public string Description { get; set; } = string.Empty;
     [Required]
     public string Location { get; set; } = string.Empty;
-    [Range(0.1, 1000)]
+    [Range(0.01, 1000000)]
     public decimal? Price { get; set; }
     [Required]
     public Guid CategoryId { get; set; }
+    [Range(1, 100)]
+    public int MaxGuests { get; set; } = 4;
+
     public List<string> ImageUrls { get; set; } = new();
 }

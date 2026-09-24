@@ -108,7 +108,7 @@ export const HomePage: React.FC = () => {
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@400;500;700&family=Manrope:wght@700&display=swap');
-          
+
           .trails-home-root * { box-sizing: border-box; }
           .custom-scrollbar::-webkit-scrollbar { display: none; }
           .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -134,14 +134,14 @@ export const HomePage: React.FC = () => {
       </style>
 
       <div className="trails-home-root" style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px 20px' }}>
-        
+
         {/* ================= 1. HERO BANNER ================= */}
-        <section style={heroOuterCardStyle}>
+        <section className="home-heroOuterCardStyle" style={heroOuterCardStyle}>
 
           {/* === ДЕКОРАТИВНІ ЯЛИНКИ === */}
-          <img 
-            src={HeroTreesBg} 
-            alt="Decoration trees" 
+          <img
+            src={HeroTreesBg}
+            alt="Decoration trees"
             style={{
               position: 'absolute',
               left: '0px',      /* Рухай вправо/вліво відносно лівого краю бежевого блоку */
@@ -153,7 +153,7 @@ export const HomePage: React.FC = () => {
           />
           <div className="hero-flex-box" style={{ display: 'flex', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
             <div style={{ flex: 1.2, transform: 'translateY(-60px)' }}>
-              <h1 style={heroMainTitleStyle}>
+              <h1 className="home-heroMainTitleStyle" style={heroMainTitleStyle}>
                 ЗНАЙДІТЬ СВІЙ<br />
                 <span style={{ color: '#DC9666' }}>ІДЕАЛЬНИЙ</span> ВІДПОЧИНОК
               </h1>
@@ -174,7 +174,7 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          
+
 
           {/* ПОШУКОВИЙ ВІДЖЕТ FIGMA */}
           <div style={{ marginTop: '36px', position: 'relative', zIndex: 10 }}>
@@ -188,7 +188,7 @@ export const HomePage: React.FC = () => {
 
             <form onSubmit={handleSearchSubmit} style={searchContainerCardStyle}>
               <div className="search-inputs-grid" style={searchFieldsGridStyle}>
-                
+
                 {/* 1. ПОЛЕ ЛОКАЦІЇ */}
                 <div ref={locationRef} style={{ position: 'relative' }}>
                   <div
@@ -208,7 +208,7 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {locationOpen && (
-                    <div style={figmaLocationModalStyle}>
+                    <div className="home-figmaLocationModalStyle" style={figmaLocationModalStyle}>
                       <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px' }}>
                         Місце перебування
                       </div>
@@ -266,7 +266,7 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {calendarOpen && (
-                    <div style={figmaCalendarModalStyle}>
+                    <div className="home-figmaCalendarModalStyle" style={figmaCalendarModalStyle}>
                       <div style={{ color: '#6E473B', fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>
                         Дати поїздки
                       </div>
@@ -380,7 +380,7 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {guestsOpen && (
-                    <div style={figmaGuestsModalStyle}>
+                    <div className="home-figmaGuestsModalStyle" style={figmaGuestsModalStyle}>
                       <div style={guestSectionHeaderStyle}>Кількість кімнат</div>
                       <div style={modalDividerStyle} />
 
@@ -565,7 +565,7 @@ export const HomePage: React.FC = () => {
       {/* ================= 3. ВИ НЕЩОДАВНО ШУКАЛИ ================= */}
       <section style={darkSectionWrapperStyle}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          
+
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 style={{ ...sectionHeaderTitleStyle, color: '#E1D4C2' }}>
               ВИ НЕЩОДАВНО ШУКАЛИ
@@ -638,9 +638,9 @@ export const HomePage: React.FC = () => {
 
       {/* ================= ДЕКОРАТИВНА ЛІНІЯ 2 ================= */}
       <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
-        <img 
-          src={Line2} 
-          alt="Decorative line 2" 
+        <img
+          src={Line2}
+          alt="Decorative line 2"
           style={{
             position: 'absolute',
             left: '-40px',       /* Крути left або right для зсуву по горизонталі */
@@ -655,7 +655,7 @@ export const HomePage: React.FC = () => {
       {/* ================= 4. АКЦІЇ ДЛЯ ВАС ================= */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '70px 20px' }}>
         <section className="deals-flex-box" style={dealsSectionContainerStyle}>
-          
+
           <div style={{ flex: 1, minHeight: '380px', position: 'relative' }}>
             <img
               src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=900&q=80"
@@ -665,14 +665,14 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div style={{ flex: 1.15, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            
+
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               <h2 style={{ ...sectionHeaderTitleStyle, margin: 0 }}>АКЦІЇ ДЛЯ ВАС</h2>
               <div style={{ ...orangePillDividerStyle, margin: '8px auto 0 auto', width: '700px' }} />
             </div>
 
             <div style={dealsListCardWrapperStyle}>
-              
+
               {/* АКЦІЯ 1 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
                 {/* Світла зірочка */}
@@ -694,7 +694,7 @@ export const HomePage: React.FC = () => {
 
               {/* АКЦІЯ 2 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
-                
+
                 {/* Темна зірочка */}
                 <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#6E473B" style={{ position: 'absolute', top: 0, left: 0 }}>
@@ -714,7 +714,7 @@ export const HomePage: React.FC = () => {
 
               {/* АКЦІЯ 3 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
-                
+
                 {/* Світла зірочка */}
                 <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#DC9666" style={{ position: 'absolute', top: 0, left: 0 }}>
@@ -743,7 +743,7 @@ export const HomePage: React.FC = () => {
       {/* ================= 5. ПОПУЛЯРНІ ГОТЕЛІ (8 КАРТОК) ================= */}
       <section style={darkSectionWrapperStyle}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          
+
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <h2 style={{ ...sectionHeaderTitleStyle, color: '#E1D4C2' }}>
               ПОПУЛЯРНІ ГОТЕЛІ
@@ -809,14 +809,14 @@ export const HomePage: React.FC = () => {
 
       {/* ================= ДЕКОРАТИВНА ЛІНІЯ (ОКРЕМО) ================= */}
       <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
-        <img 
-          src={promoLineBg} 
-          alt="Decorative line" 
+        <img
+          src={promoLineBg}
+          alt="Decorative line"
           style={{
             position: 'absolute',
             right: '170px',    /* Регулируй сдвиг вправо/влево */
             bottom: '-350px',  /* Регулируй сдвиг вниз к блоку подписки */
-            width: '1200px', 
+            width: '1200px',
             pointerEvents: 'none'
           }}
         />
@@ -824,9 +824,9 @@ export const HomePage: React.FC = () => {
 
       {/* ================= 6. БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ! ================= */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 20px 40px 20px', position: 'relative', zIndex: 1 }}>
-        <section style={{ ...newsletterContainerCardStyle, backgroundColor: 'transparent', boxShadow: 'none' }}>
+        <section className="home-newsletter" style={{ ...newsletterContainerCardStyle, backgroundColor: 'transparent', boxShadow: 'none' }}>
           <div>
-            <h2 style={newsletterHeaderTitleStyle}>БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ!</h2>
+            <h2 className="home-newsletterHeaderTitleStyle" style={newsletterHeaderTitleStyle}>БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ!</h2>
             <div style={{ ...orangePillDividerStyle, margin: '10px 0 16px 0', width: '720px' }} />
             <p style={newsletterSubTitleStyle}>
               Підписатися на рекламу
@@ -835,7 +835,7 @@ export const HomePage: React.FC = () => {
 
           {subDone ? (
             <div style={newsletterSuccessBoxStyle}>
-              ✓ Дякуємо за підписку! Спеціальний промокод надіслано на вашу пошту.
+              Підписка на розсилку ще не підключена. Лист не надсилався.
             </div>
           ) : (
             <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '16px', maxWidth: '700px' }}>

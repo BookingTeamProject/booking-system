@@ -2,16 +2,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import { storage } from '../services/storage.service';
 
-const isProduction = window.location.hostname !== 'localhost';
-
-// Динамічний базовий URL: автоматично підлаштовується під поточний протокол і порт
-const getBaseUrl = (): string => {
-  if (isProduction) {
-    return 'https://trailsua.pp.ua/api';
-  }
-  // Якщо сайт роздається бекендом, використовуємо його поточний origin
-  return `${window.location.origin}/api`;
-};
+const getBaseUrl = (): string => import.meta.env.VITE_API_BASE_URL || '/api';
 
 const api = axios.create({
   baseURL: getBaseUrl(),

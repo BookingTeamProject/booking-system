@@ -1,6 +1,7 @@
+import { isAxiosError } from 'axios';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api.service';
 
@@ -68,15 +69,15 @@ export const LoginPage: React.FC = () => {
 
       login(res.user, res.accessToken, res.refreshToken);
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Невірний логін або пароль');
+    } catch (err) {
+      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Невірний логін або пароль');
     } finally {
       setLoading(false);
     }
   };
 
   // 2. Вхід через Google (Отримуємо справжній idToken "eyJ...")
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse?.credential) {
       return;
     }
@@ -92,20 +93,20 @@ export const LoginPage: React.FC = () => {
 
       login(res.user, res.accessToken, res.refreshToken);
       navigate('/');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Помилка входу через Google:', err);
-      setError(err.response?.data?.message || 'Помилка авторизації Google');
+      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Помилка авторизації Google');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={pageBackgroundStyle}>
-      <div style={layoutContainerStyle}>
+    <div className="auth-pageBackgroundStyle" style={pageBackgroundStyle}>
+      <div className="auth-layoutContainerStyle" style={layoutContainerStyle}>
         
         {/* ЛІВА ЧАСТИНА: БАГАТОШАРОВЕ ФОТО З FIGMA */}
-        <div style={leftVisualColumnStyle}>
+        <div className="auth-leftVisualColumnStyle" style={leftVisualColumnStyle}>
           <div style={layeredBackBrownStyle} />
           <div style={layeredMiddleOrangeStyle} />
           <div style={layeredTopImageWrapperStyle}>
@@ -118,12 +119,12 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* ПРАВА ЧАСТИНА: ФОРМА АВТОРИЗАЦІЇ */}
-        <div style={rightFormColumnStyle}>
+        <div className="auth-rightFormColumnStyle" style={rightFormColumnStyle}>
           <div style={{ maxWidth: '699px', width: '100%', margin: '0 auto' }}>
             
             {/* Заголовок "Вхід" */}
             <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-              <h1 style={headingTitleStyle}>Вхід</h1>
+              <h1 className="auth-headingTitleStyle" style={headingTitleStyle}>Вхід</h1>
               <div style={orangeTitleUnderlineStyle} />
             </div>
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 using TrailsUA.API.Middleware;
 using TrailsUA.Infrastructure.Data;
 using TrailsUA.Infrastructure.Services;
@@ -37,6 +38,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 // 4. Настраиваем JWT аутентификацию
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -49,6 +52,23 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            if (!Guid.TryParse(context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
+            { context.Fail("Invalid account"); return; }
+            var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id);
+            var version = context.Principal?.FindFirstValue("auth_version") ?? "0";
+            if (user == null || user.IsBlocked || user.IsDeleted || version != user.AuthVersion.ToString())
+            { context.Fail("Account or session unavailable"); return; }
+            // Always use the current database role, including changes by another admin.
+            var identity = (ClaimsIdentity)context.Principal!.Identity!;
+            foreach (var claim in identity.FindAll(ClaimTypes.Role).ToList()) identity.RemoveClaim(claim);
+            identity.AddClaim(new Claim(ClaimTypes.Role, user.Role.ToString()));
+        }
+    };
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -187,4 +207,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    await AdminBootstrap.EnsureAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(), app.Configuration);
+}
+
 app.Run();
+
+public partial class Program { }

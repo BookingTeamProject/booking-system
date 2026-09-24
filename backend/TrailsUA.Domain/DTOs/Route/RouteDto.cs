@@ -1,7 +1,10 @@
-﻿namespace TrailsUA.Domain.DTOs.Route;
+namespace TrailsUA.Domain.DTOs.Route;
 
 public class RouteDto
 {
+    public Guid AuthorId { get; set; }
+    public Guid CategoryId { get; set; }
+    public int MaxGuests { get; set; }
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

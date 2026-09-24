@@ -1,20 +1,6 @@
+import { currencyConfig, languageConfig, parseLanguage, parseCurrency } from '../config/locales';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { storage, type AppLanguage, type AppCurrency } from '../services/storage.service';
-
-// Курси валют відносно гривні (UAH)
-const EXCHANGE_RATES: Record<AppCurrency, number> = {
-  UAH: 1,
-  USD: 1 / 41.5,
-  EUR: 1 / 45.0,
-  PLN: 1 / 10.6,
-};
-
-const CURRENCY_SYMBOLS: Record<AppCurrency, string> = {
-  UAH: '₴',
-  USD: '$',
-  EUR: '€',
-  PLN: 'zł',
-};
 
 // Словничок для інтерфейсу
 const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
@@ -138,11 +124,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Синхронізація між різними вкладками браузера
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'app_language' && e.newValue) {
-        setLangState(e.newValue as AppLanguage);
+      if (e.key === 'app_language' || e.key === null) {
+        setLangState(parseLanguage(e.newValue));
       }
-      if (e.key === 'app_currency' && e.newValue) {
-        setCurrState(e.newValue as AppCurrency);
+      if (e.key === 'app_currency' || e.key === null) {
+        setCurrState(parseCurrency(e.newValue));
       }
     };
 
@@ -150,12 +136,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  useEffect(() => { document.documentElement.lang = languageConfig(language).locale; }, [language]);
+
   // Конвертація ціни з UAH у вибрану валюту з форматуванням
   const formatPrice = (amountInUah: number): string => {
-    const rate = EXCHANGE_RATES[currency] || 1;
+    const rate = currencyConfig(currency).rate;
     const converted = Math.round(amountInUah * rate);
-    const formattedNum = converted.toLocaleString();
-    const symbol = CURRENCY_SYMBOLS[currency] || '₴';
+    const formattedNum = converted.toLocaleString(languageConfig(language).locale);
+    const symbol = currencyConfig(currency).symbol;
 
     if (currency === 'USD' || currency === 'EUR') {
       return `${symbol}${formattedNum}`;
@@ -164,7 +152,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const getRawConvertedPrice = (amountInUah: number): number => {
-    const rate = EXCHANGE_RATES[currency] || 1;
+    const rate = currencyConfig(currency).rate;
     return Math.round(amountInUah * rate);
   };
 
@@ -181,7 +169,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setCurrency,
         formatPrice,
         getRawConvertedPrice,
-        currencySymbol: CURRENCY_SYMBOLS[currency],
+        currencySymbol: currencyConfig(currency).symbol,
         t,
       }}
     >
@@ -190,6 +178,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {

@@ -17,7 +17,7 @@ export const RoleSelectionPage: React.FC = () => {
       await switchRole('User');
       navigate('/profile');
     } catch {
-      navigate('/profile');
+      alert('Не вдалося продовжити. Спробуйте ще раз.');
     } finally {
       setIsSubmitting(false);
     }
@@ -30,7 +30,7 @@ export const RoleSelectionPage: React.FC = () => {
       await switchRole('Landlord');
       setStage(2); // Перехід на екран "Бажаєте зареєструвати своє помешкання?"
     } catch {
-      setStage(2);
+      alert('Не вдалося підтвердити роль. Спробуйте ще раз або увійдіть повторно.');
     } finally {
       setIsSubmitting(false);
     }

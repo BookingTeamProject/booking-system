@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import { routesApi, reviewApi } from '../services/api.service';
 import { BookingModal } from '../components/BookingModal';
 import { useSettings } from '../context/SettingsContext';
 import { useRoutes } from '../context/RoutesContext';
@@ -136,6 +136,11 @@ const LocationMap = ({ locationStr }: { locationStr: string }) => {
 
 export const RouteDetails: React.FC = () => {
   const { id } = useParams();
+  return <RouteDetailsContent key={id} />;
+};
+
+const RouteDetailsContent: React.FC = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { formatPrice } = useSettings();
   const { favorites, toggleFavorite } = useRoutes();
@@ -156,116 +161,24 @@ export const RouteDetails: React.FC = () => {
   const isFavorite = id ? favorites.includes(id) : false;
 
   useEffect(() => {
-    fetchRouteDetails();
-    fetchReviews();
+    let active = true;
+    if (!id) return;
+    routesApi.getById(id).then(value => { if (active) setRoute(value); })
+      .catch(error => { if (active) { console.error(error); setRoute(null); } })
+      .finally(() => { if (active) setLoading(false); });
+    reviewApi.getByRouteId(id).then(value => { if (active) setReviews(value); })
+      .catch(error => console.error(error));
+    return () => { active = false; };
   }, [id]);
-
-  const fetchRouteDetails = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get(`/routes/${id}`);
-      if (res.data) {
-        const raw = res.data;
-        const mapped: RouteItem = {
-          id: raw.id,
-          title: raw.title,
-          description: raw.description,
-          location: raw.location,
-          price: raw.price || 0,
-          categoryId: raw.categoryId,
-          categoryName: raw.category?.name || raw.categoryName || '',
-          authorName: raw.user ? `${raw.user.firstName || ''} ${raw.user.lastName || ''}`.trim() : raw.authorName || 'Невідомий господар',
-          averageRating: raw.averageRating || 0,
-          reviewsCount: raw.reviewsCount || 0,
-          imageUrls: (() => {
-            if (Array.isArray(raw.imageUrls) && raw.imageUrls.length > 0) {
-              return raw.imageUrls.map((img: any) => (typeof img === 'string' ? img : img.url));
-            }
-            if (Array.isArray(raw.images) && raw.images.length > 0) {
-              return raw.images.map((img: any) => (typeof img === 'string' ? img : img.url));
-            }
-            return [];
-          })(),
-          amenities: (() => {
-            if (Array.isArray(raw.amenities)) return raw.amenities;
-            if (typeof raw.amenities === 'string') {
-              try {
-                return JSON.parse(raw.amenities);
-              } catch {
-                return raw.amenities.split(',').map((a: string) => a.trim()).filter((a: string) => a); 
-              }
-            }
-            return [];
-          })(),
-          createdAt: raw.createdAt || new Date().toISOString(),
-        };
-        setRoute(mapped);
-      }
-    } catch (error) {
-      console.error("Помилка завантаження помешкання", error);
-      setRoute(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchReviews = async () => {
-    const localKey = `reviews_${id}`;
-    const localSaved: Review[] = JSON.parse(localStorage.getItem(localKey) || '[]');
-
-    try {
-      const res = await api.get(`/review/route/${id}`);
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const backendReviews: Review[] = res.data.map((r: any) => ({
-          id: r.id,
-          routeId: r.routeId || id,
-          userId: r.userId,
-          userName: r.user ? `${r.user.firstName || ''} ${r.user.lastName || ''}`.trim() : r.userName || 'Мандрівник',
-          rating: r.rating || 5,
-          comment: r.text || r.comment || '',
-          createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString('uk-UA') : 'Нещодавно',
-        }));
-        setReviews([...localSaved, ...backendReviews]);
-      } else {
-        setReviews(localSaved);
-      }
-    } catch (error) {
-      console.error("Помилка завантаження відгуків", error);
-      setReviews(localSaved);
-    }
-  };
 
   const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
-
-    const newReviewObj: Review = {
-      id: String(Date.now()),
-      routeId: id || '1',
-      userId: 'me',
-      userName: 'Миша',
-      rating: Number(newRating),
-      comment: newComment.trim(),
-      createdAt: 'Щойно',
-    };
-
+    if (!id || !newComment.trim()) return;
     try {
-      await api.post('/review', {
-        routeId: id,
-        rating: Number(newRating),
-        text: newComment.trim(),
-      });
-    } catch {
-      console.warn('Відгук збережено локально');
-    }
-
-    const localKey = `reviews_${id}`;
-    const existing: Review[] = JSON.parse(localStorage.getItem(localKey) || '[]');
-    existing.unshift(newReviewObj);
-    localStorage.setItem(localKey, JSON.stringify(existing));
-
-    setReviews([newReviewObj, ...reviews]);
-    setNewComment('');
+      const review = await reviewApi.addReview({ routeId: id, rating: Number(newRating), text: newComment.trim() });
+      setReviews(items => [review, ...items]);
+      setNewComment('');
+    } catch { alert('Не вдалося зберегти відгук. Перевірте вхід до акаунта та спробуйте ще раз.'); }
   };
 
   const calculatedRating = useMemo(() => {
@@ -323,11 +236,11 @@ export const RouteDetails: React.FC = () => {
         }}
       />
 
-      <div style={{ maxWidth: '1720px', margin: '0 auto', padding: '24px 40px 120px 40px', position: 'relative', zIndex: 1 }}>
+      <div className="details-page" style={{ maxWidth: '1720px', margin: '0 auto', padding: '24px 40px 120px 40px', position: 'relative', zIndex: 1 }}>
         
-        <div style={breadcrumbsRowStyle}>
+        <div className="r-breadcrumbsRowStyle" style={breadcrumbsRowStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link to="/routes" style={breadcrumbLinkStyle}>
+            <Link to="/routes" className="r-breadcrumbLinkStyle" style={breadcrumbLinkStyle}>
               ← Пошук житла
             </Link>
             <span style={{ color: '#6E473B' }}>/</span>
@@ -336,7 +249,7 @@ export const RouteDetails: React.FC = () => {
 
           <button
             onClick={() => id && toggleFavorite(id)}
-            style={favoriteBtnTopStyle}
+            className="r-favoriteBtnTopStyle" style={favoriteBtnTopStyle}
           >
             {isFavorite ? '❤️ В обраному' : '🤍 Зберегти в обране'}
           </button>
@@ -344,16 +257,16 @@ export const RouteDetails: React.FC = () => {
 
         <div style={{ position: 'relative', marginTop: '20px', marginBottom: '40px' }}>
           {routeImgs.length > 0 ? (
-            <div style={galleryContainerStyle}>
-              <div style={mainPhotoBoxStyle}>
-                <img src={routeImgs[0]} alt="Main" style={imageFillStyle} />
+            <div className="r-galleryContainerStyle" style={galleryContainerStyle}>
+              <div className="r-mainPhotoBoxStyle" style={mainPhotoBoxStyle}>
+                <img src={routeImgs[0]} alt="Main" className="r-imageFillStyle" style={imageFillStyle} />
               </div>
 
               {routeImgs.length > 1 && (
-                <div style={subGridPhotosStyle}>
+                <div className="r-subGridPhotosStyle" style={subGridPhotosStyle}>
                   {routeImgs.slice(1, 5).map((img, idx) => (
-                    <div key={idx} style={subPhotoBoxStyle}>
-                      <img src={img} alt={`Sub ${idx + 1}`} style={imageFillStyle} />
+                    <div key={idx} className="r-subPhotoBoxStyle" style={subPhotoBoxStyle}>
+                      <img src={img} alt={`Sub ${idx + 1}`} className="r-imageFillStyle" style={imageFillStyle} />
                     </div>
                   ))}
                 </div>
@@ -366,19 +279,19 @@ export const RouteDetails: React.FC = () => {
           )}
 
           {routeImgs.length > 5 && (
-            <button style={showAllPhotosBtnStyle}>
+            <button className="r-showAllPhotosBtnStyle" style={showAllPhotosBtnStyle}>
               <span style={{ fontSize: '15px' }}>⊞</span>
               <span>Показати всі фото ({routeImgs.length})</span>
             </button>
           )}
         </div>
 
-        <div style={twoColumnLayoutContainerStyle}>
+        <div className="r-twoColumnLayoutContainerStyle" style={twoColumnLayoutContainerStyle}>
           
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <div className="details-content-column" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
             
             <div>
-              <h1 style={propertyTitleStyle}>{route.title}</h1>
+              <h1 className="r-propertyTitleStyle" style={propertyTitleStyle}>{route.title}</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '12px', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <MapPinIcon color="#DC9666" size={16} />
@@ -396,13 +309,13 @@ export const RouteDetails: React.FC = () => {
               </div>
             </div>
 
-            <hr style={separatorLineStyle} />
+            <hr className="r-separatorLineStyle" style={separatorLineStyle} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
                 alt="Host"
-                style={hostAvatarStyle}
+                className="r-hostAvatarStyle" style={hostAvatarStyle}
               />
               <div>
                 <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#291C0E', fontWeight: 700 }}>
@@ -414,22 +327,22 @@ export const RouteDetails: React.FC = () => {
               </div>
             </div>
 
-            <hr style={separatorLineStyle} />
+            <hr className="r-separatorLineStyle" style={separatorLineStyle} />
 
-            <div style={figmaWhiteCardStyle}>
-              <h2 style={cardHeadingStyle}>Про цю квартиру</h2>
-              <div style={aboutTextStyle}>
+            <div className="r-figmaWhiteCardStyle" style={figmaWhiteCardStyle}>
+              <h2 className="r-cardHeadingStyle" style={cardHeadingStyle}>Про цю квартиру</h2>
+              <div className="r-aboutTextStyle" style={aboutTextStyle}>
                 {route.description || 'Опис відсутній.'}
               </div>
             </div>
 
-            <hr style={separatorLineStyle} />
+            <hr className="r-separatorLineStyle" style={separatorLineStyle} />
 
             {route.amenities && route.amenities.length > 0 && (
               <>
-                <div style={figmaWhiteCardStyle}>
-                  <h2 style={cardHeadingStyle}>Зручності</h2>
-                  <div style={amenitiesGridStyle}>
+                <div className="r-figmaWhiteCardStyle" style={figmaWhiteCardStyle}>
+                  <h2 className="r-cardHeadingStyle" style={cardHeadingStyle}>Зручності</h2>
+                  <div className="r-amenitiesGridStyle" style={amenitiesGridStyle}>
                     {route.amenities.map((amenity, idx) => {
                       let icon = AmenityIcons.lock;
                       if (amenity.toLowerCase().includes('wi-fi')) icon = AmenityIcons.wifi;
@@ -440,7 +353,7 @@ export const RouteDetails: React.FC = () => {
                       if (amenity.toLowerCase().includes('тваринами')) icon = AmenityIcons.paw;
 
                       return (
-                        <div key={idx} style={amenityPillStyle}>
+                        <div key={idx} className="r-amenityPillStyle" style={amenityPillStyle}>
                           <div style={{ display: 'flex', alignItems: 'center' }}>{icon}</div>
                           <span style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>
                             {amenity}
@@ -450,27 +363,27 @@ export const RouteDetails: React.FC = () => {
                     })}
                   </div>
                 </div>
-                <hr style={separatorLineStyle} />
+                <hr className="r-separatorLineStyle" style={separatorLineStyle} />
               </>
             )}
 
-            <div style={figmaWhiteCardStyle}>
+            <div className="r-figmaWhiteCardStyle" style={figmaWhiteCardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={cardHeadingStyle}>Карта</h2>
+                <h2 className="r-cardHeadingStyle" style={cardHeadingStyle}>Карта</h2>
                 <span style={{ color: '#A78D78', fontSize: '16px', fontWeight: 700 }}>
                   {route.location}
                 </span>
               </div>
-              <div style={detailsMapViewportStyle}>
+              <div className="r-detailsMapViewportStyle" style={detailsMapViewportStyle}>
                 <LocationMap locationStr={route.location} />
               </div>
             </div>
 
-            <hr style={separatorLineStyle} />
+            <hr className="r-separatorLineStyle" style={separatorLineStyle} />
 
-            <div style={figmaWhiteCardStyle}>
+            <div className="r-figmaWhiteCardStyle" style={figmaWhiteCardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={cardHeadingStyle}>Відгуки</h2>
+                <h2 className="r-cardHeadingStyle" style={cardHeadingStyle}>Відгуки</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <StarIcon fill="#DC9666" size={20} />
                   <span style={{ color: '#6E473B', fontSize: '18px', fontWeight: 700 }}>
@@ -482,10 +395,10 @@ export const RouteDetails: React.FC = () => {
               {reviews.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {reviews.map((rev) => (
-                    <div key={rev.id} style={reviewItemCardStyle}>
+                    <div key={rev.id} className="r-reviewItemCardStyle" style={reviewItemCardStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={reviewAvatarCircleStyle}>
+                          <div className="r-reviewAvatarCircleStyle" style={reviewAvatarCircleStyle}>
                             {rev.userName.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -534,7 +447,7 @@ export const RouteDetails: React.FC = () => {
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D7C7B1', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
                   />
 
-                  <button type="submit" style={submitReviewBtnStyle}>
+                  <button type="submit" className="r-submitReviewBtnStyle" style={submitReviewBtnStyle}>
                     Надіслати відгук
                   </button>
                 </form>
@@ -542,8 +455,8 @@ export const RouteDetails: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ width: '407px', flexShrink: 0, position: 'sticky', top: '24px' }}>
-            <div style={bookingStickyCardStyle}>
+          <div className="details-booking-column" style={{ width: '407px', flexShrink: 0, position: 'sticky', top: '24px' }}>
+            <div className="r-bookingStickyCardStyle" style={bookingStickyCardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', width: '100%' }}>
                 <div>
                   <span style={{ color: '#291C0E', fontSize: '28px', fontWeight: 700 }}>
@@ -562,28 +475,25 @@ export const RouteDetails: React.FC = () => {
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <span style={inputSubLabelStyle}>ЗАЇЗД</span>
-                    <div style={dateBoxStyle}>
-                      <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} style={dateInputStyle} />
+                    <span className="r-inputSubLabelStyle" style={inputSubLabelStyle}>ЗАЇЗД</span>
+                    <div className="r-dateBoxStyle" style={dateBoxStyle}>
+                      <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className="r-dateInputStyle" style={dateInputStyle} />
                     </div>
                   </div>
 
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <span style={inputSubLabelStyle}>ВИЇЗД</span>
-                    <div style={dateBoxStyle}>
-                      <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} style={dateInputStyle} />
+                    <span className="r-inputSubLabelStyle" style={inputSubLabelStyle}>ВИЇЗД</span>
+                    <div className="r-dateBoxStyle" style={dateBoxStyle}>
+                      <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className="r-dateInputStyle" style={dateInputStyle} />
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={inputSubLabelStyle}>КІЛЬКІСТЬ ГОСТЕЙ</span>
-                  <div style={guestsSelectBoxStyle}>
-                    <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} style={guestsInputStyle}>
-                      <option value={1}>1 гість</option>
-                      <option value={2}>2 гостя</option>
-                      <option value={3}>3 гостя</option>
-                      <option value={4}>4+ гостей</option>
+                  <span className="r-inputSubLabelStyle" style={inputSubLabelStyle}>КІЛЬКІСТЬ ГОСТЕЙ</span>
+                  <div className="r-guestsSelectBoxStyle" style={guestsSelectBoxStyle}>
+                    <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="r-guestsInputStyle" style={guestsInputStyle}>
+                      {Array.from({ length: route.maxGuests || 4 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
                     </select>
                   </div>
                 </div>
@@ -591,19 +501,19 @@ export const RouteDetails: React.FC = () => {
 
               {calculatedNights > 0 ? (
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={costBreakdownRowStyle}>
+                  <div className="r-costBreakdownRowStyle" style={costBreakdownRowStyle}>
                     <span style={{ color: '#A78D78' }}>{formatPrice(pricePerNight)} × {calculatedNights} ночі</span>
                     <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(accommodationTotal)}</span>
                   </div>
-                  <div style={costBreakdownRowStyle}>
+                  <div className="r-costBreakdownRowStyle" style={costBreakdownRowStyle}>
                     <span style={{ color: '#A78D78' }}>Прибирання</span>
                     <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(cleaningFee)}</span>
                   </div>
-                  <div style={costBreakdownRowStyle}>
+                  <div className="r-costBreakdownRowStyle" style={costBreakdownRowStyle}>
                     <span style={{ color: '#A78D78' }}>Сервісний збір платформи</span>
                     <span style={{ color: '#291C0E', fontWeight: 700 }}>{formatPrice(serviceFee)}</span>
                   </div>
-                  <hr style={separatorLineStyle} />
+                  <hr className="r-separatorLineStyle" style={separatorLineStyle} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: '#291C0E', fontSize: '18px', fontWeight: 700 }}>Всього</span>
                     <span style={{ color: '#DC9666', fontSize: '24px', fontWeight: 700 }}>{formatPrice(grandTotal)}</span>
@@ -628,13 +538,13 @@ export const RouteDetails: React.FC = () => {
                 </span>
               </div>
 
-              <hr style={separatorLineStyle} />
+              <hr className="r-separatorLineStyle" style={separatorLineStyle} />
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }}>
                 <AlertTriangleIcon />
                 <button
                   onClick={() => navigate('/report-issue')}
-                  style={reportIssueBtnStyle}
+                  className="r-reportIssueBtnStyle" style={reportIssueBtnStyle}
                 >
                   Повідомити про проблему
                 </button>
@@ -650,6 +560,7 @@ export const RouteDetails: React.FC = () => {
         onClose={() => setIsBookingOpen(false)}
         routeId={String(route.id)}
         routeTitle={route.title}
+        maxGuests={route.maxGuests || 4}
         pricePerNight={pricePerNight || 0}
         location={route.location}
         initialCheckIn={checkIn}

@@ -2,31 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useSettings } from '../../../context/SettingsContext';
-import type { RouteItem, Booking } from '../../../types';
+import type { RouteItem } from '../../../types';
+import { useAppData } from '../../../context/AppDataContext';
+import { useRoutes } from '../../../context/RoutesContext';
+import type { BookingRecord } from '../../../services/bookings.service';
 
 export const AccountTab: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLandlord } = useAuth();
   const { formatPrice } = useSettings();
 
-  const [favorites, setFavorites] = useState<RouteItem[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const source = useAppData();
+  const { favorites } = useRoutes();
+  const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [myProperties, setMyProperties] = useState<RouteItem[]>([]);
-
+  const [summaryError, setSummaryError] = useState('');
   useEffect(() => {
-    try {
-      const savedFavs = JSON.parse(localStorage.getItem('fav_ids') || '[]');
-      setFavorites(savedFavs);
-
-      const savedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-      setBookings(savedBookings);
-
-      const savedProps = JSON.parse(localStorage.getItem('custom_routes') || '[]');
-      setMyProperties(savedProps);
-    } catch {
-      // Ігноруємо помилки парсингу локального сховища
-    }
-  }, []);
+    const abort = new AbortController();
+    Promise.all([source.bookings.list(isLandlord, abort.signal), isLandlord ? source.properties.getMine(abort.signal) : Promise.resolve([])])
+      .then(([items, properties]) => { if (!abort.signal.aborted) { setBookings(items); setMyProperties(properties); } })
+      .catch(() => { if (!abort.signal.aborted) setSummaryError('Не вдалося завантажити актуальні показники.'); });
+    return () => abort.abort();
+  }, [source, isLandlord]);
 
   const displayName = user?.firstName
     ? `${user.firstName} ${user.lastName || ''}`.trim()
@@ -35,9 +32,24 @@ export const AccountTab: React.FC = () => {
     : 'Олександр Коваленко';
 
   const displayGreeting = user?.firstName || (isLandlord ? 'Анастасія' : 'Олександре');
-  const displayPhone = user?.phoneNumber || '+380 (67) 123-45-67';
-  const displayEmail = user?.email || (isLandlord ? 'MariA_OrendA@gmail.com' : 'Oleksandr_Kov28@gmail.com');
+  const displayPhone = user?.phoneNumber || 'Не вказано';
+  const displayEmail = user?.email || 'Не вказано';
   const displayAvatar = user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=140&q=80';
+
+  if (source.mode === 'live') {
+    return <section className="account-live">
+      <h1>Вітаємо, {displayGreeting}!</h1>
+      <p>{displayName}</p><p>{displayEmail}</p><p>Телефон: {displayPhone}</p>
+      {summaryError ? <p role="alert">{summaryError}</p> : <div className="account-summary">
+        <article><h2>Бронювання</h2><strong>{bookings.length}</strong></article>
+        <article><h2>Очікують підтвердження</h2><strong>{bookings.filter(b => b.status === 'Pending').length}</strong></article>
+        <article><h2>{isLandlord ? 'Мої помешкання' : 'Обране'}</h2><strong>{isLandlord ? myProperties.length : favorites.length}</strong></article>
+      </div>}
+      <p>Показники отримано з поточного облікового запису.</p>
+      <button onClick={() => navigate(isLandlord ? '/menu?tab=properties' : '/menu?tab=bookings')}>Переглянути бронювання</button>
+      <button onClick={() => navigate('/profile?tab=edit')}>Редагувати профіль</button>
+    </section>;
+  }
 
   // =========================================================================
   // 1. ВАРІАНТ ДЛЯ ОРЕНДОДАВЦЯ (ХОСТА) З FIGMA
@@ -54,7 +66,7 @@ export const AccountTab: React.FC = () => {
         </header>
 
         {/* Верхній ряд: Картка профілю хоста + Як зв'язатись зі мною */}
-        <div style={styles.rowTwoCols}>
+        <div className="mobile-stack" style={styles.rowTwoCols}>
           <div style={styles.userMainCard}>
             <div style={styles.userHeaderRow}>
               <img src={displayAvatar} alt={displayName} style={styles.avatar72} />
@@ -83,7 +95,7 @@ export const AccountTab: React.FC = () => {
               <div style={styles.statCol}>
                 <div style={styles.statLabel}>Оголошень</div>
                 <div style={styles.statValue}>
-                  {myProperties.length > 0 ? `${myProperties.length} активних об'єктів` : '6 активних об\'єктів'}
+                  {summaryError || `${myProperties.length} активних об'єктів`}
                 </div>
               </div>
               <div style={styles.statCol}>
@@ -182,7 +194,7 @@ export const AccountTab: React.FC = () => {
         </section>
 
         {/* Нижній ряд: Найближчі резервації + Останні відгуки гостей */}
-        <div style={styles.rowTwoCols}>
+        <div className="mobile-stack" style={styles.rowTwoCols}>
           {/* Найближчі резервації */}
           <div style={styles.halfCard}>
             <div style={styles.cardTitleBar}>
@@ -279,7 +291,7 @@ export const AccountTab: React.FC = () => {
       </header>
 
       {/* Верхній ряд: Картка профілю орендаря + Як зв'язатись зі мною */}
-      <div style={styles.rowTwoCols}>
+      <div className="mobile-stack" style={styles.rowTwoCols}>
         <div style={styles.userMainCard}>
           <div style={styles.userHeaderRow}>
             <img src={displayAvatar} alt={displayName} style={styles.avatar72} />
@@ -308,7 +320,7 @@ export const AccountTab: React.FC = () => {
             <div style={styles.statCol}>
               <div style={styles.statLabel}>Загалом поїздок</div>
               <div style={styles.statValue}>
-                {bookings.length > 0 ? `${bookings.length} бронювань` : '18 бронювань'}
+                {summaryError || `${bookings.length} бронювань`}
               </div>
             </div>
             <div style={styles.statCol}>
@@ -378,17 +390,17 @@ export const AccountTab: React.FC = () => {
       </div>
 
       {/* Нижній ряд: Збережені помешкання + Попередні поїздки */}
-      <div style={styles.rowTwoCols}>
+      <div className="mobile-stack" style={styles.rowTwoCols}>
         {/* Збережені помешкання */}
         <div style={styles.halfCard}>
           <div style={styles.cardTitleBar}>
             <div style={styles.cardHeaderTitle}>Збережені помешкання</div>
             <button onClick={() => navigate('/favorites')} style={styles.seeAllLinkBtn}>
-              Усі збережені ({favorites.length > 0 ? favorites.length : 12})
+              Усі збережені ({favorites.length})
             </button>
           </div>
 
-          <div style={styles.savedGrid}>
+          <div className="mobile-stack" style={styles.savedGrid}>
             <div onClick={() => navigate('/routes')} style={styles.savedItemCard}>
               <img
                 src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=400&q=80"

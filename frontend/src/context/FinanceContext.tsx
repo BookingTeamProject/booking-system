@@ -1,110 +1,57 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
-import { storage } from '../services/storage.service';
-import type { FinancialTransaction, PayoutSettings } from '../data/mockData';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useAppData } from './AppDataContext';
+import type { FinanceSnapshot } from '../data/contracts';
+import type { PayoutSettings } from '../data/mockData';
+import { requestError } from '../services/bookings.service';
 
-interface FinanceKPI {
-  totalRevenue: number;
-  monthRevenue: number;
-  totalCommission: number;
-  pendingPayouts: number;
+interface FinanceContextValue {
+  available: boolean;
+  isDemo: boolean;
+  loading: boolean;
+  busy: boolean;
+  error: string;
+  snapshot: FinanceSnapshot | null;
+  refresh: () => void;
+  withdrawFunds: (amount: number) => Promise<boolean>;
+  updatePayoutSettings: (settings: Partial<PayoutSettings>) => Promise<boolean>;
+}
+const FinanceContext = createContext<FinanceContextValue | null>(null);
+
+export function FinanceProvider({ children }: { children: ReactNode }) {
+  const { finance, mode } = useAppData();
+  const [snapshot, setSnapshot] = useState<FinanceSnapshot | null>(null);
+  const [loading, setLoading] = useState(finance.available);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    if (!finance.available) return;
+    const controller = new AbortController();
+    finance.load(controller.signal).then(data => {
+      if (!controller.signal.aborted) setSnapshot(data);
+    }).catch(err => { if (!controller.signal.aborted) setError(requestError(err)); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [finance, revision]);
+
+  const perform = async (operation: () => Promise<FinanceSnapshot>) => {
+    if (!finance.available || busyRef.current || loading) return false;
+    busyRef.current = true; setBusy(true); setError('');
+    try { setSnapshot(await operation()); return true; }
+    catch (err) { setError(requestError(err)); return false; }
+    finally { busyRef.current = false; setBusy(false); }
+  };
+  return <FinanceContext.Provider value={{ available: finance.available, isDemo: mode === 'demo', snapshot, loading, busy, error,
+    refresh: () => { if (!busyRef.current) { setLoading(true); setError(''); setRevision(v => v + 1); } },
+    withdrawFunds: amount => perform(() => finance.withdraw(amount)),
+    updatePayoutSettings: settings => perform(() => finance.updatePayoutSettings(settings)),
+  }}>{children}</FinanceContext.Provider>;
 }
 
-interface FinanceContextType {
-  balance: number;
-  expectedPayout: number;
-  transactions: FinancialTransaction[];
-  payoutSettings: PayoutSettings;
-  kpi: FinanceKPI;
-  withdrawFunds: (amount: number) => boolean;
-  addTransaction: (tx: Omit<FinancialTransaction, 'id' | 'date'>) => void;
-  updatePayoutSettings: (newSettings: Partial<PayoutSettings>) => void;
-}
-
-const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
-
-export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [balance, setBalance] = useState<number>(() => storage.finance.getBalance());
-  const [transactions, setTransactions] = useState<FinancialTransaction[]>(() => storage.finance.getTransactions());
-  const [payoutSettings, setPayoutSettings] = useState<PayoutSettings>(() => storage.finance.getPayoutSettings());
-
-  // Автоматичний розрахунок показників KPI
-  const kpi = useMemo<FinanceKPI>(() => {
-    const incomeTxs = transactions.filter((t) => t.type === 'income');
-    const totalRev = incomeTxs.reduce((sum, t) => sum + t.amount, 0);
-    const totalComm = incomeTxs.reduce((sum, t) => sum + t.commission, 0);
-    const pending = transactions
-      .filter((t) => t.status === 'Очікується')
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    return {
-      totalRevenue: totalRev > 0 ? totalRev : 342800,
-      monthRevenue: 26900,
-      totalCommission: totalComm > 0 ? totalComm : 3228,
-      pendingPayouts: pending > 0 ? pending : 5600,
-    };
-  }, [transactions]);
-
-  // Функція виведення коштів
-  const withdrawFunds = (amount: number): boolean => {
-    if (amount <= 0 || amount > balance) return false;
-
-    const newBalance = balance - amount;
-    setBalance(newBalance);
-    storage.finance.setBalance(newBalance);
-
-    const newTx: FinancialTransaction = {
-      id: `tx-out-${Date.now()}`,
-      date: new Date().toLocaleDateString('uk-UA', { day: '2-digit', month: 'short', year: 'numeric' }),
-      title: `Виведення коштів на IBAN ${payoutSettings.iban.slice(-8)}`,
-      amount: -amount,
-      commission: 0,
-      type: 'payout',
-      status: 'Успішно',
-    };
-
-    const updatedTxs = [newTx, ...transactions];
-    setTransactions(updatedTxs);
-    storage.finance.setTransactions(updatedTxs);
-    return true;
-  };
-
-  const addTransaction = (tx: Omit<FinancialTransaction, 'id' | 'date'>) => {
-    const newTx: FinancialTransaction = {
-      id: `tx-${Date.now()}`,
-      date: new Date().toLocaleDateString('uk-UA', { day: '2-digit', month: 'short', year: 'numeric' }),
-      ...tx,
-    };
-    const updatedTxs = [newTx, ...transactions];
-    setTransactions(updatedTxs);
-    storage.finance.setTransactions(updatedTxs);
-  };
-
-  const updatePayoutSettings = (newSettings: Partial<PayoutSettings>) => {
-    const updated = { ...payoutSettings, ...newSettings };
-    setPayoutSettings(updated);
-    storage.finance.setPayoutSettings(updated);
-  };
-
-  return (
-    <FinanceContext.Provider
-      value={{
-        balance,
-        expectedPayout: 3500,
-        transactions,
-        payoutSettings,
-        kpi,
-        withdrawFunds,
-        addTransaction,
-        updatePayoutSettings,
-      }}
-    >
-      {children}
-    </FinanceContext.Provider>
-  );
-};
-
-export const useFinance = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useFinance() {
   const context = useContext(FinanceContext);
-  if (!context) throw new Error('useFinance must be used within a FinanceProvider');
+  if (!context) throw new Error('useFinance must be used within FinanceProvider');
   return context;
-};
+}

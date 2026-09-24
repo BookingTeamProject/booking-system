@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TrailsUA.Domain.DTOs.User;
@@ -49,6 +49,9 @@ public class UserController : ControllerBase
         var user = await context.Users.FindAsync(userId);
         if (user == null)
             return NotFound(new { message = "Користувача не знайдено" });
+
+        if (user.Role is UserRole.Admin or UserRole.Moderator)
+            return BadRequest(new { message = "Роль адміністрації змінюється лише через адмінпанель." });
 
         // 1. Оновлюємо роль у базі даних
         user.Role = UserRole.Landlord;

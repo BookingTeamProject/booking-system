@@ -1,3 +1,4 @@
+import { dataSources } from '../config/dataSources';
 // src/services/sync.service.ts
 import { routesApi, userApi, favoriteApi, categoriesApi, reviewApi } from './api.service';
 import { storage } from './storage.service';
@@ -10,13 +11,13 @@ interface CacheEntry<T> {
 }
 
 class DataSyncService {
-  private memoryCache = new Map<string, CacheEntry<any>>();
-  private inFlightRequests = new Map<string, Promise<any>>();
+  private memoryCache = new Map<string, CacheEntry<unknown>>();
+  private inFlightRequests = new Map<string, Promise<unknown>>();
 
   // Час життя кешу за замовчуванням (3 хвилини)
   private readonly DEFAULT_TTL = 3 * 60 * 1000;
 
-  private generateHash(data: any): string {
+  private generateHash(data: unknown): string {
     try {
       return JSON.stringify(data);
     } catch {
@@ -33,17 +34,18 @@ class DataSyncService {
     ttl: number = this.DEFAULT_TTL,
     forceRefresh: boolean = false
   ): Promise<{ data: T; isFromCache: boolean; hasChanged: boolean }> {
+    key = `${dataSources.mode}:${storage.user.get()?.id || 'anonymous'}:${key}`;
     const cached = this.memoryCache.get(key);
     const now = Date.now();
 
     // 1. Повертаємо з кешу, якщо він свіжий і не потрібен примусовий рефреш
     if (!forceRefresh && cached && now - cached.timestamp < ttl) {
-      return { data: cached.data, isFromCache: true, hasChanged: false };
+      return { data: cached.data as T, isFromCache: true, hasChanged: false };
     }
 
     // 2. Дедуплікація: якщо запит з таким ключем ВЖЕ летить, підключаємося до нього
     if (this.inFlightRequests.has(key)) {
-      const data = await this.inFlightRequests.get(key);
+      const data = await this.inFlightRequests.get(key) as T;
       return { data, isFromCache: false, hasChanged: false };
     }
 
@@ -85,9 +87,9 @@ class DataSyncService {
         cacheKey,
         async () => {
           const apiRoutes = await routesApi.getAll(params);
-          const custom = storage.routes.getCustom();
-          // Об'єднуємо локально створені об'єкти з бекендом
-          return [...custom, ...apiRoutes.filter((ar) => !custom.some((c) => c.id === ar.id))];
+          // Server results are authoritative; stale cache must not resurrect deleted listings
+          // or replace updated prices and capacity.
+          return apiRoutes;
         },
         2 * 60 * 1000, // 2 хвилини TTL
         forceRefresh
@@ -95,13 +97,13 @@ class DataSyncService {
 
       // Якщо дані дійсно змінились, оновлюємо резерв у localStorage
       if (hasChanged && (!params || Object.keys(params).length === 0)) {
-        localStorage.setItem('custom_routes', JSON.stringify(data));
+        // Successful data remains in the in-memory cache; demo/live storage never mixes.
       }
 
       return data;
     } catch (err) {
       console.warn('⚠️ Помилка зв’язку з сервером, використовуємо локальний кеш:', err);
-      return storage.routes.getCustom();
+      throw err;
     }
   }
 
@@ -140,7 +142,7 @@ class DataSyncService {
           const res = await favoriteApi.getMyFavorites();
           if (Array.isArray(res)) {
             // Нормалізуємо якщо бекенд повертає об'єкти або масив рядків id
-            return res.map((item: any) => (typeof item === 'string' ? item : item.id || item.routeId));
+            return res.map((item) => (typeof item === 'string' ? item : item.id));
           }
           return [];
         },
@@ -159,7 +161,7 @@ class DataSyncService {
   }
 
   // ================= СИНХРОНІЗАЦІЯ КАТЕГОРІЙ =================
-  async syncCategories(): Promise<any[]> {
+  async syncCategories(): Promise<import('./http-api.service').CategoryDto[]> {
     try {
       const { data } = await this.getOrFetch(
         'categories_all',
@@ -186,7 +188,7 @@ class DataSyncService {
       );
       return data;
     } catch {
-      return storage.reviews.get(routeId);
+      return [];
     }
   }
 
@@ -197,7 +199,7 @@ class DataSyncService {
       return;
     }
     for (const key of this.memoryCache.keys()) {
-      if (key.startsWith(keyPrefix)) {
+      if (key.startsWith(`${dataSources.mode}:${storage.user.get()?.id || 'anonymous'}:${keyPrefix}`)) {
         this.memoryCache.delete(key);
       }
     }

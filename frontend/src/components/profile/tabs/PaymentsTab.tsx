@@ -1,7 +1,9 @@
+import { useAppData } from '../../../context/AppDataContext';
+import { FinanceUnavailable, DemoFinanceNotice } from '../FinanceAvailability';
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 
-export const PaymentsTab: React.FC<{ onNotify: (msg: string) => void }> = ({ onNotify }) => {
+const DemoPaymentsTab: React.FC<{ onNotify: (msg: string) => void }> = ({ onNotify }) => {
   const { user } = useAuth();
 
   // Стан для перегляду: список карток чи екран додавання нової картки
@@ -79,7 +81,7 @@ export const PaymentsTab: React.FC<{ onNotify: (msg: string) => void }> = ({ onN
                 </div>
               </div>
 
-              <div style={styles.twoCols}>
+              <div className="mobile-stack" style={styles.twoCols}>
                 <div style={{ flex: 1 }}>
                   <label style={styles.fieldLabel}>Термін дії</label>
                   <div style={styles.inputBoxHighlight}>
@@ -624,4 +626,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '12px',
   },
+};
+export const PaymentsTab: React.FC<{ onNotify: (msg: string) => void }> = (props) => {
+  const { mode } = useAppData();
+  return mode === 'demo' ? <><DemoFinanceNotice /><DemoPaymentsTab {...props} /></> : <FinanceUnavailable />;
 };

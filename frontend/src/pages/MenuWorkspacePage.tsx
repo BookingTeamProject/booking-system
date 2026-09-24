@@ -1,5 +1,5 @@
 // src/pages/MenuWorkspacePage.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -30,16 +30,9 @@ export const MenuWorkspacePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabParam = searchParams.get('tab') as MenuTab;
-  const [activeTab, setActiveTab] = useState<MenuTab>(tabParam || (isLandlord ? 'properties' : 'bookings'));
-
-  useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam);
-    }
-  }, [tabParam]);
+  const activeTab: MenuTab = tabParam || (isLandlord ? 'properties' : 'bookings');
 
   const handleTabChange = (tabKey: MenuTab) => {
-    setActiveTab(tabKey);
     setSearchParams({ tab: tabKey });
   };
 
@@ -48,8 +41,8 @@ export const MenuWorkspacePage: React.FC = () => {
     : 'Олександр Петренко';
 
   return (
-    <div style={{ backgroundColor: '#E1D4C2', minHeight: 'calc(100vh - 90px)', padding: '40px 60px 100px 60px' }}>
-      <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+    <div className="workspace-page" style={{ backgroundColor: '#E1D4C2', minHeight: 'calc(100vh - 90px)', padding: '40px 60px 100px 60px' }}>
+      <div className="workspace-layout" style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
         
         {/* ЛІВИЙ САЙДБАР FIGMA (362px) */}
         <MenuSidebar activeTab={activeTab} onTabChange={handleTabChange} />

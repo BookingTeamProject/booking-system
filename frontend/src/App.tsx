@@ -1,5 +1,6 @@
+import { AppDataProvider } from './context/AppDataContext';
 // src/App.tsx
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentType } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
@@ -10,7 +11,7 @@ import { RouteEdit } from './pages/RouteEdit';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
-const lazyRetry = (importFn: () => Promise<any>) =>
+const lazyRetry = (importFn: () => Promise<{ default: ComponentType }>) =>
   lazy(() =>
     importFn().catch(() => {
       // Якщо чанк не знайдено (після нової збірки), просто оновлюємо сторінку на свіжу версію
@@ -58,6 +59,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
+        <AppDataProvider>
         <SettingsProvider>
           <RoutesProvider>
             <FinanceProvider>
@@ -116,6 +118,7 @@ function App() {
             </FinanceProvider>
           </RoutesProvider>
         </SettingsProvider>
+        </AppDataProvider>
       </AuthProvider>
     </GoogleOAuthProvider>
   );

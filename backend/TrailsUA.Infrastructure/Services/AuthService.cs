@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,6 +25,8 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
+        if (dto.Role is not (UserRole.User or UserRole.Landlord))
+            throw new ArgumentException("Під час реєстрації можна обрати лише роль гостя або орендодавця.");
         if (await _context.Users.AnyAsync(u => u.Email == dto.Email.ToLower()))
         {
             throw new Exception("Пользователь с таким Email уже существует");
@@ -118,6 +120,7 @@ public class AuthService : IAuthService
     // Генерация пачки Access + Refresh токены
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(User user)
     {
+        if (user.IsBlocked || user.IsDeleted) throw new Exception("Обліковий запис недоступний.");
         var accessToken = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
 
@@ -153,6 +156,7 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
+            new Claim("auth_version", user.AuthVersion.ToString()),
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
