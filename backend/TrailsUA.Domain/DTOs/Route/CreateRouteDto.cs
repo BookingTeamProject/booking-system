@@ -23,4 +23,5 @@ public class CreateRouteDto
     public int MaxGuests { get; set; } = 4;
 
     public List<string> ImageUrls { get; set; } = new();
+    public List<string>? Amenities { get; set; }
 }

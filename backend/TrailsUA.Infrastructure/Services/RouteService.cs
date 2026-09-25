@@ -9,6 +9,9 @@ public class RouteService : IRouteService
 {
     private readonly AppDbContext _context;
 
+    // ДОБАВЛЕНО: Кэш на сервере для хранения IP-адресов (кто и когда смотрел)
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _viewCache = new();
+
     public RouteService(AppDbContext context)
     {
         _context = context;
@@ -44,7 +47,8 @@ public class RouteService : IRouteService
         return routes.Select(r => MapToDto(r)).ToList();
     }
 
-    public async Task<RouteDto?> GetRouteByIdAsync(Guid id)
+    // ДОБАВЛЕНО: параметр viewerId (IP пользователя)
+    public async Task<RouteDto?> GetRouteByIdAsync(Guid id, string viewerId = "")
     {
         var route = await _context.Routes
             .Include(r => r.Category)
@@ -53,7 +57,31 @@ public class RouteService : IRouteService
             .Include(r => r.Images)
             .FirstOrDefaultAsync(r => r.Id == id && !r.Author.IsBlocked && !r.Author.IsDeleted);
 
-        return route == null ? null : MapToDto(route);
+        if (route != null)
+        {
+            // ДОБАВЛЕНО: Защита от накрутки
+            if (!string.IsNullOrWhiteSpace(viewerId))
+            {
+                var cacheKey = $"{id}_{viewerId}";
+                // Если юзер с этим IP еще не смотрел домик, или прошло больше 12 часов
+                if (!_viewCache.TryGetValue(cacheKey, out var lastView) || (DateTime.UtcNow - lastView).TotalHours > 12)
+                {
+                    route.ViewsCount += 1;
+                    await _context.SaveChangesAsync(); // Навсегда сохраняем в базу данных
+                    _viewCache[cacheKey] = DateTime.UtcNow;
+                }
+            }
+            else
+            {
+                // На случай если IP не передали, просто засчитываем
+                route.ViewsCount += 1;
+                await _context.SaveChangesAsync();
+            }
+
+            return MapToDto(route);
+        }
+
+        return null;
     }
 
     public async Task<List<RouteDto>> GetMyRoutesAsync(Guid userId)
@@ -74,7 +102,8 @@ public class RouteService : IRouteService
             Price = dto.Price,
             MaxGuests = dto.MaxGuests,
             CategoryId = dto.CategoryId,
-            AuthorId = authorId
+            AuthorId = authorId,
+            Amenities = dto.Amenities
         };
 
         if (dto.ImageUrls != null && dto.ImageUrls.Any())
@@ -109,13 +138,16 @@ public class RouteService : IRouteService
         var route = await _context.Routes
             .Include(r => r.Images)
             .FirstOrDefaultAsync(r => r.Id == id && r.AuthorId == authorId);
+
         if (route == null) return null;
+
         route.Title = dto.Title;
         route.Description = dto.Description;
         route.Location = dto.Location;
         route.Price = dto.Price;
         route.MaxGuests = dto.MaxGuests;
         route.CategoryId = dto.CategoryId;
+        route.Amenities = dto.Amenities;
 
         if (dto.ImageUrls != null)
         {
@@ -150,7 +182,9 @@ public class RouteService : IRouteService
             CategoryName = r.Category?.Name ?? "Общая",
             AuthorName = $"{r.Author?.FirstName} {r.Author?.LastName}".Trim(),
             AverageRating = r.Reviews != null && r.Reviews.Any() ? Math.Round(r.Reviews.Average(rev => rev.Rating), 1) : 0,
-            ImageUrls = r.Images != null ? r.Images.Select(img => img.Url).ToList() : new List<string>()
+            ImageUrls = r.Images != null ? r.Images.Select(img => img.Url).ToList() : new List<string>(),
+            ViewsCount = r.ViewsCount,
+            Amenities = r.Amenities ?? new List<string>()
         };
     }
 }

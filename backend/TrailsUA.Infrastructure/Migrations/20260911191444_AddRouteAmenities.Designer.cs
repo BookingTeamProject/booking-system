@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TrailsUA.Infrastructure.Data;
@@ -12,9 +13,11 @@ using TrailsUA.Infrastructure.Data;
 namespace TrailsUA.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260911191444_AddRouteAmenities")]
+    partial class AddRouteAmenities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,74 +25,6 @@ namespace TrailsUA.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("TrailsUA.Domain.Entities.Booking", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateOnly>("CheckIn")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("CheckOut")
-                        .HasColumnType("date");
-
-                    b.Property<decimal>("CleaningFee")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("GuestId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Guests")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("PricePerNight")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<Guid>("RouteId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("ServiceFee")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GuestId");
-
-                    b.HasIndex("RouteId", "CheckIn", "CheckOut");
-
-                    b.ToTable("Bookings", t =>
-                        {
-                            t.HasCheckConstraint("CK_Bookings_Dates", "\"CheckOut\" > \"CheckIn\"");
-
-                            t.HasCheckConstraint("CK_Bookings_Guests", "\"Guests\" > 0");
-
-                            t.HasCheckConstraint("CK_Bookings_TotalPrice", "\"TotalPrice\" > 0");
-                        });
-                });
 
             modelBuilder.Entity("TrailsUA.Domain.Entities.Category", b =>
                 {
@@ -116,39 +51,6 @@ namespace TrailsUA.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("TrailsUA.Domain.Entities.ChatMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DialogId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("TrailsUA.Domain.Entities.Comment", b =>
@@ -294,11 +196,6 @@ namespace TrailsUA.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("MaxGuests")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(4);
-
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric");
 
@@ -308,9 +205,6 @@ namespace TrailsUA.Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ViewsCount")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -326,9 +220,6 @@ namespace TrailsUA.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<int>("AuthVersion")
-                        .HasColumnType("integer");
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
@@ -346,15 +237,6 @@ namespace TrailsUA.Infrastructure.Migrations
 
                     b.Property<string>("GoogleId")
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsBlocked")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsSystemAdmin")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -384,45 +266,7 @@ namespace TrailsUA.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("IsSystemAdmin")
-                        .IsUnique()
-                        .HasFilter("\"IsSystemAdmin\" = true");
-
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique()
-                        .HasFilter("\"PhoneNumber\" IS NOT NULL AND \"PhoneNumber\" <> ''");
-
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("TrailsUA.Domain.Entities.Booking", b =>
-                {
-                    b.HasOne("TrailsUA.Domain.Entities.User", "Guest")
-                        .WithMany()
-                        .HasForeignKey("GuestId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TrailsUA.Domain.Entities.Route", "Route")
-                        .WithMany()
-                        .HasForeignKey("RouteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Guest");
-
-                    b.Navigation("Route");
-                });
-
-            modelBuilder.Entity("TrailsUA.Domain.Entities.ChatMessage", b =>
-                {
-                    b.HasOne("TrailsUA.Domain.Entities.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("TrailsUA.Domain.Entities.Comment", b =>

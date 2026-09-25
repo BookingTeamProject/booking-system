@@ -167,9 +167,7 @@ export const RouteEdit: React.FC = () => {
       console.warn('Не вдалося оновити категорію:', e);
     }
 
-    const finalImages = formData.imageUrls.length > 0 ? formData.imageUrls : [
-  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80'
-];
+    const finalImages = formData.imageUrls;
 
     try {
       await routesApi.update(id!, {
