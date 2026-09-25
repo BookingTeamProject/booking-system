@@ -93,7 +93,8 @@ public class RouteService : IRouteService
             Location = dto.Location,
             Price = dto.Price,
             CategoryId = dto.CategoryId,
-            AuthorId = authorId
+            AuthorId = authorId,
+            Amenities = dto.Amenities
         };
 
         if (dto.ImageUrls != null && dto.ImageUrls.Any())
@@ -133,6 +134,7 @@ public class RouteService : IRouteService
         route.Location = dto.Location;
         route.Price = dto.Price;
         route.CategoryId = dto.CategoryId;
+        route.Amenities = dto.Amenities;
 
         if (dto.ImageUrls != null)
         {
@@ -165,7 +167,8 @@ public class RouteService : IRouteService
             AuthorName = $"{r.Author?.FirstName} {r.Author?.LastName}".Trim(),
             AverageRating = r.Reviews != null && r.Reviews.Any() ? Math.Round(r.Reviews.Average(rev => rev.Rating), 1) : 0,
             ImageUrls = r.Images != null ? r.Images.Select(img => img.Url).ToList() : new List<string>(),
-            ViewsCount = r.ViewsCount
+            ViewsCount = r.ViewsCount,
+            Amenities = r.Amenities ?? new List<string>()
         };
     }
 }

@@ -9,6 +9,7 @@ public class RouteDto
     public decimal? Price { get; set; }
     public DateTime CreatedAt { get; set; }
     public int ViewsCount { get; set; }
+    public List<string>? Amenities { get; set; }
 
     public string CategoryName { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;

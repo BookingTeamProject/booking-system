@@ -15,4 +15,5 @@ public class UpdateRouteDto
     [Required]
     public Guid CategoryId { get; set; }
     public List<string> ImageUrls { get; set; } = new();
+    public List<string>? Amenities { get; set; }
 }

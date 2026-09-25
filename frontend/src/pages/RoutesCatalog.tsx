@@ -4,7 +4,6 @@ import { useRoutes } from '../context/RoutesContext';
 import { useSettings } from '../context/SettingsContext';
 import Line4 from '../assets/Line4.png';
 
-// ======================== SVG ІКОНКИ ========================
 const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8" />
@@ -31,51 +30,75 @@ const HeartIcon = ({ filled = false }: { filled?: boolean }) => (
   </svg>
 );
 
-const ArrowRightIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-
-const ChevronDownIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+const ChevronDownIcon = ({ isOpen }: { isOpen?: boolean }) => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
     <polyline points="6 9 12 15 18 9" />
   </svg>
 );
+
+const AMENITY_CATEGORIES = [
+  {
+    id: 'bathroom',
+    title: 'Ванна кімната',
+    items: ['Фен для волосся', 'Засоби гігієни (мило, гель)', 'Гаряча вода']
+  },
+  {
+    id: 'bedroom',
+    title: 'Спальня та пральня',
+    items: ['Шафа для одягу', 'Постільна білизна', 'Замок на дверях спальні', 'Сушильна машина', 'Пральна машина', 'Праска та дошка']
+  },
+  {
+    id: 'entertainment',
+    title: "Розваги та зв'язок",
+    items: ['Телевізор зі стрімінгом', 'Швидкісний Wi-Fi', 'Книги та журнали']
+  },
+  {
+    id: 'kitchen',
+    title: 'Кухня та їдальня',
+    items: ['Кухня з усім приладдям', 'Мікрохвильова піч', 'Плита для готування', 'Холодильник', 'Посуд та столові прибори', 'Духовка', 'Тостер', 'Кавоварка еспресо']
+  },
+  {
+    id: 'climate',
+    title: 'Опалення та кондиціонування',
+    items: ['Кондиціонування повітря', 'Центральне опалення']
+  },
+  {
+    id: 'safety',
+    title: 'Безпека',
+    items: ['Датчик чадного газу / диму', 'Вогнегасник', 'Аптечка першої допомоги']
+  },
+  {
+    id: 'parking',
+    title: 'Парковка та інше',
+    items: ['Безкоштовна парковка', 'Можна з тваринами', 'Не можна шуміти', 'Дозволено курити', 'Приватна тераса або балкон', 'Затишний камін', 'Підходить для вечірок']
+  }
+];
+
+const PROPERTY_TYPES = [
+  { id: '170175e1-244a-48fd-85ae-5a2b4519d9de', label: 'Квартира' },
+  { id: '1fffbb6d-dfec-4ad5-bcd0-043f75ee6cea', label: 'Будинок' },
+  { id: '64b12fbf-bc35-4cba-b089-715310f36525', label: 'Котедж' },
+  { id: '3327f17c-70b4-4d57-b861-3c63b6160ea6', label: 'Шале' },
+  { id: 'c758fd77-6be4-4a0a-996b-0d5221f86cb2', label: 'Глемпінг' },
+  { id: '4f73db3a-3998-40eb-9897-7b8c0a8c68fd', label: 'Кімната' }
+];
 
 export const RoutesCatalog: React.FC = () => {
   const navigate = useNavigate();
   const { routes, favorites, toggleFavorite, loading } = useRoutes();
   const { formatPrice, t } = useSettings();
 
-  // Стейт пошуку
   const [search, setSearch] = useState('');
   const [minPrice, setMinPrice] = useState<number>(500);
-  const [maxPrice, setMaxPrice] = useState<number>(6000);
+  const [maxPrice, setMaxPrice] = useState<number>(10000); 
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [minRating, setMinRating] = useState<number>(0);
-  const [roomsCount, setRoomsCount] = useState<number>(1);
+  
+  const [openAmenityCategory, setOpenAmenityCategory] = useState<string | null>('bathroom');
 
-  // Сортування (Figma Frame 341)
   const [sortBy, setSortBy] = useState('recommended');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-
-  // Модалки та поповери
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showGuestsPicker, setShowGuestsPicker] = useState(false);
-  const [showMapModal, setShowMapModal] = useState(false);
-
-  // Стейт вибору гостей
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
-
-  // Стейт вибору дат
-  const [startDate, setStartDate] = useState<number>(12);
-  const [endDate, setEndDate] = useState<number>(18);
-  const [activeMonth, setActiveMonth] = useState<'dec' | 'jan'>('dec');
 
   const sortOptions = [
     { id: 'recommended', label: 'Рекомендовані' },
@@ -101,27 +124,13 @@ export const RoutesCatalog: React.FC = () => {
 
   const handleResetFilters = () => {
     setMinPrice(500);
-    setMaxPrice(6000);
+    setMaxPrice(10000);
     setSelectedTypes([]);
     setSelectedAmenities([]);
     setMinRating(0);
-    setRoomsCount(1);
     setSearch('');
   };
 
-  const handleDateClick = (day: number, month: 'dec' | 'jan') => {
-    setActiveMonth(month);
-    if (!startDate || (startDate && endDate)) {
-      setStartDate(day);
-      setEndDate(day);
-    } else if (day >= startDate) {
-      setEndDate(day);
-    } else {
-      setStartDate(day);
-    }
-  };
-
-  // Фільтрація
   const filteredRoutes = useMemo(() => {
     return routes.filter((r) => {
       const query = search.toLowerCase();
@@ -132,22 +141,45 @@ export const RoutesCatalog: React.FC = () => {
 
       const p = r.price || 0;
       const matchesPrice = p >= minPrice && p <= maxPrice;
+      
       const matchesType =
-        selectedTypes.length === 0 || (r.categoryId && selectedTypes.includes(r.categoryId));
+        selectedTypes.length === 0 || 
+        selectedTypes.includes(r.categoryId || '') || 
+        selectedTypes.some(selectedId => {
+           const typeObj = PROPERTY_TYPES.find(pt => pt.id === selectedId);
+           return typeObj && r.categoryName === typeObj.label;
+        });
+      
       const matchesRating = minRating === 0 || (r.averageRating || 0) >= minRating;
 
-      return matchesSearch && matchesPrice && matchesType && matchesRating;
+      let matchesAmenities = true;
+      if (selectedAmenities.length > 0) {
+        let routeAmenities: string[] = [];
+        if (Array.isArray(r.amenities)) {
+           routeAmenities = r.amenities;
+        } else if (typeof r.amenities === 'string') {
+            try { routeAmenities = JSON.parse(r.amenities); } 
+            catch { routeAmenities = (r.amenities as any).split(',').map((a: string) => a.trim()); }
+        }
+        matchesAmenities = selectedAmenities.every(a => routeAmenities.includes(a));
+      }
+
+      return matchesSearch && matchesPrice && matchesType && matchesRating && matchesAmenities;
+    }).sort((a, b) => {
+        if (sortBy === 'price_asc') return (a.price || 0) - (b.price || 0);
+        if (sortBy === 'price_desc') return (b.price || 0) - (a.price || 0);
+        if (sortBy === 'newest') return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        if (sortBy === 'popular') return (b.reviewsCount || 0) - (a.reviewsCount || 0);
+        return 0; 
     });
-  }, [routes, search, minPrice, maxPrice, selectedTypes, minRating]);
+  }, [routes, search, minPrice, maxPrice, selectedTypes, minRating, selectedAmenities, sortBy]);
 
   return (
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif", position: 'relative', overflow: 'hidden' }}>
       
-      {/* 1. ВЕРХНІЙ ПОШУКОВИЙ БАР (FIGMA) */}
       <div style={searchBarSectionStyle}>
         <div style={searchBarContainerStyle}>
-          {/* Поле 1: Напрямок */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1.2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
             <SearchIcon />
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <span style={searchLabelStyle}>{t('destination')}</span>
@@ -160,293 +192,20 @@ export const RoutesCatalog: React.FC = () => {
               />
             </div>
           </div>
-
-          <div style={verticalDividerStyle} />
-
-          {/* Поле 2: Дати (клікабельно -> відкриває календар) */}
-          <div
-            style={{ display: 'flex', flexDirection: 'column', flex: 1, cursor: 'pointer', position: 'relative' }}
-            onClick={() => {
-              setShowDatePicker(!showDatePicker);
-              setShowGuestsPicker(false);
-            }}
-          >
-            <span style={searchLabelStyle}>{t('dates')}</span>
-            <span style={searchValueStyle}>
-              {startDate} – {endDate} {activeMonth === 'dec' ? 'грудня' : 'січня'}
-            </span>
-
-            {/* ПОПОВЕР КАЛЕНДАРЯ (FIGMA ДАТИ ПОЇЗДКИ) */}
-            {showDatePicker && (
-              <div
-                style={datePickerPopoverStyle}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B', marginBottom: '16px' }}>
-                  Дати поїздки
-                </div>
-
-                <div style={doubleCalendarBoxStyle}>
-                  {/* Місяць 1: Грудень 2026 */}
-                  <div style={{ flex: 1 }}>
-                    <div style={calendarMonthTitleStyle}>Грудень 2026</div>
-                    <div style={weekHeaderStyle}>
-                      {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((d) => (
-                        <div key={d} style={{ flex: 1, textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
-                          {d}
-                        </div>
-                      ))}
-                    </div>
-                    <div style={daysGridStyle}>
-                      {/* Порожні дні до 1 грудня (вівторок) */}
-                      <div style={{ height: '34px' }} />
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                        const isSelected = day === startDate || day === endDate;
-                        const inRange = day > startDate && day < endDate;
-                        return (
-                          <button
-                            key={day}
-                            onClick={() => handleDateClick(day, 'dec')}
-                            style={{
-                              ...daySquareStyle,
-                              backgroundColor: isSelected ? '#DC9666' : inRange ? 'rgba(220, 150, 102, 0.15)' : 'white',
-                              color: isSelected ? 'white' : inRange ? '#DC9666' : '#6E473B',
-                              fontWeight: isSelected || inRange ? 700 : 500,
-                            }}
-                          >
-                            {day}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Місяць 2: Січень 2027 */}
-                  <div style={{ flex: 1 }}>
-                    <div style={calendarMonthTitleStyle}>Січень 2027</div>
-                    <div style={weekHeaderStyle}>
-                      {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((d) => (
-                        <div key={d} style={{ flex: 1, textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#6E473B' }}>
-                          {d}
-                        </div>
-                      ))}
-                    </div>
-                    <div style={daysGridStyle}>
-                      {/* Порожні дні до 1 січня (п'ятниця) */}
-                      <div style={{ height: '34px' }} />
-                      <div style={{ height: '34px' }} />
-                      <div style={{ height: '34px' }} />
-                      <div style={{ height: '34px' }} />
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                        <button
-                          key={day}
-                          onClick={() => handleDateClick(day, 'jan')}
-                          style={daySquareStyle}
-                        >
-                          {day}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  style={saveActionBtnStyle}
-                  onClick={() => setShowDatePicker(false)}
-                >
-                  Зберегти
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div style={verticalDividerStyle} />
-
-          {/* Поле 3: Гості (клікабельно -> відкриває степпери людей) */}
-          <div
-            style={{ display: 'flex', flexDirection: 'column', flex: 1, cursor: 'pointer', position: 'relative' }}
-            onClick={() => {
-              setShowGuestsPicker(!showGuestsPicker);
-              setShowDatePicker(false);
-            }}
-          >
-            <span style={searchLabelStyle}>{t('guests')}</span>
-            <span style={searchValueStyle}>
-              {adults + children} гостя {infants > 0 ? `(${infants} нем.)` : ''}
-            </span>
-
-            {/* ПОПОВЕР КІЛЬКОСТІ ЛЮДЕЙ (FIGMA) */}
-            {showGuestsPicker && (
-              <div
-                style={guestsPickerPopoverStyle}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#6E473B', marginBottom: '8px' }}>
-                  Кількість людей
-                </div>
-                <hr style={filterDividerStyle} />
-
-                {/* Дорослі */}
-                <div style={stepperRowStyle}>
-                  <div>
-                    <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>Дорослі</div>
-                    <div style={{ color: '#6E473B', fontSize: '12px' }}>Вік 13+</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <button
-                      style={circleMinusBtnStyle}
-                      onClick={() => setAdults(Math.max(1, adults - 1))}
-                    >
-                      -
-                    </button>
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{adults}</span>
-                    <button
-                      style={circlePlusBtnStyle}
-                      onClick={() => setAdults(adults + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <hr style={filterDividerStyle} />
-
-                {/* Діти */}
-                <div style={stepperRowStyle}>
-                  <div>
-                    <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>Діти</div>
-                    <div style={{ color: '#6E473B', fontSize: '12px' }}>Вік 2–12</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <button
-                      style={circleMinusBtnStyle}
-                      onClick={() => setChildren(Math.max(0, children - 1))}
-                    >
-                      -
-                    </button>
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{children}</span>
-                    <button
-                      style={circlePlusBtnStyle}
-                      onClick={() => setChildren(children + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <hr style={filterDividerStyle} />
-
-                {/* Немовлята */}
-                <div style={stepperRowStyle}>
-                  <div>
-                    <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700 }}>Немовлята</div>
-                    <div style={{ color: '#6E473B', fontSize: '12px' }}>До 2 років</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <button
-                      style={circleMinusBtnStyle}
-                      onClick={() => setInfants(Math.max(0, infants - 1))}
-                    >
-                      -
-                    </button>
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{infants}</span>
-                    <button
-                      style={circlePlusBtnStyle}
-                      onClick={() => setInfants(infants + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <hr style={filterDividerStyle} />
-
-                <button
-                  style={saveActionBtnStyle}
-                  onClick={() => setShowGuestsPicker(false)}
-                >
-                  Зберегти
-                </button>
-              </div>
-            )}
-          </div>
-
-          <button style={searchSubmitBtnStyle}>
-            <ArrowRightIcon />
-          </button>
         </div>
 
-        {/* Кнопка "Показати мапу" */}
-        <button style={mapToggleBtnStyle} onClick={() => setShowMapModal(true)}>
+        <button style={mapToggleBtnStyle}>
           <MapPinIcon color="#DC9666" size={16} />
           <span>{t('showMap')}</span>
         </button>
       </div>
 
-      {/* 2. МОДАЛЬНЕ ВІКНО КАРТИ (FIGMA MAP-CARD) */}
-      {showMapModal && (
-        <div style={modalBackdropStyle} onClick={() => setShowMapModal(false)}>
-          <div style={mapCardModalStyle} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div style={{ color: '#291C0E', fontSize: '30px', fontWeight: 700 }}>Карта</div>
-              
-              {/* Пошук на карті */}
-              <div style={mapSearchBoxStyle}>
-                <MapPinIcon color="#6E473B" size={18} />
-                <input
-                  type="text"
-                  placeholder="Введіть локацію..."
-                  style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: '15px', color: '#6E473B' }}
-                />
-              </div>
-
-              {/* Червона кнопка закриття як у Figma */}
-              <button style={closeRedBtnStyle} onClick={() => setShowMapModal(false)}>
-                ✕
-              </button>
-            </div>
-
-            {/* В'юпорт карти з пінами */}
-            <div style={mapViewportStyle}>
-              {/* Фонова карта */}
-              <div style={mapCanvasStyle}>
-                {/* Піни садиб */}
-                <div style={{ ...mapPinIconWrapperStyle, left: '20%', top: '35%' }}>
-                  <MapPinIcon color="#FFFFFF" size={18} />
-                </div>
-                <div style={{ ...mapLocationChipStyle, left: '12%', top: '44%' }}>
-                  <MapPinIcon color="#A78D78" size={14} />
-                  <span>Яремче, Івано-Франківська обл.</span>
-                </div>
-
-                <div style={{ ...mapPinIconWrapperStyle, left: '55%', top: '25%' }}>
-                  <MapPinIcon color="#FFFFFF" size={18} />
-                </div>
-                <div style={{ ...mapLocationChipStyle, left: '46%', top: '34%' }}>
-                  <MapPinIcon color="#A78D78" size={14} />
-                  <span>Верховина, Карпати</span>
-                </div>
-
-                <div style={{ ...mapPinIconWrapperStyle, left: '78%', top: '60%' }}>
-                  <MapPinIcon color="#FFFFFF" size={18} />
-                </div>
-                <div style={{ ...mapLocationChipStyle, left: '70%', top: '70%' }}>
-                  <MapPinIcon color="#A78D78" size={14} />
-                  <span>Синевирська Поляна, Закарпаття</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ДЕКОРАТИВНА ЛІНІЯ НА ФОНІ (ТІЛЬКИ ДЛЯ КРАСИ, ПІД КОНТЕНТОМ) */}
       <img
         src={Line4}
         alt="Background Line"
         style={{
           position: 'absolute',
-          top: '-40px',
+          top: '120px',
           left: '30px',
           width: '70vw',
           opacity: 0.8,
@@ -455,10 +214,8 @@ export const RoutesCatalog: React.FC = () => {
         }}
       />
 
-      {/* 3. ГОЛОВНА СІТКА: ФІЛЬТРИ + СПИСОК ЖИТЛА */}
       <div style={mainGridContainerStyle}>
         
-        {/* ЛІВА КОЛОНКА: ФІЛЬТРИ */}
         <aside style={sidebarFiltersStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#6E473B', margin: 0 }}>{t('filters')}</h2>
@@ -469,7 +226,6 @@ export const RoutesCatalog: React.FC = () => {
 
           <hr style={filterDividerStyle} />
 
-          {/* Ціна */}
           <div>
             <span style={filterSectionTitleStyle}>{t('pricePerNight')}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
@@ -488,7 +244,7 @@ export const RoutesCatalog: React.FC = () => {
               <input
                 type="range"
                 min={500}
-                max={10000}
+                max={15000}
                 step={100}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -499,16 +255,12 @@ export const RoutesCatalog: React.FC = () => {
 
           <hr style={filterDividerStyle} />
 
-          {/* Тип помешкання */}
           <div>
             <span style={filterSectionTitleStyle}>{t('propertyType')}</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
-              {[
-                { id: 'chalet', label: 'Шале та котеджі', count: 15 },
-                { id: 'glamping', label: 'Купольні глемпінги', count: 8 },
-                { id: 'trail', label: 'Піші маршрути', count: 6 },
-              ].map((item) => {
+              {PROPERTY_TYPES.map((item) => {
                 const checked = selectedTypes.includes(item.id);
+                const count = routes.filter(r => r.categoryId === item.id || r.categoryName === item.label).length;
                 return (
                   <label key={item.id} style={checkboxRowStyle} onClick={() => toggleType(item.id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -517,7 +269,7 @@ export const RoutesCatalog: React.FC = () => {
                       </div>
                       <span style={{ fontSize: '14px', color: '#291C0E' }}>{item.label}</span>
                     </div>
-                    <span style={{ fontSize: '12px', color: '#6E473B', fontWeight: 700 }}>{item.count}</span>
+                    <span style={{ fontSize: '12px', color: '#6E473B', fontWeight: 700 }}>{count}</span>
                   </label>
                 );
               })}
@@ -526,35 +278,47 @@ export const RoutesCatalog: React.FC = () => {
 
           <hr style={filterDividerStyle} />
 
-          {/* Зручності */}
           <div>
             <span style={filterSectionTitleStyle}>{t('amenities')}</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '14px' }}>
-              {[
-                { id: 'chan', label: 'Еко-чан / Гаряча бочка', count: 19 },
-                { id: 'kitchen', label: 'Власна кухня', count: 31 },
-                { id: 'sauna', label: 'Баня / Сауна на дровах', count: 14 },
-                { id: 'terrace', label: 'Панорамна тераса', count: 28 },
-              ].map((item) => {
-                const checked = selectedAmenities.includes(item.id);
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '14px' }}>
+              {AMENITY_CATEGORIES.map((category) => {
+                const isOpen = openAmenityCategory === category.id;
+                
                 return (
-                  <label key={item.id} style={checkboxRowStyle} onClick={() => toggleAmenity(item.id)}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ ...customCheckboxStyle, borderColor: checked ? '#DC9666' : '#A78D78', backgroundColor: checked ? '#DC9666' : 'white' }}>
-                        {checked && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
-                      </div>
-                      <span style={{ fontSize: '14px', color: '#291C0E' }}>{item.label}</span>
+                  <div key={category.id} style={{ border: '1px solid #E1D4C2', borderRadius: '12px', overflow: 'hidden' }}>
+                    <div 
+                      onClick={() => setOpenAmenityCategory(isOpen ? null : category.id)}
+                      style={{ padding: '12px 14px', backgroundColor: isOpen ? '#F4ECE4' : '#FFFFFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                    >
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#6E473B' }}>{category.title}</span>
+                      <ChevronDownIcon isOpen={isOpen} />
                     </div>
-                    <span style={{ fontSize: '12px', color: '#6E473B', fontWeight: 700 }}>{item.count}</span>
-                  </label>
-                );
+                    
+                    {isOpen && (
+                      <div style={{ padding: '12px 14px', backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {category.items.map((amenity) => {
+                           const checked = selectedAmenities.includes(amenity);
+                           return (
+                              <label key={amenity} style={checkboxRowStyle} onClick={() => toggleAmenity(amenity)}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <div style={{ ...customCheckboxStyle, width: '16px', height: '16px', borderRadius: '4px', borderColor: checked ? '#DC9666' : '#BEB5A9', backgroundColor: checked ? '#DC9666' : 'white' }}>
+                                    {checked && <span style={{ color: 'white', fontSize: '10px' }}>✓</span>}
+                                  </div>
+                                  <span style={{ fontSize: '13px', color: '#291C0E' }}>{amenity}</span>
+                                </div>
+                              </label>
+                           )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
               })}
             </div>
           </div>
 
           <hr style={filterDividerStyle} />
 
-          {/* Рейтинг */}
           <div>
             <span style={filterSectionTitleStyle}>{t('rating')}</span>
             <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
@@ -578,32 +342,17 @@ export const RoutesCatalog: React.FC = () => {
               })}
             </div>
           </div>
-
-          <hr style={filterDividerStyle} />
-
-          {/* Кімнати */}
-          <div>
-            <span style={filterSectionTitleStyle}>{t('roomsCount')}</span>
-            <div style={counterBoxStyle}>
-              <button style={counterBtnStyle} onClick={() => setRoomsCount(Math.max(1, roomsCount - 1))}>-</button>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B' }}>{roomsCount}</span>
-              <button style={counterBtnStyle} onClick={() => setRoomsCount(roomsCount + 1)}>+</button>
-            </div>
-          </div>
         </aside>
 
-        {/* СПИСОК РЕЗУЛЬТАТІВ */}
-        <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', zIndex: 1 }}>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#6E473B', margin: 0 }}>
                 Знайдено {filteredRoutes.length} варіантів
               </h1>
-              <span style={destinationBadgeStyle}>Карпати · 2026</span>
             </div>
 
-            {/* КАСТОМНИЙ СЕЛЕКТОР СОРТУВАННЯ (FRAME 341) */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '13px', color: '#6E473B' }}>{t('sortBy')}</span>
               
@@ -612,7 +361,7 @@ export const RoutesCatalog: React.FC = () => {
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
               >
                 <span>{currentSortLabel}</span>
-                <ChevronDownIcon />
+                <ChevronDownIcon isOpen={showSortDropdown} />
               </button>
 
               {showSortDropdown && (
@@ -654,12 +403,23 @@ export const RoutesCatalog: React.FC = () => {
               const isFav = favorites.includes(route.id);
               const calculatedTotal = (route.price || 0) * nights;
 
-              // ЛОГІКА ДЛЯ ОБРІЗКИ ТЕГІВ (МАКСИМУМ 4)
-              const allTags = route.amenities && route.amenities.length > 0
-                ? route.amenities
-                : ['Еко-чан', 'Власна кухня', 'Гірський вид', 'Wi-Fi', 'Тераса', 'Мангал'];
+              let parsedAmenities: string[] = [];
+              if (Array.isArray(route.amenities) && route.amenities.length > 0) {
+                parsedAmenities = route.amenities;
+              } else if (typeof route.amenities === 'string') {
+                try {
+                  parsedAmenities = JSON.parse(route.amenities);
+                } catch {
+                  parsedAmenities = (route.amenities as any).split(',').map((a: string) => a.trim()).filter((a: string) => a);
+                }
+              }
+
+              const allTags = parsedAmenities.length > 0 ? parsedAmenities : ['Базові зручності', 'Wi-Fi'];
               const visibleTags = allTags.slice(0, 4);
               const extraTagsCount = allTags.length - 4;
+
+              const realRating = route.averageRating && route.averageRating > 0 ? route.averageRating.toFixed(1) : "0.0";
+              const realReviewsCount = route.reviewsCount || 0;
 
               return (
                 <div key={route.id} style={propertyCardStyle}>
@@ -685,9 +445,11 @@ export const RoutesCatalog: React.FC = () => {
                         <div style={ratingBadgeStyle}>
                           <StarIcon size={14} fill="#DC9666" />
                           <span style={{ fontSize: '13px', fontWeight: 700, color: '#DC9666' }}>
-                            {route.averageRating || 4.9}
+                            {realRating}
                           </span>
-                          <span style={{ fontSize: '11px', color: '#A78D78' }}>({route.reviewsCount || 12})</span>
+                          {realReviewsCount > 0 && (
+                            <span style={{ fontSize: '11px', color: '#A78D78' }}>({realReviewsCount})</span>
+                          )}
                         </div>
                       </div>
 
@@ -695,7 +457,6 @@ export const RoutesCatalog: React.FC = () => {
                         {route.description}
                       </p>
 
-                      {/* ВИВЕДЕННЯ ОБРІЗАНИХ ТЕГІВ */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {visibleTags.map((tag) => (
                           <span key={tag} style={amenityChipStyle}>
@@ -726,7 +487,10 @@ export const RoutesCatalog: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
                           style={favoriteBtnStyle}
-                          onClick={() => toggleFavorite(route.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(route.id);
+                          }}
                           title="В обране"
                         >
                           <HeartIcon filled={isFav} />
@@ -750,8 +514,6 @@ export const RoutesCatalog: React.FC = () => {
     </div>
   );
 };
-
-// ======================= СТИЛІ FIGMA =======================
 
 const searchBarSectionStyle: React.CSSProperties = {
   width: '100%',
@@ -788,12 +550,6 @@ const searchLabelStyle: React.CSSProperties = {
   letterSpacing: '0.05em',
 };
 
-const searchValueStyle: React.CSSProperties = {
-  color: '#A78D78',
-  fontSize: '15px',
-  fontWeight: 700,
-};
-
 const searchInputStyle: React.CSSProperties = {
   border: 'none',
   outline: 'none',
@@ -805,29 +561,11 @@ const searchInputStyle: React.CSSProperties = {
   width: '100%',
 };
 
-const verticalDividerStyle: React.CSSProperties = {
-  width: '1px',
-  height: '32px',
-  backgroundColor: '#D7C7B1',
-};
-
-const searchSubmitBtnStyle: React.CSSProperties = {
-  width: '42px',
-  height: '42px',
-  backgroundColor: '#DC9666',
-  borderRadius: '8px',
-  border: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-};
-
 const mapToggleBtnStyle: React.CSSProperties = {
   padding: '12px 20px',
   borderRadius: '10px',
   border: '1.5px solid #DC9666',
-  backgroundColor: '#FFFFFF', // додано білий фон, щоб не зливалося
+  backgroundColor: '#FFFFFF',
   color: '#DC9666',
   fontSize: '14px',
   fontWeight: 700,
@@ -835,215 +573,6 @@ const mapToggleBtnStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '10px',
   cursor: 'pointer',
-};
-
-const datePickerPopoverStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '56px',
-  left: '-60px',
-  width: '580px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  padding: '24px',
-  boxShadow: '0px 10px 30px rgba(41, 28, 14, 0.12)',
-  zIndex: 100,
-};
-
-const doubleCalendarBoxStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: '24px',
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  padding: '16px',
-};
-
-const calendarMonthTitleStyle: React.CSSProperties = {
-  color: '#6E473B',
-  fontSize: '15px',
-  fontWeight: 700,
-  marginBottom: '12px',
-};
-
-const weekHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  marginBottom: '8px',
-};
-
-const daysGridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(7, 1fr)',
-  gap: '2px',
-};
-
-const daySquareStyle: React.CSSProperties = {
-  height: '34px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  background: 'transparent',
-  fontSize: '13px',
-};
-
-const saveActionBtnStyle: React.CSSProperties = {
-  width: '100%',
-  height: '42px',
-  backgroundColor: '#DC9666',
-  color: 'white',
-  border: 'none',
-  borderRadius: '8px',
-  fontSize: '15px',
-  fontWeight: 700,
-  marginTop: '16px',
-  cursor: 'pointer',
-};
-
-const guestsPickerPopoverStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '56px',
-  right: '0',
-  width: '320px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '16px',
-  border: '1px solid #D7C7B1',
-  padding: '20px',
-  boxShadow: '0px 10px 30px rgba(41, 28, 14, 0.12)',
-  zIndex: 100,
-};
-
-const stepperRowStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '10px 0',
-};
-
-const circleMinusBtnStyle: React.CSSProperties = {
-  width: '34px',
-  height: '34px',
-  borderRadius: '50%',
-  border: '1px solid #D7C7B1',
-  backgroundColor: 'white',
-  color: '#6E473B',
-  fontSize: '18px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const circlePlusBtnStyle: React.CSSProperties = {
-  width: '34px',
-  height: '34px',
-  borderRadius: '50%',
-  border: 'none',
-  backgroundColor: '#DC9666',
-  color: 'white',
-  fontSize: '18px',
-  fontWeight: 700,
-  cursor: 'pointer',
-};
-
-const modalBackdropStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(41, 28, 14, 0.45)',
-  backdropFilter: 'blur(4px)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-  padding: '20px',
-};
-
-const mapCardModalStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '1240px',
-  backgroundColor: '#FFFFFF',
-  borderRadius: '24px',
-  border: '1px solid #D7C7B1',
-  padding: '24px',
-  boxShadow: '0px 12px 36px rgba(0, 0, 0, 0.12)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
-};
-
-const mapSearchBoxStyle: React.CSSProperties = {
-  width: '420px',
-  height: '48px',
-  borderRadius: '20px',
-  border: '1px solid #D7C7B1',
-  display: 'flex',
-  alignItems: 'center',
-  padding: '0 16px',
-  gap: '10px',
-};
-
-const closeRedBtnStyle: React.CSSProperties = {
-  width: '40px',
-  height: '40px',
-  backgroundColor: '#C62828',
-  borderRadius: '50%',
-  color: 'white',
-  border: 'none',
-  fontSize: '16px',
-  fontWeight: 700,
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const mapViewportStyle: React.CSSProperties = {
-  width: '100%',
-  height: '460px',
-  borderRadius: '20px',
-  overflow: 'hidden',
-  border: '1px solid #D7C7B1',
-  position: 'relative',
-};
-
-const mapCanvasStyle: React.CSSProperties = {
-  width: '100%',
-  height: '100%',
-  backgroundColor: '#EAE5DB',
-  backgroundImage: 'radial-gradient(#D7C7B1 1px, transparent 1px)',
-  backgroundSize: '20px 20px',
-  position: 'relative',
-};
-
-const mapPinIconWrapperStyle: React.CSSProperties = {
-  position: 'absolute',
-  width: '34px',
-  height: '34px',
-  backgroundColor: '#DC9666',
-  borderRadius: '50%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  boxShadow: '0px 6px 14px rgba(0, 0, 0, 0.15)',
-  cursor: 'pointer',
-};
-
-const mapLocationChipStyle: React.CSSProperties = {
-  position: 'absolute',
-  backgroundColor: 'rgba(255, 255, 255, 0.92)',
-  borderRadius: '20px',
-  border: '1px solid #D7C7B1',
-  padding: '6px 14px',
-  fontSize: '12px',
-  fontWeight: 700,
-  color: '#A78D78',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
 };
 
 const customSortTriggerStyle: React.CSSProperties = {
@@ -1185,40 +714,6 @@ const ratingPillStyle: React.CSSProperties = {
   fontWeight: 700,
   fontSize: '13px',
   cursor: 'pointer',
-};
-
-const counterBoxStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  border: '1px solid #D7C7B1',
-  borderRadius: '8px',
-  padding: '6px 8px',
-  marginTop: '12px',
-};
-
-const counterBtnStyle: React.CSSProperties = {
-  width: '32px',
-  height: '32px',
-  backgroundColor: '#DC9666',
-  color: 'white',
-  border: 'none',
-  borderRadius: '6px',
-  fontSize: '18px',
-  fontWeight: 700,
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const destinationBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#DC9666',
-  color: 'white',
-  padding: '6px 12px',
-  borderRadius: '20px',
-  fontSize: '12px',
-  fontWeight: 700,
 };
 
 const propertyCardStyle: React.CSSProperties = {

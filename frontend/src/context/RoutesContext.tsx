@@ -1,4 +1,3 @@
-// src/context/RoutesContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { syncService } from '../services/sync.service';
 import { routesApi, favoriteApi } from '../services/api.service';
@@ -11,7 +10,7 @@ interface RoutesContextType {
   bookings: Booking[];
   loading: boolean;
   addRoute: (route: RouteItem) => Promise<void>;
-  deleteRoute: (routeId: string) => Promise<void>; // <--- ДОДАЙТЕ ЦЕЙ РЯДОК
+  deleteRoute: (routeId: string) => Promise<void>;
   toggleFavorite: (routeId: string) => Promise<void>;
   addBooking: (booking: Booking) => void;
   refreshRoutes: (searchQuery?: string, forceRefresh?: boolean) => Promise<void>;
@@ -25,7 +24,7 @@ export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [bookings, setBookings] = useState<Booking[]>(() => storage.bookings.get());
   const [loading, setLoading] = useState(false);
 
-  const refreshRoutes = async (searchQuery = '', forceRefresh = false) => {
+  const refreshRoutes = async (searchQuery = '', forceRefresh = true) => {
     setLoading(true);
     try {
       const syncedRoutes = await syncService.syncRoutes(
@@ -34,7 +33,6 @@ export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       );
       setRoutes(syncedRoutes);
 
-      // Фоново підтягуємо обране
       const syncedFavs = await syncService.syncFavorites(forceRefresh);
       setFavorites(syncedFavs);
     } finally {
@@ -43,7 +41,16 @@ export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    refreshRoutes();
+    refreshRoutes('', true);
+
+    const handleFocus = () => {
+      refreshRoutes('', true);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const addRoute = async (newRoute: RouteItem) => {
@@ -60,32 +67,25 @@ export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         imageUrls: newRoute.imageUrls,
         amenities: newRoute.amenities,
       });
-      // Скидаємо кеш маршрутів, щоб підтягнути оновлені з сервера
       syncService.invalidate('routes_');
+      await refreshRoutes('', true);
     } catch (e) {
-      console.warn('Маршрут збережено локально:', e);
+      console.warn('Error saving route to server:', e);
     }
   };
 
-  // ================= ОСЬ ТУТ ДОДАЄТЬСЯ deleteRoute =================
   const deleteRoute = async (routeId: string) => {
-    // 1. Миттєво видаляємо зі стейту React (щоб на Головній і в Каталозі зникло без F5)
     setRoutes((prev) => prev.filter((r) => String(r.id) !== String(routeId)));
-
-    // 2. Видаляємо з localStorage
     storage.routes.removeCustom(routeId);
-
-    // 3. Скидаємо кеш
     syncService.invalidate('routes_');
 
-    // 4. Відправляємо запит на видалення в базу даних C#
     try {
       await routesApi.delete(routeId);
+      await refreshRoutes('', true);
     } catch (e) {
-      console.warn('Помилка видалення на сервері:', e);
+      console.warn('Error deleting route from server:', e);
     }
   };
-  // =================================================================
 
   const toggleFavorite = async (routeId: string) => {
     const nextFavs = storage.favorites.toggle(routeId);
@@ -95,7 +95,7 @@ export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await favoriteApi.toggle(routeId);
       syncService.invalidate('user_favorites');
     } catch (e) {
-      console.warn('Обране збережено локально:', e);
+      console.warn('Error toggling favorite on server:', e);
     }
   };
 
@@ -112,7 +112,7 @@ export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         bookings,
         loading,
         addRoute,
-        deleteRoute, // <--- І ОСЬ ТУТ ПЕРЕДАЄМО ЇЇ В КОНТЕКСТ
+        deleteRoute,
         toggleFavorite,
         addBooking,
         refreshRoutes,

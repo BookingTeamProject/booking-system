@@ -10,6 +10,7 @@ public class Route : BaseEntity
     public string Location { get; set; } = string.Empty; // Например: "Карпаты, Яремче"
     public decimal? Price { get; set; }                  // Цена (если это платный тур или аренда)
     public int ViewsCount { get; set; } = 0;
+    public List<string>? Amenities { get; set; }
 
     // Связь с автором (Арендодателем)
     public Guid AuthorId { get; set; }

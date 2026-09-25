@@ -1,4 +1,3 @@
-// src/components/menu/tabs/MenuMessagesTab.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import api from '../../../api/axios';
@@ -25,12 +24,10 @@ export const MenuMessagesTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChatId, setSelectedChatId] = useState<string | null>('c1');
 
-  // Використовуємо chats з mockData та оновлюємо його
   const [chats, setChats] = useState<ChatDialogItem[]>(MOCK_CHAT_DIALOGS);
   const [chatMessages, setChatMessages] = useState<MessageItem[]>([]);
   const [messageInput, setMessageInput] = useState('');
 
-  // Завантаження повідомлень для активного чату
   useEffect(() => {
     if (!selectedChatId) return;
 
@@ -42,7 +39,6 @@ export const MenuMessagesTab: React.FC = () => {
           return;
         }
       } catch {
-        // Якщо сервер ще не запустив чат, беремо локальні повідомлення
       }
 
       const local = storage.chat.get();
@@ -79,7 +75,6 @@ export const MenuMessagesTab: React.FC = () => {
     loadMessages();
   }, [selectedChatId]);
 
-  // Фільтрація чатів через стан chats
   const filteredChats = chats.filter((c) => {
     const matchesFolder = c.folder === activeFolder;
     const matchesQuery =
@@ -90,7 +85,6 @@ export const MenuMessagesTab: React.FC = () => {
 
   const activeChat = chats.find((c) => c.id === selectedChatId);
 
-  // Відправка повідомлення
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!messageInput.trim()) return;
@@ -108,7 +102,6 @@ export const MenuMessagesTab: React.FC = () => {
 
     setChatMessages((prev) => [...prev, newMsgObj]);
 
-    // Оновлюємо останнє повідомлення у списку діалогів
     setChats((prev) =>
       prev.map((c) => (c.id === selectedChatId ? { ...c, lastMessage: textToSend, time: 'Зараз' } : c))
     );
@@ -161,11 +154,9 @@ export const MenuMessagesTab: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      {/* ЛІВА ПАНЕЛЬ: СПИСОК ЧАТІВ */}
       <div style={styles.chatListSidebar}>
         <h1 style={styles.headerTitleAlegreya}>Повідомлення</h1>
 
-        {/* Пошук */}
         <div style={styles.searchBox}>
           <SearchIcon />
           <input
@@ -177,7 +168,6 @@ export const MenuMessagesTab: React.FC = () => {
           />
         </div>
 
-        {/* 4 Вкладки папок */}
         <div style={styles.folderTabsRow}>
           {(['main', 'requests', 'spam', 'blacklist'] as const).map((folderKey) => {
             const labels: Record<MessageFolder, string> = {
@@ -203,7 +193,6 @@ export const MenuMessagesTab: React.FC = () => {
           })}
         </div>
 
-        {/* Список діалогів */}
         <div style={styles.dialogsListStack}>
           {filteredChats.length === 0 ? (
             <div style={styles.noChatsMessage}>Немає повідомлень у цій категорії</div>
@@ -249,7 +238,6 @@ export const MenuMessagesTab: React.FC = () => {
         </div>
       </div>
 
-      {/* ПРАВА ПАНЕЛЬ: ВІКНО ЧАТУ */}
       <div style={styles.rightChatWindow}>
         {activeChat ? (
           <div style={styles.activeChatContainer}>
@@ -373,8 +361,6 @@ const SendIcon = () => (
   </svg>
 );
 
-// ======================== СТИЛІ FIGMA ========================
-
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
@@ -479,7 +465,7 @@ const styles: Record<string, React.CSSProperties> = {
   chatAvatar44: {
     width: '44px',
     height: '44px',
-    borderRadius: '22px',
+    borderRadius: '50%',
     objectFit: 'cover',
     flexShrink: 0,
   },
@@ -562,9 +548,11 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
   },
   avatarImg48: {
-    width: '100%',
-    height: '100%',
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
     objectFit: 'cover',
+    flexShrink: 0,
   },
   headerUserTextCol: {
     display: 'flex',

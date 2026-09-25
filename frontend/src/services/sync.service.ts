@@ -85,18 +85,13 @@ class DataSyncService {
         cacheKey,
         async () => {
           const apiRoutes = await routesApi.getAll(params);
-          const custom = storage.routes.getCustom();
-          // Об'єднуємо локально створені об'єкти з бекендом
-          return [...custom, ...apiRoutes.filter((ar) => !custom.some((c) => c.id === ar.id))];
+          return apiRoutes;
         },
-        2 * 60 * 1000, // 2 хвилини TTL
+        2 * 60 * 1000,
         forceRefresh
       );
 
-      // Якщо дані дійсно змінились, оновлюємо резерв у localStorage
-      if (hasChanged && (!params || Object.keys(params).length === 0)) {
-        localStorage.setItem('custom_routes', JSON.stringify(data));
-      }
+      localStorage.removeItem('custom_routes');
 
       return data;
     } catch (err) {

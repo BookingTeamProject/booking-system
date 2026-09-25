@@ -19,4 +19,5 @@ public class CreateRouteDto
     public Guid CategoryId { get; set; }
 
     public List<string> ImageUrls { get; set; } = new();
+    public List<string>? Amenities { get; set; }
 }
