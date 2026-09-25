@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useSettings } from '../../../context/SettingsContext';
@@ -9,6 +9,7 @@ import {
   type HostPropertyItem,
   type HostApplicationItem,
 } from '../../../data/mockData';
+import { routesApi, bookingsApi } from '../../../services/api.service';
 
 type PropertySubTab = 'properties' | 'current' | 'history' | 'blacklist';
 
@@ -17,55 +18,188 @@ export const MenuPropertiesTab: React.FC = () => {
   const { isLandlord } = useAuth();
   const { formatPrice } = useSettings();
 
-  // Вкладки
   const [activeSubTab, setActiveSubTab] = useState<PropertySubTab>('properties');
   const [isCalendarView, setIsCalendarView] = useState(false);
-  const [selectedPropertyForCalendar, setSelectedPropertyForCalendar] = useState<HostPropertyItem | null>(null);
+  const [selectedPropertyForCalendar, setSelectedPropertyForCalendar] = useState<any | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Стан даних
-  const [properties, setProperties] = useState<HostPropertyItem[]>(MOCK_HOST_PROPERTIES);
-  const [applications, setApplications] = useState<HostApplicationItem[]>(MOCK_HOST_APPLICATIONS);
-  const [blacklist, setBlacklist] = useState(MOCK_BLACKLIST_EXTENDED);
+  const [properties, setProperties] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [blacklist, setBlacklist] = useState<any[]>(MOCK_BLACKLIST_EXTENDED);
   const [historyPage, setHistoryPage] = useState(1);
 
-  // Модалка видалення помешкання
-  const [propertyToDelete, setPropertyToDelete] = useState<HostPropertyItem | null>(null);
+  const [propertyToDelete, setPropertyToDelete] = useState<any | null>(null);
   const [confirmDeleteCheckbox, setConfirmDeleteCheckbox] = useState(false);
 
-  // Модалка додавання до чорного списку
   const [isBlacklistModalOpen, setIsBlacklistModalOpen] = useState(false);
   const [blQuery, setBlQuery] = useState('');
   const [blReason, setBlReason] = useState('Нехтування правилами перебування');
   const [blComment, setBlComment] = useState('');
 
-  // Календарні стани
   const [calendarMonth, setCalendarMonth] = useState('Березень 2026');
   const [blockedDays, setBlockedDays] = useState<number[]>([15, 16]);
   const [bookedDays] = useState<number[]>([8, 9, 10]);
   const [selectedDayModal, setSelectedDayModal] = useState<number | null>(null);
   const [minNights, setMinNights] = useState<'2 ночі' | '3 ночі' | 'Без обмежень'>('2 ночі');
 
-  // Дії з заявками
-  const handleAcceptApp = (id: string) => {
-    setApplications((prev) => prev.filter((a) => a.id !== id));
-    alert('✅ Заявку на бронювання підтверджено!');
+  useEffect(() => {
+    if (isLandlord) {
+      const loadDashboardData = async () => {
+        try {
+          const [routesData, bookingsData] = await Promise.all([
+            routesApi.getAll(),
+            bookingsApi.getHostRequests()
+          ]);
+
+          const rawBookings = Array.isArray(bookingsData) ? bookingsData : [];
+
+          const mappedApps = rawBookings
+            .filter((item: any) => {
+              const status = String(item.status || '').toLowerCase().trim();
+              return status === 'pending' || status === 'очікує' || status === '';
+            })
+            .map((item: any) => {
+              let thumb = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80';
+              try {
+                const rawImgs = item.route?.imageUrls || item.route?.images;
+                if (rawImgs) {
+                  if (Array.isArray(rawImgs) && rawImgs.length > 0) {
+                    const first = rawImgs[0];
+                    thumb = typeof first === 'string' ? first : (first.url || first.imageUrl || first.path || thumb);
+                  } else if (typeof rawImgs === 'string') {
+                    if (rawImgs.startsWith('[')) {
+                      const parsed = JSON.parse(rawImgs);
+                      if (Array.isArray(parsed) && parsed.length > 0) thumb = parsed[0];
+                    } else {
+                      thumb = rawImgs;
+                    }
+                  }
+                }
+                if (thumb && !thumb.startsWith('http') && !thumb.startsWith('data:')) {
+                  const baseUrl = import.meta.env.VITE_API_URL || 'https://localhost:7110';
+                  thumb = `${baseUrl}/${thumb}`.replace(/([^:]\/)\/+/g, "$1");
+                }
+              } catch (e) {
+                console.error("Image parse error", e);
+              }
+
+              return {
+                ...item,
+                guestName: item.guest?.firstName ? `${item.guest.firstName} ${item.guest.lastName}` : 'Користувач',
+                propertyThumbnail: thumb,
+                propertyTitle: item.route?.title || 'Помешкання',
+                dates: item.checkIn && item.checkOut 
+                  ? `${new Date(item.checkIn).toLocaleDateString()} - ${new Date(item.checkOut).toLocaleDateString()}` 
+                  : 'Дати не вказані',
+                totalPrice: item.totalPrice || 0
+              };
+            });
+          
+          setApplications(mappedApps);
+
+          const rawRoutes = Array.isArray(routesData) ? routesData : [];
+          const mappedProperties = rawRoutes.map((item: any) => {
+            let thumb = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80';
+            try {
+              const rawImgs = item.imageUrls || item.images;
+              if (rawImgs) {
+                if (Array.isArray(rawImgs) && rawImgs.length > 0) {
+                  const first = rawImgs[0];
+                  thumb = typeof first === 'string' ? first : (first.url || first.imageUrl || first.path || thumb);
+                } else if (typeof rawImgs === 'string') {
+                  if (rawImgs.startsWith('[')) {
+                    const parsed = JSON.parse(rawImgs);
+                    if (Array.isArray(parsed) && parsed.length > 0) thumb = parsed[0];
+                  } else {
+                    thumb = rawImgs;
+                  }
+                }
+              }
+              if (thumb && !thumb.startsWith('http') && !thumb.startsWith('data:')) {
+                const baseUrl = import.meta.env.VITE_API_URL || 'https://localhost:7110';
+                thumb = `${baseUrl}/${thumb}`.replace(/([^:]\/)\/+/g, "$1");
+              }
+            } catch (e) {
+              console.error("Image parse error", e);
+            }
+
+            let calculatedRating = item.rating || 0;
+            let reviewsCount = item.reviewsCount || 0;
+            if (item.reviews && Array.isArray(item.reviews)) {
+                reviewsCount = item.reviews.length;
+                if (reviewsCount > 0) {
+                    const sum = item.reviews.reduce((acc: number, curr: any) => acc + (curr.rating || 0), 0);
+                    calculatedRating = sum / reviewsCount;
+                }
+            }
+
+            const realBookingsCount = rawBookings.filter((b: any) => 
+              b.routeId === item.id || b.route?.id === item.id
+            ).length;
+
+            return {
+              ...item,
+              pricePerNight: item.price || 0,
+              thumbnail: thumb,
+              rating: calculatedRating,
+              reviewsCount: reviewsCount,
+              viewsCount: item.viewsCount || 0,
+              bookingsCount: realBookingsCount,
+              isActive: true
+            };
+          });
+          
+          setProperties(mappedProperties); 
+
+        } catch (error) {
+          console.error("Помилка завантаження даних дашборду:", error);
+        }
+      };
+
+      loadDashboardData();
+    }
+
+  }, [isLandlord, refreshTrigger]);
+
+  const handleAcceptApp = async (id: string) => {
+    try {
+      await bookingsApi.updateStatus(id, 'Approved');
+      setApplications((prev) => prev.filter((a) => String(a.id) !== String(id)));
+      setRefreshTrigger(prev => prev + 1);
+      alert('Заявку на бронювання підтверджено.');
+    } catch (err) {
+      alert('Помилка при підтвердженні. Перевірте з\'єднання.');
+    }
   };
 
-  const handleRejectApp = (id: string) => {
-    setApplications((prev) => prev.filter((a) => a.id !== id));
-    alert('❌ Заявку відхилено.');
+  const handleRejectApp = async (id: string) => {
+    try {
+      await bookingsApi.updateStatus(id, 'Cancelled');
+      setApplications((prev) => prev.filter((a) => String(a.id) !== String(id)));
+      setRefreshTrigger(prev => prev + 1);
+      alert('Заявку відхилено.');
+    } catch (err) {
+      alert('Помилка при відхиленні. Перевірте з\'єднання.');
+    }
   };
 
-  // Видалення житла
-  const handleConfirmDeleteProperty = () => {
-    if (!propertyToDelete || !confirmDeleteCheckbox) return;
-    setProperties((prev) => prev.filter((p) => p.id !== propertyToDelete.id));
-    setPropertyToDelete(null);
+  const handleConfirmDeleteProperty = async () => {
+  if (!propertyToDelete) return;
+  try {
+    await routesApi.delete(propertyToDelete.id); 
+    
+    setProperties(prev => prev.filter(p => p.id !== propertyToDelete.id));
+    setRefreshTrigger(prev => prev + 1); 
+    
     setConfirmDeleteCheckbox(false);
-    alert('🗑️ Помешкання повністю видалено з бази даних TrailsUA!');
-  };
+    setPropertyToDelete(null);
+    
+    alert('Помешкання успішно видалено.');
+  } catch (err) {
+    alert('Помилка при видаленні.');
+  }
+};
 
-  // Додавання до чорного списку
   const handleAddBlacklistSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!blQuery.trim()) return;
@@ -90,9 +224,6 @@ export const MenuPropertiesTab: React.FC = () => {
     alert('Користувача розблоковано.');
   };
 
-  // =========================================================================
-  // СТАН ДЛЯ НЕ-ОРЕНДОДАВЦЯ АБО ЯКЩО НЕМАЄ ЖИТЛА (FIGMA "НІЧОГО НЕ МАЄ")
-  // =========================================================================
   if (!isLandlord || properties.length === 0) {
     return (
       <div style={styles.emptyHostContainer}>
@@ -100,17 +231,11 @@ export const MenuPropertiesTab: React.FC = () => {
           <div style={styles.emptyHostIconCircle}>
             <HouseHeaderIcon />
           </div>
-
           <h2 style={styles.emptyHostTitleAlegreya}>У вас немає зареєстрованих помешкань</h2>
           <p style={styles.emptyHostSubtitle}>
             Ви можете у будь-який час змінити роль та зареєструвати своє нове помешкання, натиснувши кнопку знизу
           </p>
-
-          <button
-            type="button"
-            onClick={() => navigate('/routes/create')}
-            style={styles.btnBecomeHostPrimary}
-          >
+          <button type="button" onClick={() => navigate('/routes/create')} style={styles.btnBecomeHostPrimary}>
             Змінити роль та зареєструвати своє помешкання
           </button>
         </div>
@@ -120,7 +245,6 @@ export const MenuPropertiesTab: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      {/* 1. ШАПКА РОЗДІЛУ З КНОПКОЮ ДОДАВАННЯ АБО ЗБЕРЕЖЕННЯ */}
       <header style={styles.headerRow}>
         <div style={styles.headerTitlesCol}>
           <h1 style={styles.headingTitleAlegreya}>Керування помешканням</h1>
@@ -134,35 +258,22 @@ export const MenuPropertiesTab: React.FC = () => {
         </div>
 
         {isCalendarView ? (
-          <button
-            type="button"
-            onClick={() => alert('✅ Зміни в календарі та тарифах збережено!')}
-            style={styles.btnAddSolid}
-          >
+          <button type="button" onClick={() => alert('Зміни в календарі збережено')} style={styles.btnAddSolid}>
             Зберегти зміни
           </button>
         ) : activeSubTab === 'blacklist' ? (
-          <button
-            type="button"
-            onClick={() => setIsBlacklistModalOpen(true)}
-            style={styles.btnAddSolid}
-          >
+          <button type="button" onClick={() => setIsBlacklistModalOpen(true)} style={styles.btnAddSolid}>
             <PlusIcon />
             <span>Додати до чорного списку</span>
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => navigate('/routes/create')}
-            style={styles.btnAddSolid}
-          >
+          <button type="button" onClick={() => navigate('/routes/create')} style={styles.btnAddSolid}>
             <PlusIcon />
             <span>Додати помешкання</span>
           </button>
         )}
       </header>
 
-      {/* 2. ТАБ-БАР ІЗ 4 ВКЛАДКАМИ З FIGMA (якщо не режим календаря) */}
       {!isCalendarView && (
         <div style={styles.tabsBarContainer}>
           {[
@@ -186,51 +297,29 @@ export const MenuPropertiesTab: React.FC = () => {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* РЕЖИМ: КАЛЕНДАР ЗАЙНЯТОСТІ ТА НАЛАШТУВАННЯ ТАРИФІВ З FIGMA */}
-      {/* ========================================================================= */}
       {isCalendarView ? (
         <div style={styles.calendarModeWrapper}>
-          <button
-            type="button"
-            onClick={() => setIsCalendarView(false)}
-            style={styles.backToControlLink}
-          >
+          <button type="button" onClick={() => setIsCalendarView(false)} style={styles.backToControlLink}>
             <ArrowLeftIcon />
             <span>Повернутися в керування</span>
           </button>
 
           <div style={styles.calendarLayoutGrid}>
-            {/* Ліва частина: Календар */}
             <div style={styles.calendarCard}>
               <div style={styles.monthNavigatorRow}>
                 <div style={styles.monthTitleAlegreya}>{calendarMonth}</div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setCalendarMonth(calendarMonth === 'Березень 2026' ? 'Лютий 2026' : 'Березень 2026')}
-                    style={styles.arrowNavBtn}
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCalendarMonth(calendarMonth === 'Березень 2026' ? 'Квітень 2026' : 'Березень 2026')}
-                    style={styles.arrowNavBtn}
-                  >
-                    ›
-                  </button>
+                  <button type="button" onClick={() => setCalendarMonth(calendarMonth === 'Березень 2026' ? 'Лютий 2026' : 'Березень 2026')} style={styles.arrowNavBtn}>‹</button>
+                  <button type="button" onClick={() => setCalendarMonth(calendarMonth === 'Березень 2026' ? 'Квітень 2026' : 'Березень 2026')} style={styles.arrowNavBtn}>›</button>
                 </div>
               </div>
 
-              {/* Заголовки днів тижня */}
               <div style={styles.daysHeaderGrid}>
                 {['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((d) => (
                   <span key={d} style={styles.dayOfWeekText}>{d}</span>
                 ))}
               </div>
 
-              {/* Сітка днів місяця */}
               <div style={styles.daysCellsGrid}>
                 <div style={styles.cellDayMuted}>23</div>
                 <div style={styles.cellDayMuted}>24</div>
@@ -245,16 +334,8 @@ export const MenuPropertiesTab: React.FC = () => {
                       onClick={() => setSelectedDayModal(day)}
                       style={{
                         ...styles.dayCell,
-                        backgroundColor: isBlocked
-                          ? 'rgba(198, 40, 40, 0.15)'
-                          : isBooked
-                          ? 'rgba(220, 150, 102, 0.15)'
-                          : '#FFFFFF',
-                        border: isBlocked
-                          ? '1px solid #C62828'
-                          : isBooked
-                          ? '1px solid #DC9666'
-                          : '1px solid #D7C7B1',
+                        backgroundColor: isBlocked ? 'rgba(198, 40, 40, 0.15)' : isBooked ? 'rgba(220, 150, 102, 0.15)' : '#FFFFFF',
+                        border: isBlocked ? '1px solid #C62828' : isBooked ? '1px solid #DC9666' : '1px solid #D7C7B1',
                         color: isBlocked ? '#C62828' : isBooked ? '#DC9666' : '#6E473B',
                       }}
                     >
@@ -264,7 +345,6 @@ export const MenuPropertiesTab: React.FC = () => {
                 })}
               </div>
 
-              {/* Легенда кольорів */}
               <div style={styles.legendBar}>
                 <div style={styles.legendItem}>
                   <div style={{ width: '16px', height: '16px', backgroundColor: '#FFFFFF', border: '1px solid #D7C7B1', borderRadius: '4px' }} />
@@ -281,7 +361,6 @@ export const MenuPropertiesTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Права частина: Налаштування тарифів (RatesConfig) */}
             <div style={styles.ratesConfigCol}>
               <div style={styles.pricingPanel}>
                 <h3 style={styles.panelHeadingAlegreya}>Встановити ціни</h3>
@@ -320,23 +399,22 @@ export const MenuPropertiesTab: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* ========================================================================= */}
-          {/* ВКЛАДКА 1: МОЇ ПОМЕШКАННЯ + ЗАЯВКИ НА БРОНЮВАННЯ */}
-          {/* ========================================================================= */}
           {activeSubTab === 'properties' && (
             <div style={styles.tabContentCol}>
-              {/* Сітка карток житла */}
               <div style={styles.propertiesGrid}>
                 {properties.map((prop) => (
                   <div key={prop.id} style={styles.propertyCard}>
                     <div style={styles.cardImageWrapper}>
-                      <img src={prop.thumbnail} alt={prop.title} style={styles.cardThumbnailImg} />
-                      <div
-                        style={{
-                          ...styles.statusBadgeOnImg,
-                          backgroundColor: prop.isActive ? '#2E7D32' : '#DC9666',
+                      <img 
+                        src={prop.thumbnail} 
+                        alt={prop.title} 
+                        style={styles.cardThumbnailImg} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80';
                         }}
-                      >
+                      />
+                      <div style={{ ...styles.statusBadgeOnImg, backgroundColor: prop.isActive ? '#2E7D32' : '#DC9666' }}>
                         {prop.isActive ? 'Активне' : 'Неактивне'}
                       </div>
                     </div>
@@ -357,7 +435,7 @@ export const MenuPropertiesTab: React.FC = () => {
                         </div>
                         <div style={styles.ratingBadge}>
                           <StarIcon />
-                          <span>{prop.rating.toFixed(1)}</span>
+                          <span>{(prop.rating || 0).toFixed(1)}</span>
                         </div>
                       </div>
 
@@ -374,50 +452,26 @@ export const MenuPropertiesTab: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Кнопки дій з житлом */}
                       <div style={styles.cardActionsCol}>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/routes/${prop.id}`)}
-                            style={styles.btnActionOrangeTint}
-                          >
+                          <button type="button" onClick={() => navigate(`/routes/edit/${prop.id}`)} style={styles.btnActionOrangeTint}>
                             Редагувати
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/routes/${prop.id}`)}
-                            style={styles.btnActionOutline}
-                          >
+                          <button type="button" onClick={() => navigate(`/routes/${prop.id}`)} style={styles.btnActionOutline}>
                             Сторінка
                           </button>
                         </div>
 
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedPropertyForCalendar(prop);
-                              setIsCalendarView(true);
-                            }}
-                            style={styles.btnActionOutline}
-                          >
+                          <button type="button" onClick={() => { setSelectedPropertyForCalendar(prop); setIsCalendarView(true); }} style={styles.btnActionOutline}>
                             Календар
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/routes/${prop.id}`)}
-                            style={styles.btnActionOutline}
-                          >
+                          <button type="button" onClick={() => navigate(`/routes/${prop.id}`)} style={styles.btnActionOutline}>
                             Відгуки
                           </button>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => setPropertyToDelete(prop)}
-                          style={styles.btnDeletePropertyRed}
-                        >
+                        <button type="button" onClick={() => setPropertyToDelete(prop)} style={styles.btnDeletePropertyRed}>
                           Видалити помешкання
                         </button>
                       </div>
@@ -426,17 +480,25 @@ export const MenuPropertiesTab: React.FC = () => {
                 ))}
               </div>
 
-              {/* Секція: Заявки на бронювання */}
-              {applications.length > 0 && (
-                <section style={styles.applicationsSection}>
-                  <h2 style={styles.applicationsSectionTitleAlegreya}>Заявки на бронювання</h2>
+              <section style={styles.applicationsSection}>
+                <h2 style={styles.applicationsSectionTitleAlegreya}>Заявки на бронювання</h2>
+                
+                {applications.length > 0 ? (
                   <div style={styles.applicationsList}>
                     {applications.map((app) => (
                       <div key={app.id} style={styles.applicationRow}>
                         <div style={styles.guestInfoGroup}>
-                          <img src={app.guestAvatar} alt="" style={styles.guestAvatarImg} />
+                          <img 
+                            src={properties.find(p => p.title === app.propertyTitle)?.thumbnail || app.propertyThumbnail || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'} 
+                            alt="" 
+                            style={{ width: '84px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} 
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80';
+                            }}
+                          />
                           <div>
-                            <div style={styles.guestNameBold}>{app.guestName}</div>
+                            <div style={styles.guestNameBold}>{app.guestName || 'Гість'}</div>
                             <div style={styles.guestAppForText}>
                               Заявка на <strong style={{ color: '#DC9666' }}>{app.propertyTitle}</strong>
                             </div>
@@ -452,18 +514,10 @@ export const MenuPropertiesTab: React.FC = () => {
                           </div>
 
                           <div style={{ display: 'flex', gap: '12px' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleRejectApp(app.id)}
-                              style={styles.btnRejectRed}
-                            >
+                            <button type="button" onClick={() => handleRejectApp(app.id)} style={styles.btnRejectRed}>
                               Відхилити
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => handleAcceptApp(app.id)}
-                              style={styles.btnAcceptSolid}
-                            >
+                            <button type="button" onClick={() => handleAcceptApp(app.id)} style={styles.btnAcceptSolid}>
                               Підтвердити
                             </button>
                           </div>
@@ -471,62 +525,29 @@ export const MenuPropertiesTab: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                </section>
-              )}
+                ) : (
+                  <div style={{ padding: '30px 20px', color: '#A78D78', fontStyle: 'italic', border: '1px dashed #D7C7B1', borderRadius: '12px', textAlign: 'center', backgroundColor: '#FAFAFA' }}>
+                    Поки що немає нових заявок на бронювання.
+                  </div>
+                )}
+              </section>
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* ВКЛАДКА 2: ПОТОЧНІ БРОНІ (ПОСТІЛЬНІ КАРТКИ З ДІЯМИ ПРИЙНЯТИ / ВІДХИЛИТИ) */}
-          {/* ========================================================================= */}
           {activeSubTab === 'current' && (
             <div style={styles.bookingsStack}>
               {[
-                {
-                  id: 'cb-1',
-                  title: "Шале 'Карпатська Тиша'",
-                  location: 'с. Пилипець, Закарпатська область',
-                  dates: '12 Грудня — 18 Грудня, 2026',
-                  status: 'Підтверджено',
-                  price: 14200,
-                  guestRelation: 'Ви',
-                },
-                {
-                  id: 'cb-2',
-                  title: "Глемпінг 'Затишний Явір'",
-                  location: 'смт. Верховина, Івано-Франківська область',
-                  dates: '23 Грудня — 26 Грудня, 2026',
-                  status: 'Очікує',
-                  price: 5800,
-                  guestRelation: 'Ви',
-                },
-                {
-                  id: 'cb-3',
-                  title: "Котедж 'Nordic Forest'",
-                  location: 'Яремче, Івано-Франківська область',
-                  dates: '30 Грудня — 03 Січня, 2027',
-                  status: 'Підтверджено',
-                  price: 22000,
-                  guestRelation: 'Ви',
-                },
+                { id: 'cb-1', title: "Шале 'Карпатська Тиша'", location: 'с. Пилипець, Закарпатська область', dates: '12 Грудня — 18 Грудня, 2026', status: 'Підтверджено', price: 14200, guestRelation: 'Ви' },
+                { id: 'cb-2', title: "Глемпінг 'Затишний Явір'", location: 'смт. Верховина, Івано-Франківська область', dates: '23 Грудня — 26 Грудня, 2026', status: 'Очікує', price: 5800, guestRelation: 'Ви' },
+                { id: 'cb-3', title: "Котедж 'Nordic Forest'", location: 'Яремче, Івано-Франківська область', dates: '30 Грудня — 03 Січня, 2027', status: 'Підтверджено', price: 22000, guestRelation: 'Ви' },
               ].map((item) => (
                 <div key={item.id} style={styles.bookingRowCard}>
-                  <img
-                    src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80"
-                    alt=""
-                    style={styles.bookingThumb140}
-                  />
+                  <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80" alt="" style={styles.bookingThumb140} />
 
                   <div style={styles.bookingInfoCol}>
                     <h3 style={styles.bookingTitleText}>{item.title}</h3>
-                    <div style={styles.bookingMetaRow}>
-                      <MapPinIcon />
-                      <span>{item.location}</span>
-                    </div>
-                    <div style={styles.bookingMetaRow}>
-                      <CalendarIcon />
-                      <span>{item.dates}</span>
-                    </div>
+                    <div style={styles.bookingMetaRow}><MapPinIcon /><span>{item.location}</span></div>
+                    <div style={styles.bookingMetaRow}><CalendarIcon /><span>{item.dates}</span></div>
                   </div>
 
                   <div style={{ width: '220px' }}>
@@ -535,15 +556,7 @@ export const MenuPropertiesTab: React.FC = () => {
                   </div>
 
                   <div style={{ width: '140px' }}>
-                    <span
-                      style={
-                        item.status === 'Підтверджено'
-                          ? styles.statusBadgeConfirmed
-                          : styles.statusBadgePending
-                      }
-                    >
-                      {item.status}
-                    </span>
+                    <span style={item.status === 'Підтверджено' ? styles.statusBadgeConfirmed : styles.statusBadgePending}>{item.status}</span>
                   </div>
 
                   <div style={styles.bookingPriceCol}>
@@ -552,40 +565,16 @@ export const MenuPropertiesTab: React.FC = () => {
                   </div>
 
                   <div style={styles.bookingActionsCol}>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/menu?tab=messages')}
-                      style={styles.btnContactClientSolid}
-                    >
-                      <MessageSquareIcon />
-                      <span>Написати клієнту</span>
+                    <button type="button" onClick={() => navigate('/menu?tab=messages')} style={styles.btnContactClientSolid}>
+                      <MessageSquareIcon /><span>Написати клієнту</span>
                     </button>
-
                     {item.status === 'Очікує' ? (
                       <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
-                        <button
-                          type="button"
-                          onClick={() => alert('Бронювання прийнято!')}
-                          style={styles.btnAcceptSmall}
-                        >
-                          Прийняти
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => alert('Бронювання відхилено.')}
-                          style={styles.btnDeclineSmall}
-                        >
-                          Відхилити
-                        </button>
+                        <button type="button" onClick={() => alert('Бронювання прийнято')} style={styles.btnAcceptSmall}>Прийняти</button>
+                        <button type="button" onClick={() => alert('Бронювання відхилено')} style={styles.btnDeclineSmall}>Відхилити</button>
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => alert('Бронювання скасовано.')}
-                        style={styles.btnCancelBookingOutline}
-                      >
-                        Скасувати бронювання
-                      </button>
+                      <button type="button" onClick={() => alert('Бронювання скасовано')} style={styles.btnCancelBookingOutline}>Скасувати бронювання</button>
                     )}
                   </div>
                 </div>
@@ -593,56 +582,20 @@ export const MenuPropertiesTab: React.FC = () => {
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* ВКЛАДКА 3: ІСТОРІЯ БРОНЮВАНЬ З ПАГІНАЦІЄЮ З FIGMA */}
           {activeSubTab === 'history' && (
             <div style={styles.bookingsStack}>
               {[
-                {
-                  id: 'hb-1',
-                  title: "Шале 'Карпатська Тиша'",
-                  location: 'с. Пилипець, Закарпатська область',
-                  dates: '12 Грудня — 18 Грудня, 2025',
-                  status: 'Завершено',
-                  price: 12000,
-                  guestRelation: 'Ви',
-                },
-                {
-                  id: 'hb-2',
-                  title: "Глемпінг 'Затишний Явір'",
-                  location: 'смт. Верховина, Івано-Франківська область',
-                  dates: '23 Грудня — 26 Грудня, 2025',
-                  status: 'Завершено',
-                  price: 5550,
-                  guestRelation: 'Ви',
-                },
-                {
-                  id: 'hb-3',
-                  title: "Котедж 'Nordic Forest'",
-                  location: 'Яремче, Івано-Франківська область',
-                  dates: '30 Грудня — 03 Січня, 2026',
-                  status: 'Скасовано',
-                  price: 25200,
-                  guestRelation: 'Ви',
-                },
+                { id: 'hb-1', title: "Шале 'Карпатська Тиша'", location: 'с. Пилипець, Закарпатська область', dates: '12 Грудня — 18 Грудня, 2025', status: 'Завершено', price: 12000, guestRelation: 'Ви' },
+                { id: 'hb-2', title: "Глемпінг 'Затишний Явір'", location: 'смт. Верховина, Івано-Франківська область', dates: '23 Грудня — 26 Грудня, 2025', status: 'Завершено', price: 5550, guestRelation: 'Ви' },
+                { id: 'hb-3', title: "Котедж 'Nordic Forest'", location: 'Яремче, Івано-Франківська область', dates: '30 Грудня — 03 Січня, 2026', status: 'Скасовано', price: 25200, guestRelation: 'Ви' },
               ].map((item) => (
                 <div key={item.id} style={styles.bookingRowCard}>
-                  <img
-                    src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=400&q=80"
-                    alt=""
-                    style={styles.bookingThumb140}
-                  />
+                  <img src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=400&q=80" alt="" style={styles.bookingThumb140} />
 
                   <div style={styles.bookingInfoCol}>
                     <h3 style={styles.bookingTitleText}>{item.title}</h3>
-                    <div style={styles.bookingMetaRow}>
-                      <MapPinIcon />
-                      <span>{item.location}</span>
-                    </div>
-                    <div style={styles.bookingMetaRow}>
-                      <CalendarIcon />
-                      <span>{item.dates}</span>
-                    </div>
+                    <div style={styles.bookingMetaRow}><MapPinIcon /><span>{item.location}</span></div>
+                    <div style={styles.bookingMetaRow}><CalendarIcon /><span>{item.dates}</span></div>
                   </div>
 
                   <div style={{ width: '220px' }}>
@@ -651,89 +604,34 @@ export const MenuPropertiesTab: React.FC = () => {
                   </div>
 
                   <div style={styles.historyPriceCol}>
-                    <span
-                      style={
-                        item.status === 'Завершено'
-                          ? styles.statusBadgeCompleted
-                          : styles.statusBadgeCancelled
-                      }
-                    >
-                      {item.status}
-                    </span>
-                    <div style={{ color: '#291C0E', fontSize: '18px', fontWeight: 700 }}>
-                      {formatPrice(item.price)}
-                    </div>
-                    <span
-                      onClick={() => alert(`Деталі замовлення #${item.id}`)}
-                      style={styles.detailsLinkText}
-                    >
-                      Деталі бронювання →
-                    </span>
+                    <span style={item.status === 'Завершено' ? styles.statusBadgeCompleted : styles.statusBadgeCancelled}>{item.status}</span>
+                    <div style={{ color: '#291C0E', fontSize: '18px', fontWeight: 700 }}>{formatPrice(item.price)}</div>
+                    <span onClick={() => alert(`Деталі замовлення #${item.id}`)} style={styles.detailsLinkText}>Деталі бронювання →</span>
                   </div>
                 </div>
               ))}
-
-              {/* Пагінація з Figma */}
               <div style={styles.paginationBox}>
                 <span style={styles.paginationInfoText}>Показано 3 із 12 бронювань</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
-                    style={styles.pageSquareBtn}
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHistoryPage(1)}
-                    style={historyPage === 1 ? styles.pageSquareActive : styles.pageSquareBtn}
-                  >
-                    1
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHistoryPage(2)}
-                    style={historyPage === 2 ? styles.pageSquareActive : styles.pageSquareBtn}
-                  >
-                    2
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHistoryPage(3)}
-                    style={historyPage === 3 ? styles.pageSquareActive : styles.pageSquareBtn}
-                  >
-                    3
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHistoryPage((p) => Math.min(3, p + 1))}
-                    style={styles.pageSquareBtn}
-                  >
-                    ›
-                  </button>
+                  <button type="button" onClick={() => setHistoryPage((p) => Math.max(1, p - 1))} style={styles.pageSquareBtn}>‹</button>
+                  <button type="button" onClick={() => setHistoryPage(1)} style={historyPage === 1 ? styles.pageSquareActive : styles.pageSquareBtn}>1</button>
+                  <button type="button" onClick={() => setHistoryPage(2)} style={historyPage === 2 ? styles.pageSquareActive : styles.pageSquareBtn}>2</button>
+                  <button type="button" onClick={() => setHistoryPage(3)} style={historyPage === 3 ? styles.pageSquareActive : styles.pageSquareBtn}>3</button>
+                  <button type="button" onClick={() => setHistoryPage((p) => Math.min(3, p + 1))} style={styles.pageSquareBtn}>›</button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* ВКЛАДКА 4: ЧОРНИЙ СПИСОК З FIGMA */}
           {activeSubTab === 'blacklist' && (
             <div style={styles.tabContentCol}>
               {blacklist.length === 0 ? (
-                /* Стан "Порожній чорний список" з Figma */
                 <div style={styles.emptyBlacklistBox}>
-                  <div style={styles.emptyCheckCircle}>
-                    <UserCheckIcon />
-                  </div>
+                  <div style={styles.emptyCheckCircle}><UserCheckIcon /></div>
                   <div style={styles.emptyBlacklistTitleAlegreya}>Ваш чорний список порожній</div>
-                  <div style={styles.emptyBlacklistDesc}>
-                    Тут відображатимуться користувачі, яких ви вирішите заблокувати для уникнення проблем у майбутньому.
-                  </div>
+                  <div style={styles.emptyBlacklistDesc}>Тут відображатимуться користувачі, яких ви вирішите заблокувати для уникнення проблем у майбутньому.</div>
                 </div>
               ) : (
-                /* Таблиця заблокованих гостей з Figma */
                 <div style={styles.blacklistTableCard}>
                   {blacklist.map((item) => (
                     <div key={item.id} style={styles.blacklistRow}>
@@ -750,26 +648,16 @@ export const MenuPropertiesTab: React.FC = () => {
                         <span style={styles.metaLabelUppercase}>Дата блокування</span>
                         <div style={styles.blDateText}>{item.date}</div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFromBlacklist(item.id)}
-                        style={styles.btnUnblockRedOutline}
-                      >
-                        Розблокувати
-                      </button>
+                      <button type="button" onClick={() => handleRemoveFromBlacklist(item.id)} style={styles.btnUnblockRedOutline}>Розблокувати</button>
                     </div>
                   ))}
                 </div>
               )}
-
-              {/* Інфо-бокс із Figma */}
               <div style={styles.infoBoxBanner}>
                 <AlertCircleOrangeIcon />
                 <div>
                   <div style={styles.infoBoxHeading}>Що відбувається після блокування?</div>
-                  <div style={styles.infoBoxBody}>
-                    Заблоковані користувачі не зможуть надсилати вам запити на бронювання, залишати коментарі під вашими оголошеннями та писати вам повідомлення в чаті.
-                  </div>
+                  <div style={styles.infoBoxBody}>Заблоковані користувачі не зможуть надсилати вам запити на бронювання, залишати коментарі під вашими оголошеннями та писати вам повідомлення в чаті.</div>
                 </div>
               </div>
             </div>
@@ -777,9 +665,6 @@ export const MenuPropertiesTab: React.FC = () => {
         </>
       )}
 
-      {/* ========================================================================= */}
-      {/* МОДАЛКА: ВИДАЛИТИ ПОМЕШКАННЯ НАЗАВЖДИ З FIGMA */}
-      {/* ========================================================================= */}
       {propertyToDelete && (
         <div style={styles.modalOverlay} onClick={() => setPropertyToDelete(null)}>
           <div style={styles.deleteModalCard} onClick={(e) => e.stopPropagation()}>
@@ -787,96 +672,40 @@ export const MenuPropertiesTab: React.FC = () => {
               <AlertTriangleRedIcon />
               <h2 style={styles.deleteModalTitleAlegreya}>Увага: Дія незворотна!</h2>
             </div>
-
-            <p style={styles.deleteModalDescText}>
-              Ви збираєтеся повністю видалити помешкання &quot;{propertyToDelete.title}&quot; з бази даних TrailsUA. Це призведе до наступних наслідків:
-            </p>
-
+            <p style={styles.deleteModalDescText}>Ви збираєтеся повністю видалити помешкання &quot;{propertyToDelete.title}&quot; з бази даних TrailsUA. Це призведе до наступних наслідків:</p>
             <div style={styles.deleteChecklistCol}>
-              <div style={styles.deleteChecklistItem}>
-                <TrashRedIcon />
-                <span>Вся інформація про помешкання, включаючи опис та фото, буде стерта.</span>
-              </div>
-              <div style={styles.deleteChecklistItem}>
-                <TrashRedIcon />
-                <span>Всі майбутні та поточні замовлення будуть автоматично скасовані.</span>
-              </div>
-              <div style={styles.deleteChecklistItem}>
-                <TrashRedIcon />
-                <span>Історія відгуків та оцінки користувачів будуть втрачені.</span>
-              </div>
+              <div style={styles.deleteChecklistItem}><TrashRedIcon /><span>Вся інформація про помешкання, включаючи опис та фото, буде стерта.</span></div>
+              <div style={styles.deleteChecklistItem}><TrashRedIcon /><span>Всі майбутні та поточні замовлення будуть автоматично скасовані.</span></div>
+              <div style={styles.deleteChecklistItem}><TrashRedIcon /><span>Історія відгуків та оцінки користувачів будуть втрачені.</span></div>
             </div>
-
             <label style={styles.confirmCheckLabel}>
-              <input
-                type="checkbox"
-                checked={confirmDeleteCheckbox}
-                onChange={(e) => setConfirmDeleteCheckbox(e.target.checked)}
-                style={{ width: '18px', height: '18px', accentColor: '#C62828' }}
-              />
-              <span style={styles.confirmCheckText}>
-                Я розумію всі наслідки і підтверджую видалення помешкання.
-              </span>
+              <input type="checkbox" checked={confirmDeleteCheckbox} onChange={(e) => setConfirmDeleteCheckbox(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#C62828' }} />
+              <span style={styles.confirmCheckText}>Я розумію всі наслідки і підтверджую видалення помешкання.</span>
             </label>
-
             <div style={styles.lineDivider} />
-
             <div style={styles.deleteModalBtnsRow}>
-              <button
-                type="button"
-                onClick={() => setPropertyToDelete(null)}
-                style={styles.btnCancelOutline}
-              >
-                Скасувати
-              </button>
-              <button
-                type="button"
-                disabled={!confirmDeleteCheckbox}
-                onClick={handleConfirmDeleteProperty}
-                style={{
-                  ...styles.btnDeleteSolidRed,
-                  opacity: confirmDeleteCheckbox ? 1 : 0.4,
-                  cursor: confirmDeleteCheckbox ? 'pointer' : 'not-allowed',
-                }}
-              >
-                Видалити назавжди
-              </button>
+              <button type="button" onClick={() => setPropertyToDelete(null)} style={styles.btnCancelOutline}>Скасувати</button>
+              <button type="button" disabled={!confirmDeleteCheckbox} onClick={handleConfirmDeleteProperty} style={{ ...styles.btnDeleteSolidRed, opacity: confirmDeleteCheckbox ? 1 : 0.4, cursor: confirmDeleteCheckbox ? 'pointer' : 'not-allowed' }}>Видалити назавжди</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* МОДАЛКА: ДОДАТИ ДО ЧОРНОГО СПИСКУ З FIGMA */}
-      {/* ========================================================================= */}
       {isBlacklistModalOpen && (
         <div style={styles.modalOverlay} onClick={() => setIsBlacklistModalOpen(false)}>
           <div style={styles.addBlacklistCard} onClick={(e) => e.stopPropagation()}>
             <h2 style={styles.addBlacklistTitleAlegreya}>Додати до чорного списку</h2>
-
             <form onSubmit={handleAddBlacklistSubmit} style={styles.addBlacklistForm}>
               <div style={styles.formGroupCol}>
                 <label style={styles.fieldLabelUppercase}>Пошук користувача</label>
                 <div style={styles.inputIconBox}>
                   <SearchIcon />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Введіть email або нікнейм..."
-                    value={blQuery}
-                    onChange={(e) => setBlQuery(e.target.value)}
-                    style={styles.pureInput}
-                  />
+                  <input type="text" required placeholder="Введіть email або нікнейм..." value={blQuery} onChange={(e) => setBlQuery(e.target.value)} style={styles.pureInput} />
                 </div>
               </div>
-
               <div style={styles.formGroupCol}>
                 <label style={styles.fieldLabelUppercase}>Причина блокування</label>
-                <select
-                  value={blReason}
-                  onChange={(e) => setBlReason(e.target.value)}
-                  style={styles.selectField}
-                >
+                <select value={blReason} onChange={(e) => setBlReason(e.target.value)} style={styles.selectField}>
                   <option value="Нехтування правилами перебування">Нехтування правилами перебування</option>
                   <option value="Пошкодження майна">Пошкодження майна</option>
                   <option value="Регулярні скасування замовлень">Регулярні скасування замовлень</option>
@@ -884,115 +713,41 @@ export const MenuPropertiesTab: React.FC = () => {
                   <option value="Спроба шахрайства">Спроба шахрайства</option>
                 </select>
               </div>
-
               <div style={styles.formGroupCol}>
-                <textarea
-                  rows={4}
-                  placeholder="Додайте детальний коментар про інцидент..."
-                  value={blComment}
-                  onChange={(e) => setBlComment(e.target.value)}
-                  style={styles.textareaField}
-                />
+                <textarea rows={4} placeholder="Додайте детальний коментар про інцидент..." value={blComment} onChange={(e) => setBlComment(e.target.value)} style={styles.textareaField} />
               </div>
-
-              <button type="submit" style={styles.btnSubmitBlockPill}>
-                Блокувати користувача
-              </button>
+              <button type="submit" style={styles.btnSubmitBlockPill}>Блокувати користувача</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* МОДАЛКИ КЛІКУ НА ДЕНЬ КАЛЕНДАРЯ З FIGMA (Заблокувати / Розблокувати / Заброньовано) */}
-      {/* ========================================================================= */}
       {selectedDayModal && (
         <div style={styles.modalOverlay} onClick={() => setSelectedDayModal(null)}>
           <div style={styles.dayClickModalCard} onClick={(e) => e.stopPropagation()}>
             {bookedDays.includes(selectedDayModal) ? (
-              /* Модалка: Ці дні заброньовані */
               <>
                 <div style={styles.dayModalTitleOrange}>Ці дні заброньовані</div>
                 <div style={styles.dayModalGuestDesc}>Ці дні заброньовані користувачем Михайло Шевченко</div>
-
                 <div style={styles.dayModalPriceDatesRow}>
-                  <div>
-                    <span style={styles.metaLabelUppercase}>Сума</span>
-                    <div style={styles.dayModalOrangeText}>14,200 ₴</div>
-                  </div>
-                  <div>
-                    <span style={styles.metaLabelUppercase}>Дати</span>
-                    <div style={styles.dayModalOrangeText}>08.03.2026 - 10.03.2026</div>
-                  </div>
+                  <div><span style={styles.metaLabelUppercase}>Сума</span><div style={styles.dayModalOrangeText}>14,200 ₴</div></div>
+                  <div><span style={styles.metaLabelUppercase}>Дати</span><div style={styles.dayModalOrangeText}>08.03.2026 - 10.03.2026</div></div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedDayModal(null);
-                    navigate('/menu?tab=messages');
-                  }}
-                  style={styles.btnActionOrangeFull}
-                >
-                  <MessageSquareIcon />
-                  <span>Написати клієнту</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => alert('Перехід до профілю клієнта...')}
-                  style={styles.btnActionOrangeFull}
-                >
-                  Подивитися профіль клієнта
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => alert('Скаргу надіслано модераторам!')}
-                  style={styles.btnReportRedFull}
-                >
-                  Повідомити про проблему
-                </button>
+                <button type="button" onClick={() => { setSelectedDayModal(null); navigate('/menu?tab=messages'); }} style={styles.btnActionOrangeFull}><MessageSquareIcon /><span>Написати клієнту</span></button>
+                <button type="button" onClick={() => alert('Перехід до профілю клієнта...')} style={styles.btnActionOrangeFull}>Подивитися профіль клієнта</button>
+                <button type="button" onClick={() => alert('Скаргу надіслано модераторам!')} style={styles.btnReportRedFull}>Повідомити про проблему</button>
               </>
             ) : blockedDays.includes(selectedDayModal) ? (
-              /* Модалка: Ці дні заблоковані -> Розблокувати? */
               <>
                 <div style={styles.dayModalTitleRed}>Ці дні заблоковані</div>
-                <div style={styles.dayModalMutedDesc}>
-                  Бажаєте розблокувати ці дні?<br />
-                  Користувачі зможуть забронювати помешкання у ці дні, якщо ви розблокуєте їх
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBlockedDays(blockedDays.filter((d) => d !== selectedDayModal));
-                    setSelectedDayModal(null);
-                  }}
-                  style={styles.btnReportRedFull}
-                >
-                  Розблокувати
-                </button>
+                <div style={styles.dayModalMutedDesc}>Бажаєте розблокувати ці дні?<br />Користувачі зможуть забронювати помешкання у ці дні, якщо ви розблокуєте їх</div>
+                <button type="button" onClick={() => { setBlockedDays(blockedDays.filter((d) => d !== selectedDayModal)); setSelectedDayModal(null); }} style={styles.btnReportRedFull}>Розблокувати</button>
               </>
             ) : (
-              /* Модалка: Ці дні не заброньовані -> Заблокувати? */
               <>
                 <div style={styles.dayModalTitleRed}>Ці дні не заброньовані</div>
-                <div style={styles.dayModalMutedDesc}>
-                  Бажаєте заблокувати ці дні?<br />
-                  Ніхто не зможе забронювати їх після блокування
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBlockedDays([...blockedDays, selectedDayModal]);
-                    setSelectedDayModal(null);
-                  }}
-                  style={styles.btnReportRedFull}
-                >
-                  Заблокувати
-                </button>
+                <div style={styles.dayModalMutedDesc}>Бажаєте заблокувати ці дні?<br />Ніхто не зможе забронювати їх після блокування</div>
+                <button type="button" onClick={() => { setBlockedDays([...blockedDays, selectedDayModal]); setSelectedDayModal(null); }} style={styles.btnReportRedFull}>Заблокувати</button>
               </>
             )}
           </div>
@@ -1096,8 +851,6 @@ const HouseHeaderIcon = () => (
     <polyline points="9 22 9 12 15 12 15 22" />
   </svg>
 );
-
-// ======================== СТИЛІ FIGMA ========================
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
@@ -1344,12 +1097,6 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '20px',
-  },
-  guestAvatarImg: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '24px',
-    objectFit: 'cover',
   },
   guestNameBold: {
     color: '#6E473B',

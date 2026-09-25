@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<Image> Images => Set<Image>();
+    public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

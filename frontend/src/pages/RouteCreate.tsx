@@ -8,8 +8,6 @@ import type { RouteItem } from '../types';
 import treesBg from '../assets/trees-bg.png';
 import birdsBg from '../assets/birds.png';
 
-// ======================== SVG ІКОНКИ З FIGMA ========================
-
 const SparklesIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path
@@ -193,7 +191,6 @@ export const RouteCreate: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
 
-  // Стан зміни ролі
   const [roleCheckbox, setRoleCheckbox] = useState(false);
   const [roleError, setRoleError] = useState('');
 
@@ -276,7 +273,6 @@ export const RouteCreate: React.FC = () => {
     try {
       await switchRole('Landlord');
     } catch {
-      // Фолбек
     } finally {
       setLoading(false);
     }
@@ -330,11 +326,7 @@ export const RouteCreate: React.FC = () => {
       return;
     }
 
-    const cleanImageUrls = formData.imageUrls.filter((url) => !url.startsWith('data:'));
-    const finalImages = cleanImageUrls.length > 0 ? cleanImageUrls : [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
-      'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-    ];
+    const finalImages = formData.imageUrls;
 
     try {
       const serverResponse = await routesApi.create({
@@ -398,9 +390,6 @@ export const RouteCreate: React.FC = () => {
     }
   };
 
-  // =========================================================================
-  // 0. ЯКЩО НЕ ХОСТ — ЕКРАН ЗМІНИ РОЛІ
-  // =========================================================================
   if (!isLandlord) {
     return (
       <main style={styles.changeRoleWrapper}>
@@ -532,13 +521,9 @@ export const RouteCreate: React.FC = () => {
     );
   }
 
-  // =========================================================================
-  // 1. ОСНОВНИЙ ФЛОУ: 6 КРОКІВ РЕЄСТРАЦІЇ ЖИТЛА ДЛЯ ОРЕНДОДАВЦЯ
-  // =========================================================================
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
 
-      {/* 1. ГОРИЗОНТАЛЬНИЙ СТЕППЕР З FIGMA */}
       <div style={{ ...styles.stepperBarContainer, zIndex: 50 }}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
@@ -587,10 +572,8 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. ТІЛО СТОРІНКИ (Гнучкий контейнер з фоновими ялинками та пташками) */}
       <div style={{ flex: 1, position: 'relative', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
         
-        {/* ФОНОВІ ЯЛИНКИ ТА ПТАШКИ */}
         <div style={{ position: 'absolute', right: '-20px', bottom: '-140px', zIndex: 0, pointerEvents: 'none', width: '500px' }}>
           <img 
             src={birdsBg} 
@@ -606,10 +589,8 @@ export const RouteCreate: React.FC = () => {
           <img src={treesBg} alt="Декоративні ялинки" style={{ width: '100%', height: 'auto', display: 'block', opacity: 0.9 }} />
         </div>
 
-        {/* ОСНОВНИЙ КОНТЕНТ ФОРМИ */}
         <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
           
-          {/* КРОК 1 */}
           {step === 1 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -670,7 +651,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* КРОК 2 */}
           {step === 2 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -765,7 +745,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* КРОК 3 */}
           {step === 3 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -827,7 +806,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* КРОК 4 */}
           {step === 4 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -874,7 +852,7 @@ export const RouteCreate: React.FC = () => {
 
               {formData.imageUrls.length === 0 && (
                 <div style={{ color: '#C62828', fontSize: '14px', marginBottom: '16px', fontWeight: 600 }}>
-                  ⚠️ Увага: для створення оголошення необхідно додати мінімум одну фотографію.
+                  Увага: для створення оголошення необхідно додати мінімум одну фотографію.
                 </div>
               )}
 
@@ -896,7 +874,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* КРОК 5 */}
           {step === 5 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -990,7 +967,6 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
-          {/* КРОК 6 */}
           {step === 6 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '24px' }}>
@@ -1140,7 +1116,6 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. БІЛА ПАНЕЛЬ НАВІГАЦІЇ */}
       <div style={styles.stickyBottomBar}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

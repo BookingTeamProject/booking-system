@@ -129,3 +129,17 @@ export const adminApi = {
     api.put(`/admin/users/${userId}/role`, newRole).then((r) => r.data),
   getModerationDashboard: () => api.get('/admin/moderation/dashboard').then((r) => r.data),
 };
+
+// 8. BookingsController (api/bookings)
+export const bookingsApi = {
+  getHostRequests: () => api.get<any[]>('/bookings/host').then((r) => r.data),
+  
+  getMyBookings: () => api.get<any[]>('/bookings/my').then((r) => r.data),
+  
+  createBooking: (dto: any) => api.post<any>('/bookings', dto).then((r) => r.data),
+  
+  updateStatus: (id: string, status: string) => 
+    api.put(`/bookings/${id}/status`, `"${status}"`, {
+      headers: { 'Content-Type': 'application/json' }
+    }).then((r) => r.data),
+};

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import api from '../api/axios';
+import { useNavigate } from 'react-router-dom';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   initialCheckOut,
   initialGuests,
 }) => {
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [guests, setGuests] = useState(1);
@@ -52,7 +54,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           response.data.forEach((booking: any) => {
             let currentDate = new Date(booking.start);
             const bookingEndDate = new Date(booking.end);
-            // Проходимось по всіх днях бронювання і додаємо їх у масив блокування
             while (currentDate <= bookingEndDate) {
               datesToExclude.push(new Date(currentDate));
               currentDate.setDate(currentDate.getDate() + 1);
@@ -108,6 +109,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setTimeout(() => {
         setIsSuccess(false);
         onClose();
+        navigate('/menu?tab=bookings');
       }, 1800);
 
     } catch (error: any) {
@@ -121,7 +123,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div style={overlayStyle} onClick={onClose}>
-      {/* СТИЛІ ДЛЯ ПЕРЕКРЕСЛЕНИХ ДАТ */}
       <style>{`
         .react-datepicker__day--excluded {
           background-color: #f5f5f5 !important;

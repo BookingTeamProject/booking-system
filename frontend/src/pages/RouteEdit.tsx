@@ -166,9 +166,7 @@ export const RouteEdit: React.FC = () => {
       console.warn('Не вдалося оновити категорію:', e);
     }
 
-    const finalImages = formData.imageUrls.length > 0 ? formData.imageUrls : [
-  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80'
-];
+    const finalImages = formData.imageUrls;
 
     try {
       await routesApi.update(id!, {
@@ -197,7 +195,7 @@ export const RouteEdit: React.FC = () => {
       alert('✅ Помешкання успішно оновлено!');
       
       // Повне перезавантаження сторінки з переходом в меню
-      window.location.href = '/menu?tab=properties';
+      navigate('/menu?tab=properties');
       
     } catch (err: any) {
       console.error('Помилка оновлення:', err);

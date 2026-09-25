@@ -1,20 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../../../context/SettingsContext';
-import {
-  MOCK_MENU_BOOKINGS,
-  CANCELLATION_REASONS,
-  type MenuBookingItem,
-} from '../../../data/mockData';
+import { CANCELLATION_REASONS, type MenuBookingItem } from '../../../data/mockData';
+import { bookingsApi } from '../../../services/api.service';
 
 export const MenuBookingsTab: React.FC = () => {
   const navigate = useNavigate();
   const { formatPrice } = useSettings();
 
   const [subTab, setSubTab] = useState<'current' | 'history'>('current');
-  const [bookings, setBookings] = useState<MenuBookingItem[]>(MOCK_MENU_BOOKINGS);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    bookingsApi.getMyBookings().then(data => {
+      const rawData = Array.isArray(data) ? data : [];
+      const mappedBookings = rawData.map((item: any) => {
+        const rawStatus = String(item.status || '').toLowerCase().trim();
+        let displayStatus = 'Очікує';
+        
+        if (rawStatus === 'cancelled' || rawStatus === 'canceled' || rawStatus === 'скасовано') displayStatus = 'Скасовано';
+        else if (rawStatus === 'approved' || rawStatus === 'підтверджено') displayStatus = 'Підтверджено';
+        else if (rawStatus === 'completed' || rawStatus === 'завершено') displayStatus = 'Завершено';
+        else displayStatus = item.status || 'Очікує';
+
+        // БЕРЕМО КАРТИНКУ АБСОЛЮТНО ТАК САМО, ЯК НА ГОЛОВНІЙ СТОРІНЦІ
+        let thumb = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80';
+        
+        try {
+          const rawImgs = item.route?.imageUrls || item.route?.images;
+          if (rawImgs) {
+            if (Array.isArray(rawImgs) && rawImgs.length > 0) {
+              const first = rawImgs[0];
+              thumb = typeof first === 'string' ? first : (first.url || first.imageUrl || first.path || thumb);
+            } else if (typeof rawImgs === 'string') {
+              if (rawImgs.startsWith('[')) {
+                const parsed = JSON.parse(rawImgs);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  thumb = parsed[0];
+                }
+              } else {
+                thumb = rawImgs;
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Parsing error", e);
+        }
+
+        return {
+          ...item,
+          id: item.id,
+          propertyTitle: item.route?.title || item.propertyTitle || 'Без назви',
+          location: item.route?.location || item.location || 'Локація не вказана',
+          thumbnail: thumb,
+          dates: item.checkIn && item.checkOut 
+            ? `${new Date(item.checkIn).toLocaleDateString()} - ${new Date(item.checkOut).toLocaleDateString()}` 
+            : 'Дати не вказані',
+          totalPrice: item.totalPrice || item.price || 0,
+          status: displayStatus,
+          relationLabel: 'Орендар',
+          relationName: 'Ви',
+          isHistory: displayStatus === 'Скасовано' || displayStatus === 'Завершено'
+        };
+      });
+
+      setBookings(mappedBookings);
+    }).catch(err => {
+      console.error("Помилка завантаження броней:", err);
+      setBookings([]);
+    });
+  }, []);
   // Модальні вікна
   const [selectedBookingForDetails, setSelectedBookingForDetails] = useState<MenuBookingItem | null>(null);
   const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<MenuBookingItem | null>(null);
@@ -24,20 +80,27 @@ export const MenuBookingsTab: React.FC = () => {
   const displayedBookings = bookings.filter((b) => (subTab === 'current' ? !b.isHistory : b.isHistory));
 
   // Підтвердження скасування
-  const handleExecuteCancel = () => {
+  const handleExecuteCancel = async () => {
     if (!selectedBookingForCancel) return;
 
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === selectedBookingForCancel.id
-          ? { ...b, status: 'Скасовано', isHistory: true }
-          : b
-      )
-    );
+    try {
+      await bookingsApi.updateStatus(selectedBookingForCancel.id, 'Cancelled');
+      
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === selectedBookingForCancel.id
+            ? { ...b, status: 'Скасовано', isHistory: true }
+            : b
+        )
+      );
 
-    setSelectedBookingForCancel(null);
-    setSelectedBookingForDetails(null);
-    alert('Бронювання успішно скасовано.');
+      setSelectedBookingForCancel(null);
+      setSelectedBookingForDetails(null);
+      alert('Бронювання успішно скасовано.');
+    } catch (err) {
+      console.error(err);
+      alert('Помилка при скасуванні! Перевірте підключення до сервера.');
+    }
   };
 
   const handleCopyAddress = (text: string) => {
@@ -88,7 +151,11 @@ export const MenuBookingsTab: React.FC = () => {
       <div style={styles.bookingsStack}>
         {displayedBookings.map((item) => (
           <div key={item.id} style={styles.bookingCard}>
-            <img src={item.thumbnail} alt={item.propertyTitle} style={styles.propertyThumbnail} />
+            <img 
+              src={item.thumbnail} 
+              alt="" 
+              style={styles.propertyThumbnail} 
+            />
 
             {/* Інфо про помешкання */}
             <div style={styles.cardInfoCol}>
