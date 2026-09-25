@@ -1,3 +1,4 @@
+import { SocialLinks } from './SocialLinks';
 import { LANGUAGE_OPTIONS, CURRENCY_OPTIONS } from '../config/locales';
 // src/components/Footer.tsx
 import React, { useState } from 'react';
@@ -214,13 +215,13 @@ export const Footer: React.FC = () => {
             {/* КОЛОНКА 4: МЕНЮ */}
             <div className="r-footerNavColumnStyle" style={footerNavColumnStyle}>
               <h4 className="r-footerColTitleStyle" style={footerColTitleStyle}>Меню</h4>
-              <Link to="/messages" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Повідомлення</Link>
-              <Link to="/profile" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Бронювання</Link>
-              <Link to="/routes" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Керування помешканням</Link>
+              <Link to="/menu?tab=messages" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Повідомлення</Link>
+              <Link to="/menu?tab=bookings" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Бронювання</Link>
+              <Link to="/menu?tab=properties" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Керування помешканням</Link>
               <Link to="/news" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Новини</Link>
-              <Link to="/contact" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Контакти</Link>
-              <Link to="/legal" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Обмеження акаунта</Link>
-              <Link to="/faq" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Служба підтримки</Link>
+              <Link to="/menu?tab=contacts" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Контакти</Link>
+              <Link to="/menu?tab=restrictions" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Обмеження акаунта</Link>
+              <Link to="/menu?tab=support" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Служба підтримки</Link>
             </div>
 
             {/* КОЛОНКА 5: ОСОБИСТИЙ КАБІНЕТ ТА СОЦМЕРЕЖІ */}
@@ -233,42 +234,7 @@ export const Footer: React.FC = () => {
               <Link to="/profile?tab=settings" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Налаштування</Link>
               <Link to="/profile?tab=security" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Безпека</Link>
 
-              {/* 4 ОРИГІНАЛЬНІ КРУГЛІ КНОПКИ СОЦМЕРЕЖ */}
-              <div style={{ display: 'flex', gap: '14px', marginTop: '24px' }}>
-                <a href="https://youtube.com" target="_blank" rel="noreferrer" className="r-socialCircleButtonStyle" style={socialCircleButtonStyle} title="YouTube">
-                  <div style={socialInnerCircle}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#DC9666">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  </div>
-                </a>
-
-                <a href="https://x.com" target="_blank" rel="noreferrer" className="r-socialCircleButtonStyle" style={socialCircleButtonStyle} title="X">
-                  <div style={socialInnerCircle}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#DC9666">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                  </div>
-                </a>
-
-                <a href="https://tiktok.com" target="_blank" rel="noreferrer" className="r-socialCircleButtonStyle" style={socialCircleButtonStyle} title="TikTok">
-                  <div style={socialInnerCircle}>
-                    <svg width="22" height="22" viewBox="0 0 50 50" fill="none">
-                      <path d="M28.4336 11.731C28.6024 13.5271 30.2195 17.103 35.3506 17.103V20.772C34.1977 21.1796 31.2005 21.3094 28.4336 18.5708V30.7358C28.4338 30.7557 28.4346 30.7755 28.4346 30.7954C28.4346 34.5771 25.3378 37.6428 21.5176 37.6431C17.6971 37.6431 14.5996 34.5773 14.5996 30.7954C14.5998 27.0143 17.6961 23.9488 21.5156 23.9478V27.3726C19.6056 27.3726 18.0569 28.9057 18.0566 30.7964C18.0566 32.6873 19.6054 34.2202 21.5156 34.2202C23.4258 34.2201 24.9746 32.6873 24.9746 30.7964C24.9746 30.7137 24.9707 30.6315 24.9648 30.5503H24.9746V11.7212H28.4336V11.731Z" fill="#DC9666"/>
-                    </svg>
-                  </div>
-                </a>
-
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="r-socialCircleButtonStyle" style={socialCircleButtonStyle} title="Instagram">
-                  <div style={socialInnerCircle}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2.5">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-                    </svg>
-                  </div>
-                </a>
-              </div>
+              <SocialLinks />
 
             </div>
 
@@ -338,8 +304,9 @@ const footerDescriptionStyle: React.CSSProperties = {
 };
 
 const flagLanguagePickerStyle: React.CSSProperties = {
-  width: '50px',
-  height: '50px',
+  width: '44px',
+  height: '44px',
+  flexShrink: 0,
   borderRadius: '50%',
   backgroundColor: 'transparent',
   border: '2px solid #DC9666',
@@ -424,26 +391,7 @@ const footerNavLinkStyle: React.CSSProperties = {
   opacity: 0.95
 };
 
-const socialCircleButtonStyle: React.CSSProperties = {
-  width: '50px',
-  height: '50px',
-  borderRadius: '50%',
-  backgroundColor: '#DC9666',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textDecoration: 'none'
-};
 
-const socialInnerCircle: React.CSSProperties = {
-  width: '42px',
-  height: '42px',
-  borderRadius: '50%',
-  backgroundColor: '#6E473B',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
-};
 
 const footerOrangeDividerStyle: React.CSSProperties = {
   height: '6px',

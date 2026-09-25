@@ -1,3 +1,5 @@
+import { PhoneInput } from '../components/PhoneInput';
+import { internationalPhone } from '../config/phoneCountries';
 // src/pages/RegisterPage.tsx
 import { isAxiosError } from 'axios';
 import React, { useState } from 'react';
@@ -53,6 +55,8 @@ export const RegisterPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [identifier, setIdentifier] = useState('');
+  const [country, setCountry] = useState('UA');
+  const [contactEmail, setContactEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -77,19 +81,20 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const email = authMode === 'email' ? identifier.trim() : `${identifier.replace(/\D/g, '')}@trails.ua`;
+      const email = authMode === 'email' ? identifier.trim() : contactEmail.trim();
       const res = await authApi.register({
         email,
+        phoneNumber: authMode === 'phone' ? internationalPhone(country, identifier) : undefined,
         password,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        role: 'User',
+        role: 0,
       });
 
       login(res.user, res.accessToken, res.refreshToken);
       navigate('/select-role');
     } catch (err) {
-      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Помилка при реєстрації. Спробуйте ще раз.');
+      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : err instanceof Error ? err.message : undefined) || 'Помилка при реєстрації. Спробуйте ще раз.');
     } finally {
       setLoading(false);
     }
@@ -173,20 +178,7 @@ export const RegisterPage: React.FC = () => {
 
               {/* Email / Номер телефону */}
               {authMode === 'phone' ? (
-                <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
-                  <div style={phonePrefixBoxStyle}>
-                    <span style={{ fontSize: '18px' }}>🇺🇦</span>
-                    <span style={{ fontWeight: 700, color: '#6E473B', fontSize: '16px' }}>+380</span>
-                  </div>
-                  <input
-                    type="tel"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Номер телефону..."
-                    required
-                    style={{ ...customFigmaInputStyle, flex: 1 }}
-                  />
-                </div>
+                <PhoneInput country={country} onCountry={setCountry} value={identifier} onChange={setIdentifier} />
               ) : (
                 <input
                   type="email"
@@ -198,6 +190,11 @@ export const RegisterPage: React.FC = () => {
                 />
               )}
 
+              {authMode === 'phone' && <>
+                <input type="email" aria-label="Email акаунта" autoComplete="email" required placeholder="Email акаунта..."
+                  value={contactEmail} onChange={e => setContactEmail(e.target.value)} style={customFigmaInputStyle} />
+                <p style={{ margin: 0, color: '#6e473b' }}>Для акаунта також потрібен email. Вхід — за email або номером і паролем. SMS-підтвердження не підключене.</p>
+              </>}
               {/* Пароль з іконкою ока */}
               <div style={{ position: 'relative', width: '100%' }}>
                 <input
@@ -258,11 +255,11 @@ export const RegisterPage: React.FC = () => {
               {/* Дисклеймер умов */}
               <div style={disclaimerStyle}>
                 Вибираючи «Зареєструватися», ви погоджуєтеся з{' '}
-                <Link to="/legal?sub=terms" style={disclaimerLinkStyle}>
+                <Link to="/profile?tab=legal&sub=terms" style={disclaimerLinkStyle}>
                   Умовами надання послуг
                 </Link>{' '}
                 та приймаєте умови{' '}
-                <Link to="/legal?sub=privacy" style={disclaimerLinkStyle}>
+                <Link to="/profile?tab=legal&sub=privacy" style={disclaimerLinkStyle}>
                   Політики конфіденційності
                 </Link>.
               </div>
@@ -422,17 +419,6 @@ const customFigmaInputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-const phonePrefixBoxStyle: React.CSSProperties = {
-  height: '60px',
-  backgroundColor: '#E1D4C2',
-  borderRadius: '10px',
-  outline: '4px solid #A78D78',
-  padding: '0 16px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  flexShrink: 0,
-};
 
 const eyeButtonWrapperStyle: React.CSSProperties = {
   position: 'absolute',

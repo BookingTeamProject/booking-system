@@ -4,6 +4,7 @@ import type { RouteItem, User, Review } from '../types';
 
 // ================= DTOs ДЛЯ ЗАПИТІВ =================
 export interface RegisterDto {
+  phoneNumber?: string;
   email: string;
   password: string;
   firstName: string;
@@ -12,7 +13,8 @@ export interface RegisterDto {
 }
 
 export interface LoginDto {
-  email: string;
+  email?: string;
+  phoneNumber?: string;
   password: string;
 }
 

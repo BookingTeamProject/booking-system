@@ -62,6 +62,8 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         // 2. Уникальный Email
+        modelBuilder.Entity<User>().HasIndex(u => u.PhoneNumber).IsUnique()
+            .HasFilter("\"PhoneNumber\" IS NOT NULL AND \"PhoneNumber\" <> ''");
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();

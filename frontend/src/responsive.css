@@ -1,5 +1,9 @@
 /* Responsive overrides for existing desktop layouts; no content clipping. */
 img { max-width:100%; } input,select,textarea { max-width:100%; }
+.phone-field { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:12px; }
+.phone-field label { min-width:0; color:#6e473b; font-size:14px; }
+.phone-field input,.phone-field select { width:100%; min-width:0; box-sizing:border-box; padding:12px; border:2px solid #a78d78; border-radius:12px; background:#e1d4c2; color:#291c0e; font:inherit; font-size:16px; margin-top:6px; }
+@media(max-width:480px) { .phone-field { grid-template-columns:1fr; } }
 .r-contentArea, .workspace-layout > main { min-width:0; }
 .booking-dialog { max-height:calc(100dvh - 32px); overflow-y:auto; }
 .account-live { overflow-wrap:anywhere; padding:20px; background:white; border-radius:20px; }

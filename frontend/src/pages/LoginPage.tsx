@@ -1,3 +1,5 @@
+import { PhoneInput } from '../components/PhoneInput';
+import { internationalPhone } from '../config/phoneCountries';
 import { isAxiosError } from 'axios';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -50,6 +52,7 @@ export const LoginPage: React.FC = () => {
 
   const [authMode, setAuthMode] = useState<'email' | 'phone'>('email');
   const [identifier, setIdentifier] = useState('');
+  const [country, setCountry] = useState('UA');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -63,14 +66,14 @@ export const LoginPage: React.FC = () => {
 
     try {
       const res = await authApi.login({
-        email: identifier.trim(),
+        ...(authMode === 'phone' ? { phoneNumber: internationalPhone(country, identifier) } : { email: identifier.trim() }),
         password,
       });
 
       login(res.user, res.accessToken, res.refreshToken);
       navigate('/');
     } catch (err) {
-      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Невірний логін або пароль');
+      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : err instanceof Error ? err.message : undefined) || 'Невірний логін або пароль');
     } finally {
       setLoading(false);
     }
@@ -134,20 +137,7 @@ export const LoginPage: React.FC = () => {
               
               {/* Телефон / Email */}
               {authMode === 'phone' ? (
-                <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
-                  <div style={phonePrefixBoxStyle}>
-                    <span style={{ fontSize: '18px' }}>🇺🇦</span>
-                    <span style={{ fontWeight: 700, color: '#6E473B', fontSize: '16px' }}>+380</span>
-                  </div>
-                  <input
-                    type="tel"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Номер телефону..."
-                    required
-                    style={customFigmaInputStyle}
-                  />
-                </div>
+                <PhoneInput country={country} onCountry={setCountry} value={identifier} onChange={setIdentifier} />
               ) : (
                 <input
                   type="email"
@@ -363,17 +353,6 @@ const customFigmaInputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-const phonePrefixBoxStyle: React.CSSProperties = {
-  height: '60px',
-  backgroundColor: '#E1D4C2',
-  borderRadius: '10px',
-  outline: '4px solid #A78D78',
-  padding: '0 16px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  flexShrink: 0,
-};
 
 const eyeButtonWrapperStyle: React.CSSProperties = {
   position: 'absolute',
