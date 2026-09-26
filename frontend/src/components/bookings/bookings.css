@@ -4,6 +4,11 @@
 .booking-toolbar { justify-content: space-between; margin-bottom: 18px; }
 .booking-tabs { margin-bottom: 24px; }
 .booking-workspace button, .booking-dialog button, .booking-link { padding: 11px 18px; border: 1px solid #bca38a; border-radius: 12px; background: white; color: #6e473b; cursor: pointer; font: inherit; }
+.property-action-link { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; box-sizing:border-box; padding:11px 18px; border:1px solid #bca38a; border-radius:12px; background:#fff; color:#6e473b; font:inherit; font-weight:700; line-height:1; text-decoration:none; box-shadow:0 5px 14px rgba(41,28,14,.08); transition:background-color .2s ease,border-color .2s ease,transform .2s ease,box-shadow .2s ease; }
+.property-action-link:hover { background:#f4ece4; border-color:#dc9666; transform:translateY(-1px); box-shadow:0 8px 18px rgba(41,28,14,.12); }
+.property-action-link:focus-visible { outline:3px solid rgba(220,150,102,.35); outline-offset:2px; }
+.property-action-link--primary { background:#dc9666; border-color:#dc9666; color:#fff; }
+.property-action-link--primary:hover { background:#c97947; border-color:#c97947; }
 .booking-tabs button[aria-pressed=true], .booking-primary { background: #dc9666 !important; color: #fff !important; border-color: #dc9666 !important; }
 .booking-workspace button:disabled, .booking-dialog button:disabled { opacity: .55; cursor: not-allowed; }
 .booking-card { padding: 24px; margin-bottom: 18px; background: #fff; border: 1px solid #d7c7b1; border-radius: 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }

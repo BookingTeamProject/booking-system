@@ -8,6 +8,7 @@ import { requestError } from '../../../services/bookings.service';
 import { syncService } from '../../../services/sync.service';
 import { storage } from '../../../services/storage.service';
 import type { RouteItem } from '../../../types';
+import '../../bookings/bookings.css';
 
 export function LivePropertiesTab() {
   const { user, isLandlord } = useAuth();
@@ -49,7 +50,7 @@ function PropertiesContent() {
   };
 
   return <section className="booking-workspace">
-    <div className="booking-toolbar"><h1>Керування помешканнями</h1><Link className="booking-link" to="/routes/create">Додати помешкання</Link></div>
+    <div className="booking-toolbar"><h1>Керування помешканнями</h1><Link className="property-action-link property-action-link--primary" to="/routes/create">＋ Додати помешкання</Link></div>
     <div className="booking-tabs">
       <button type="button" aria-pressed={tab === 'properties'} onClick={() => setTab('properties')}>Мої помешкання</button>
       <button type="button" aria-pressed={tab === 'bookings'} onClick={() => setTab('bookings')}>Заявки та бронювання</button>
@@ -64,7 +65,7 @@ function PropertiesContent() {
           <div className="booking-card-body"><h3><Link to={`/routes/${property.id}`}>{property.title}</Link></h3>
             <p>{property.location}</p><p>{formatPrice(property.price)} / ніч · До {property.maxGuests} гостей</p>
           </div>
-          <div className="booking-actions"><Link className="booking-link" to={`/routes/edit/${property.id}`}>Редагувати</Link>
+          <div className="booking-actions"><Link className="property-action-link" to={`/routes/edit/${property.id}`} aria-label={`Редагувати ${property.title}`}>✎ Редагувати</Link>
             <button type="button" onClick={() => setDeleteTarget(property)}>Видалити</button></div>
         </article>)}
       </>}

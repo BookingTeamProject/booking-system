@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
-import { storage, checkIsLandlord } from '../services/storage.service';
+import { AUTH_SESSION_CLEARED_EVENT, storage, checkIsLandlord } from '../services/storage.service';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -19,7 +19,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => storage.auth.getToken());
-  const [user, setUser] = useState<User | null>(() => storage.user.get());
+  const [user, setUser] = useState<User | null>(() => storage.auth.getToken() ? storage.user.get() : null);
+
+  useEffect(() => {
+    const clearSession = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener(AUTH_SESSION_CLEARED_EVENT, clearSession);
+    return () => window.removeEventListener(AUTH_SESSION_CLEARED_EVENT, clearSession);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
