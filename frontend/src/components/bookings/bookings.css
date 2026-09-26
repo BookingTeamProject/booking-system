@@ -1,0 +1,23 @@
+.booking-workspace { color: #291c0e; font-family: 'Iosevka Charon', sans-serif; }
+.booking-workspace h2, .booking-dialog h2 { font-family: 'Alegreya', Georgia, serif; }
+.booking-toolbar, .booking-tabs, .booking-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.booking-toolbar { justify-content: space-between; margin-bottom: 18px; }
+.booking-tabs { margin-bottom: 24px; }
+.booking-workspace button, .booking-dialog button, .booking-link { padding: 11px 18px; border: 1px solid #bca38a; border-radius: 12px; background: white; color: #6e473b; cursor: pointer; font: inherit; }
+.booking-tabs button[aria-pressed=true], .booking-primary { background: #dc9666 !important; color: #fff !important; border-color: #dc9666 !important; }
+.booking-workspace button:disabled, .booking-dialog button:disabled { opacity: .55; cursor: not-allowed; }
+.booking-card { padding: 24px; margin-bottom: 18px; background: #fff; border: 1px solid #d7c7b1; border-radius: 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.booking-card h3 { margin: 0; font-size: 20px; }
+.booking-card p { margin: 8px 0; color: #6e473b; }
+.booking-card a { color: inherit; }
+.booking-thumbnail { width: 156px; height: 124px; border-radius: 12px; object-fit: cover; }
+.booking-card-body { flex: 1; min-width: 180px; }
+.booking-status { display: inline-block; padding: 5px 10px; border-radius: 20px; background: #f4ece4; margin: 8px 0; }
+.booking-card summary { cursor: pointer; padding: 8px 0; }
+.booking-error { color: #a42626 !important; }
+.booking-overlay { position: fixed; inset: 0; background: #291c0eaa; backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+.booking-dialog { background: white; color: #291c0e; border-radius: 24px; padding: 30px; width: min(520px, 100%); max-height: 90vh; overflow: auto; box-sizing: border-box; }
+.booking-dialog label { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; }
+.booking-dialog input, .booking-dialog select, .booking-dialog textarea { padding: 10px; border: 1px solid #bca38a; border-radius: 10px; font: inherit; box-sizing: border-box; width: 100%; }
+.booking-price { background: #f4ece4; padding: 16px; border-radius: 12px; margin: 18px 0; }
+@media (max-width: 640px) { .booking-card { padding: 16px; gap: 14px; } .booking-thumbnail { width: 100%; height: 160px; } .booking-dialog { padding: 20px; } }

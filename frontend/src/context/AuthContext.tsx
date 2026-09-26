@@ -23,16 +23,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!token) return;
+    const abort = new AbortController();
 
     const syncWithServer = async () => {
       try {
-        const res = await api.get('/user/me');
-        if (res.data) {
-          const savedRole = storage.role.get();
+        const res = await api.get<User>('/user/me', { signal: abort.signal });
+        if (res.data && !abort.signal.aborted) {
           const merged: User = {
             ...res.data,
-            role: savedRole || res.data.role || user?.role || 'User',
-            avatarUrl: res.data.avatarUrl || user?.avatarUrl || '',
+            role: res.data.role ?? 'User',
+            avatarUrl: res.data.avatarUrl || '',
           };
           setUser(merged);
           storage.user.set(merged);
@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     syncWithServer();
+    return () => abort.abort();
   }, [token]);
 
   const login = (userData: User, accessToken: string, refreshToken: string) => {
@@ -58,90 +59,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const updateUser = async (fields: Partial<User>) => {
-    if (!user) return;
-    const updated = storage.user.update(fields) || { ...user, ...fields };
+  const saveUser = (updated: User) => {
+    // An old request must not replace a newly signed-in account.
+    if (storage.user.get()?.id !== updated.id) return;
+    storage.user.set(updated);
     setUser(updated);
+  };
 
-    try {
-      await api.put('/user/profile', {
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-        phoneNumber: updated.phoneNumber,
-        avatarUrl: updated.avatarUrl,
-      });
-    } catch (e) {
-      console.warn('Профіль оновлено локально:', e);
-    }
+  const updateUser = async (fields: Partial<User>) => {
+    if (!user) throw new Error('Потрібно увійти.');
+    const updated = { ...user, ...fields };
+    const response = await api.put<User>('/user/profile', {
+      firstName: updated.firstName, lastName: updated.lastName,
+      phoneNumber: updated.phoneNumber, avatarUrl: updated.avatarUrl,
+    });
+    saveUser(response.data);
   };
 
   const switchRole = async (newRole: 'Landlord' | 'User') => {
-    if (!user) return;
-
-    try {
-      if (newRole === 'Landlord') {
-        // 1. Викликаємо новий ендпоінт бекенда
-        const res = await api.post('/user/become-landlord');
-
-        // 2. Якщо бекенд повернув нові токени — миттєво зберігаємо їх
-        if (res.data?.accessToken) {
-          storage.auth.setTokens(res.data.accessToken, res.data.refreshToken);
-          setToken(res.data.accessToken);
-        } else {
-          // Якщо токени не прийшли, робимо тихий refresh через стандартний ендпоінт
-          const oldRefresh = storage.auth.getRefreshToken();
-          const oldToken = storage.auth.getToken();
-          if (oldRefresh) {
-            const refreshRes = await api.post('/auth/refresh', { token: oldToken, refreshToken: oldRefresh });
-            if (refreshRes.data?.accessToken) {
-              storage.auth.setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
-              setToken(refreshRes.data.accessToken);
-            }
-          }
-        }
-      }
-
-      // 3. Оновлюємо стейт користувача в React
-      storage.role.set(newRole);
-      const updatedUser: User = { ...user, role: newRole };
-      setUser(updatedUser);
-      storage.user.set(updatedUser);
-
-      console.log('✅ Роль успішно змінено на Landlord, токен оновлено!');
-    } catch (err) {
-      console.error('Помилка при зміні ролі:', err);
-      // Локальний фолбек
-      storage.role.set(newRole);
-      const updatedUser: User = { ...user, role: newRole };
-      setUser(updatedUser);
-      storage.user.set(updatedUser);
-    }
+    if (!user) throw new Error('Потрібно увійти.');
+    // Choosing the guest journey does not revoke a host's existing permissions.
+    if (newRole === 'User') return;
+    const accountId = user.id;
+    const response = await api.post<{ accessToken?: string; refreshToken?: string }>('/user/become-landlord');
+    if (storage.user.get()?.id !== accountId) return;
+    if (!response.data.accessToken || !response.data.refreshToken)
+      throw new Error('Роль оновлена, але сесію не вдалося оновити. Увійдіть повторно.');
+    storage.auth.setTokens(response.data.accessToken, response.data.refreshToken);
+    setToken(response.data.accessToken);
+    const profile = await api.get<User>('/user/me');
+    saveUser(profile.data);
   };
 
   const updateAvatar = async (file: File) => {
-    if (!user) return;
-
-    const reader = new FileReader();
-    reader.onload = async (uploadEvent) => {
-      const base64 = uploadEvent.target?.result as string;
-      let finalUrl = base64;
-
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await api.post('/user/avatar', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        if (res.data?.avatarUrl || typeof res.data === 'string') {
-          finalUrl = res.data.avatarUrl || res.data;
-        }
-      } catch (err) {
-        console.warn('Аватар збережено в локальний кеш:', err);
-      }
-
-      await updateUser({ avatarUrl: finalUrl });
-    };
-    reader.readAsDataURL(file);
+    if (!user) throw new Error('Потрібно увійти.');
+    const accountId = user.id;
+    const formData = new FormData();
+    formData.append('file', file);
+    await api.post('/user/avatar', formData);
+    if (storage.user.get()?.id !== accountId) return;
+    const profile = await api.get<User>('/user/me');
+    saveUser(profile.data);
   };
 
   // Исправлено: безопасное сравнение роли без TS2367
@@ -154,6 +112,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Provider and hook intentionally share this Context module.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

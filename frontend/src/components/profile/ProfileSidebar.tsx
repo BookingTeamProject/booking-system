@@ -1,3 +1,4 @@
+import { Avatar } from '../Avatar';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -13,14 +14,10 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab, onSel
   const { user, isLandlord, logout } = useAuth();
 
   return (
-    <aside style={styles.sidebarCard}>
+    <aside className="r-sidebarCard" style={styles.sidebarCard}>
       {/* Інформація про користувача */}
       <div style={styles.userHeader}>
-        <img
-          src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=140&q=80'}
-          alt="Avatar"
-          style={styles.avatar}
-        />
+        <Avatar src={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} />
         <div style={{ overflow: 'hidden' }}>
           <div style={styles.userName}>
             {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Користувач' : 'Олександр Коваленко'}

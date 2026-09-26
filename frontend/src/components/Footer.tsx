@@ -1,8 +1,9 @@
+import { SocialLinks } from './SocialLinks';
+import { LANGUAGE_OPTIONS, CURRENCY_OPTIONS } from '../config/locales';
 // src/components/Footer.tsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
-import type { AppLanguage, AppCurrency } from '../services/storage.service';
 
 export const Footer: React.FC = () => {
   // БЕРЕМО МОВУ ТА ВАЛЮТУ З ЄДИНОГО КОНТЕКСТУ:
@@ -12,7 +13,7 @@ export const Footer: React.FC = () => {
   const [langOpen, setLangOpen] = useState(false);
 
   return (
-    <footer style={footerRootStyle}>
+    <footer className="r-footerRootStyle" style={footerRootStyle}>
       {/* Декоративна верхня хвиляста пунктирна лінія з Figma */}
       <div style={footerDashedLineWrapper}>
         <svg width="100%" height="160" viewBox="0 0 1920 233" fill="none" preserveAspectRatio="none">
@@ -29,9 +30,9 @@ export const Footer: React.FC = () => {
 
       {/* Повноширинне коричневе тіло футера з подвійним скругленим краєм */}
       <div style={footerFullWidthBody}>
-        <div style={footerInnerContainer}>
+        <div className="r-footerInnerContainer" style={footerInnerContainer}>
           
-          <div style={footerMainGrid}>
+          <div className="r-footerMainGrid" style={footerMainGrid}>
             
             {/* КОЛОНКА 1: ОРИГІНАЛЬНИЙ ЛОГОТИП TRAILS UA + ВІДЖЕТИ ВАЛЮТИ ТА МОВИ */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '340px' }}>
@@ -60,7 +61,7 @@ export const Footer: React.FC = () => {
                 </div>
               </Link>
 
-              <p style={footerDescriptionStyle}>
+              <p className="r-footerDescriptionStyle" style={footerDescriptionStyle}>
                 Надійний український сервіс перевіреного житла. Робимо подорожі рідним краєм доступними, комфортними та незабутніми.
               </p>
 
@@ -74,7 +75,7 @@ export const Footer: React.FC = () => {
                       setLangOpen(!langOpen);
                       setCurrencyOpen(false);
                     }}
-                    style={flagLanguagePickerStyle}
+                    className="r-flagLanguagePickerStyle" style={flagLanguagePickerStyle}
                     title={`Обрана мова: ${language}`}
                     aria-label={`Обрана мова: ${language}`}
                   >
@@ -111,22 +112,17 @@ export const Footer: React.FC = () => {
                   </button>
 
                   {langOpen && (
-                    <div style={footerDropdownMenuCardStyle}>
-                      {[
-                        { code: 'UA', title: 'Українська (UA)' },
-                        { code: 'EN', title: 'English (EN)' },
-                        { code: 'DE', title: 'Deutsch (DE)' },
-                        { code: 'PL', title: 'Polski (PL)' }
-                      ].map((l) => {
+                    <div className="r-footerDropdownMenuCardStyle" style={footerDropdownMenuCardStyle}>
+                      {LANGUAGE_OPTIONS.map((l) => {
                         const isSelected = language === l.code;
                         return (
                           <div
                             key={l.code}
                             onClick={() => {
-                              setLanguage(l.code as AppLanguage);
+                              setLanguage(l.code);
                               setLangOpen(false);
                             }}
-                            style={footerDropdownItemStyle}
+                            className="r-footerDropdownItemStyle" style={footerDropdownItemStyle}
                           >
                             <div
                               style={{
@@ -153,7 +149,7 @@ export const Footer: React.FC = () => {
                       setCurrencyOpen(!currencyOpen);
                       setLangOpen(false);
                     }}
-                    style={currencyPillButtonStyle}
+                    className="r-currencyPillButtonStyle" style={currencyPillButtonStyle}
                     title={`Обрана валюта: ${currency}`}
                     aria-label={`Обрана валюта: ${currency}`}
                   >
@@ -161,22 +157,17 @@ export const Footer: React.FC = () => {
                   </button>
 
                   {currencyOpen && (
-                    <div style={footerDropdownMenuCardStyle}>
-                      {[
-                        { code: 'UAH', title: 'Українська гривня (₴)' },
-                        { code: 'USD', title: 'Долар США ($)' },
-                        { code: 'EUR', title: 'Євро (€)' },
-                        { code: 'PLN', title: 'Польський злотий (zł)' }
-                      ].map((c) => {
+                    <div className="r-footerDropdownMenuCardStyle" style={footerDropdownMenuCardStyle}>
+                      {CURRENCY_OPTIONS.map((c) => {
                         const isSelected = currency === c.code;
                         return (
                           <div
                             key={c.code}
                             onClick={() => {
-                              setCurrency(c.code as AppCurrency);
+                              setCurrency(c.code);
                               setCurrencyOpen(false);
                             }}
-                            style={footerDropdownItemStyle}
+                            className="r-footerDropdownItemStyle" style={footerDropdownItemStyle}
                           >
                             <div
                               style={{
@@ -200,95 +191,60 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* КОЛОНКА 2: ОСНОВНІ ОПЦІЇ */}
-            <div style={footerNavColumnStyle}>
-              <h4 style={footerColTitleStyle}>Основні опції</h4>
-              <Link to="/" style={footerNavLinkStyle}>Головна</Link>
-              <Link to="/about" style={footerNavLinkStyle}>Про нас</Link>
-              <Link to="/promotions" style={footerNavLinkStyle}>Акції</Link>
-              <Link to="/faq" style={footerNavLinkStyle}>Підтримка</Link>
-              <Link to="/routes/create" style={footerNavLinkStyle}>Зареєструвати своє помешкання</Link>
+            <div className="r-footerNavColumnStyle" style={footerNavColumnStyle}>
+              <h4 className="r-footerColTitleStyle" style={footerColTitleStyle}>Основні опції</h4>
+              <Link to="/" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Головна</Link>
+              <Link to="/about" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Про нас</Link>
+              <Link to="/promotions" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Акції</Link>
+              <Link to="/faq" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Підтримка</Link>
+              <Link to="/routes/create" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Зареєструвати своє помешкання</Link>
             </div>
 
             {/* КОЛОНКА 3: НАПРЯМКИ */}
-            <div style={footerNavColumnStyle}>
-              <h4 style={footerColTitleStyle}>Напрямки</h4>
-              <Link to="/routes?location=Львів" style={footerNavLinkStyle}>Львів</Link>
-              <Link to="/routes?location=Одеса" style={footerNavLinkStyle}>Одеса</Link>
-              <Link to="/routes?location=Буковель" style={footerNavLinkStyle}>Буковель</Link>
-              <Link to="/routes?location=Київ" style={footerNavLinkStyle}>Київ</Link>
-              <Link to="/routes?location=Карпати" style={footerNavLinkStyle}>Карпати</Link>
-              <Link to="/routes?location=Івано-Франківськ" style={footerNavLinkStyle}>Івано-Франківськ</Link>
-              <Link to="/routes?location=Ужгород" style={footerNavLinkStyle}>Ужгород</Link>
+            <div className="r-footerNavColumnStyle" style={footerNavColumnStyle}>
+              <h4 className="r-footerColTitleStyle" style={footerColTitleStyle}>Напрямки</h4>
+              <Link to="/routes?location=Львів" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Львів</Link>
+              <Link to="/routes?location=Одеса" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Одеса</Link>
+              <Link to="/routes?location=Буковель" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Буковель</Link>
+              <Link to="/routes?location=Київ" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Київ</Link>
+              <Link to="/routes?location=Карпати" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Карпати</Link>
+              <Link to="/routes?location=Івано-Франківськ" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Івано-Франківськ</Link>
+              <Link to="/routes?location=Ужгород" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Ужгород</Link>
             </div>
 
             {/* КОЛОНКА 4: МЕНЮ */}
-            <div style={footerNavColumnStyle}>
-              <h4 style={footerColTitleStyle}>Меню</h4>
-              <Link to="/messages" style={footerNavLinkStyle}>Повідомлення</Link>
-              <Link to="/profile" style={footerNavLinkStyle}>Бронювання</Link>
-              <Link to="/routes" style={footerNavLinkStyle}>Керування помешканням</Link>
-              <Link to="/news" style={footerNavLinkStyle}>Новини</Link>
-              <Link to="/contact" style={footerNavLinkStyle}>Контакти</Link>
-              <Link to="/legal" style={footerNavLinkStyle}>Обмеження акаунта</Link>
-              <Link to="/faq" style={footerNavLinkStyle}>Служба підтримки</Link>
+            <div className="r-footerNavColumnStyle" style={footerNavColumnStyle}>
+              <h4 className="r-footerColTitleStyle" style={footerColTitleStyle}>Меню</h4>
+              <Link to="/menu?tab=messages" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Повідомлення</Link>
+              <Link to="/menu?tab=bookings" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Бронювання</Link>
+              <Link to="/menu?tab=properties" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Керування помешканням</Link>
+              <Link to="/news" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Новини</Link>
+              <Link to="/menu?tab=contacts" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Контакти</Link>
+              <Link to="/menu?tab=restrictions" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Обмеження акаунта</Link>
+              <Link to="/menu?tab=support" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Служба підтримки</Link>
             </div>
 
             {/* КОЛОНКА 5: ОСОБИСТИЙ КАБІНЕТ ТА СОЦМЕРЕЖІ */}
-            <div style={footerNavColumnStyle}>
-              <h4 style={footerColTitleStyle}>Особистий кабінет</h4>
-              <Link to="/profile?tab=account" style={footerNavLinkStyle}>Обліковий запис</Link>
-              <Link to="/profile?tab=payments" style={footerNavLinkStyle}>Платежі</Link>
-              <Link to="/profile?tab=finance" style={footerNavLinkStyle}>Фінанси</Link>
-              <Link to="/profile?tab=analytics" style={footerNavLinkStyle}>Аналітика</Link>
-              <Link to="/profile?tab=settings" style={footerNavLinkStyle}>Налаштування</Link>
-              <Link to="/profile?tab=security" style={footerNavLinkStyle}>Безпека</Link>
+            <div className="r-footerNavColumnStyle" style={footerNavColumnStyle}>
+              <h4 className="r-footerColTitleStyle" style={footerColTitleStyle}>Особистий кабінет</h4>
+              <Link to="/profile?tab=account" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Обліковий запис</Link>
+              <Link to="/profile?tab=payments" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Платежі</Link>
+              <Link to="/profile?tab=finance" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Фінанси</Link>
+              <Link to="/profile?tab=analytics" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Аналітика</Link>
+              <Link to="/profile?tab=settings" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Налаштування</Link>
+              <Link to="/profile?tab=security" className="r-footerNavLinkStyle" style={footerNavLinkStyle}>Безпека</Link>
 
-              {/* 4 ОРИГІНАЛЬНІ КРУГЛІ КНОПКИ СОЦМЕРЕЖ */}
-              <div style={{ display: 'flex', gap: '14px', marginTop: '24px' }}>
-                <a href="https://youtube.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="YouTube">
-                  <div style={socialInnerCircle}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#DC9666">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  </div>
-                </a>
-
-                <a href="https://x.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="X">
-                  <div style={socialInnerCircle}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#DC9666">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                  </div>
-                </a>
-
-                <a href="https://tiktok.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="TikTok">
-                  <div style={socialInnerCircle}>
-                    <svg width="22" height="22" viewBox="0 0 50 50" fill="none">
-                      <path d="M28.4336 11.731C28.6024 13.5271 30.2195 17.103 35.3506 17.103V20.772C34.1977 21.1796 31.2005 21.3094 28.4336 18.5708V30.7358C28.4338 30.7557 28.4346 30.7755 28.4346 30.7954C28.4346 34.5771 25.3378 37.6428 21.5176 37.6431C17.6971 37.6431 14.5996 34.5773 14.5996 30.7954C14.5998 27.0143 17.6961 23.9488 21.5156 23.9478V27.3726C19.6056 27.3726 18.0569 28.9057 18.0566 30.7964C18.0566 32.6873 19.6054 34.2202 21.5156 34.2202C23.4258 34.2201 24.9746 32.6873 24.9746 30.7964C24.9746 30.7137 24.9707 30.6315 24.9648 30.5503H24.9746V11.7212H28.4336V11.731Z" fill="#DC9666"/>
-                    </svg>
-                  </div>
-                </a>
-
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" style={socialCircleButtonStyle} title="Instagram">
-                  <div style={socialInnerCircle}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC9666" strokeWidth="2.5">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-                    </svg>
-                  </div>
-                </a>
-              </div>
+              <SocialLinks />
 
             </div>
 
           </div>
 
           {/* Помаранчева лінія-розділювач */}
-          <div style={footerOrangeDividerStyle} />
+          <div className="r-footerOrangeDividerStyle" style={footerOrangeDividerStyle} />
 
           {/* Копірайт */}
-          <div style={footerCopyrightStyle}>
+          <div className="r-footerCopyrightStyle" style={footerCopyrightStyle}>
             Авторські права © 2016—2026 «TrailsUA». Усі права захищено.
           </div>
 
@@ -348,8 +304,9 @@ const footerDescriptionStyle: React.CSSProperties = {
 };
 
 const flagLanguagePickerStyle: React.CSSProperties = {
-  width: '50px',
-  height: '50px',
+  width: '44px',
+  height: '44px',
+  flexShrink: 0,
   borderRadius: '50%',
   backgroundColor: 'transparent',
   border: '2px solid #DC9666',
@@ -434,26 +391,7 @@ const footerNavLinkStyle: React.CSSProperties = {
   opacity: 0.95
 };
 
-const socialCircleButtonStyle: React.CSSProperties = {
-  width: '50px',
-  height: '50px',
-  borderRadius: '50%',
-  backgroundColor: '#DC9666',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textDecoration: 'none'
-};
 
-const socialInnerCircle: React.CSSProperties = {
-  width: '42px',
-  height: '42px',
-  borderRadius: '50%',
-  backgroundColor: '#6E473B',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center'
-};
 
 const footerOrangeDividerStyle: React.CSSProperties = {
   height: '6px',

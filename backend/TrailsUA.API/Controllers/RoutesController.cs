@@ -34,6 +34,14 @@ public class RoutesController : ControllerBase
     }
 
     [Authorize(Roles = "Landlord,Admin")]
+    [HttpGet("mine")]
+    public async Task<IActionResult> Mine()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await _routeService.GetMyRoutesAsync(userId));
+    }
+
+    [Authorize(Roles = "Landlord,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateRouteDto dto)
     {

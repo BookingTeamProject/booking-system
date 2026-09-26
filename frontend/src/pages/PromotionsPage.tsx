@@ -145,7 +145,7 @@ export const PromotionsPage: React.FC = () => {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setSelectedRegion(tab.id as any)}
+                    onClick={() => setSelectedRegion(tab.id as PromotionItem['region'])}
                     style={{
                       ...regionTabBtnStyle,
                       backgroundColor: isActive ? '#DC9666' : '#FFFFFF',

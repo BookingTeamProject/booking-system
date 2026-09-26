@@ -1,6 +1,6 @@
+import { LANGUAGE_OPTIONS, CURRENCY_OPTIONS } from '../../../config/locales';
 import React, { useState } from 'react';
 import { useSettings } from '../../../context/SettingsContext';
-import type { AppLanguage, AppCurrency } from '../../../services/storage.service';
 
 export const SettingsTab: React.FC<{ onNotify: (msg: string) => void }> = ({ onNotify }) => {
   const { language, setLanguage, currency, setCurrency } = useSettings();
@@ -15,19 +15,8 @@ export const SettingsTab: React.FC<{ onNotify: (msg: string) => void }> = ({ onN
   const [pushNotif, setPushNotif] = useState(true);
   const [publicProfile, setPublicProfile] = useState(true);
 
-  const LANGUAGES: { id: AppLanguage; label: string }[] = [
-    { id: 'UA', label: 'Українська (UA)' },
-    { id: 'EN', label: 'English (EN)' },
-    { id: 'DE', label: 'Deutsch (DE)' },
-    { id: 'PL', label: 'Polski (PL)' },
-  ];
-
-  const CURRENCIES: { id: AppCurrency; label: string }[] = [
-    { id: 'UAH', label: 'Українська гривня (₴)' },
-    { id: 'USD', label: 'Долар США ($)' },
-    { id: 'EUR', label: 'Євро (€)' },
-    { id: 'PLN', label: 'Польський злотий (zł)' },
-  ];
+  const LANGUAGES = LANGUAGE_OPTIONS.map(item => ({ id: item.code, label: item.title }));
+  const CURRENCIES = CURRENCY_OPTIONS.map(item => ({ id: item.code, label: item.title }));
 
   const currentLangLabel = LANGUAGES.find((l) => l.id === language)?.label || 'Українська (UA)';
   const currentCurrLabel = CURRENCIES.find((c) => c.id === currency)?.label || 'Українська гривня (₴)';

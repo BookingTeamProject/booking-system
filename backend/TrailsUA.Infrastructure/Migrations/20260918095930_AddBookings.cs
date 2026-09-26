@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TrailsUA.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBookings : Migration
+    public partial class AddBookingsLegacy : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

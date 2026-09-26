@@ -12,25 +12,31 @@ export const HomePage: React.FC = () => {
   const { routes, favorites, toggleFavorite, loading } = useRoutes();
   const { formatPrice } = useSettings();
 
+  // --- Стан полів пошуку ---
   const [locationQuery, setLocationQuery] = useState('');
   const [datesQuery, setDatesQuery] = useState('12 груд. - 18 груд. 2026');
   const [guestsQuery, setGuestsQuery] = useState('1 Кімната / 2 Гостя');
 
+  // --- Стан відкриття випадних модалок пошуку ---
   const [locationOpen, setLocationOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
 
+  // --- Стан степерів гостей і кімнат ---
   const [roomsCount, setRoomsCount] = useState(1);
   const [adultsCount, setAdultsCount] = useState(2);
   const [childrenCount, setChildrenCount] = useState(0);
   const [infantsCount, setInfantsCount] = useState(0);
 
+  // --- Стан вибраних дат у календарі ---
   const [selectedStartDay, setSelectedStartDay] = useState<number>(12);
   const [selectedEndDay, setSelectedEndDay] = useState<number>(18);
 
+  // --- Підписка на email ---
   const [emailSub, setEmailSub] = useState('');
   const [subDone, setSubDone] = useState(false);
 
+  // Рефи для закриття по кліку за межі
   const locationRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
@@ -88,6 +94,7 @@ export const HomePage: React.FC = () => {
     }
   };
 
+  // Оптимізовані списки: беремо дані з RoutesContext або централізованого MOCK_ROUTES
   const displayPopularHotels: RouteItem[] = useMemo(() => {
     return (routes || []).slice(0, 8);
   }, [routes]);
@@ -101,7 +108,7 @@ export const HomePage: React.FC = () => {
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@400;500;700&family=Manrope:wght@700&display=swap');
-          
+
           .trails-home-root * { box-sizing: border-box; }
           .custom-scrollbar::-webkit-scrollbar { display: none; }
           .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -127,23 +134,26 @@ export const HomePage: React.FC = () => {
       </style>
 
       <div className="trails-home-root" style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px 20px 80px 20px' }}>
-        
-        <section style={heroOuterCardStyle}>
-          <img 
-            src={HeroTreesBg} 
-            alt="Decoration trees" 
+
+        {/* ================= 1. HERO BANNER ================= */}
+        <section className="home-heroOuterCardStyle" style={heroOuterCardStyle}>
+
+          {/* === ДЕКОРАТИВНІ ЯЛИНКИ === */}
+          <img
+            src={HeroTreesBg}
+            alt="Decoration trees"
             style={{
               position: 'absolute',
-              left: '0px',
-              bottom: '85px',
-              width: '450px',
-              zIndex: 1,
+              left: '0px',      /* Рухай вправо/вліво відносно лівого краю бежевого блоку */
+              bottom: '85px',   /* Піднімай/опускай ялинки над формою пошуку */
+              width: '450px',    /* Розмір самих ялинок (піджени під Фігму) */
+              zIndex: 1,         /* Одиниця сховає їх під текст (у нього zIndex 2) */
               pointerEvents: 'none'
             }}
           />
           <div className="hero-flex-box" style={{ display: 'flex', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
             <div style={{ flex: 1.2, transform: 'translateY(-60px)' }}>
-              <h1 style={heroMainTitleStyle}>
+              <h1 className="home-heroMainTitleStyle" style={heroMainTitleStyle}>
                 ЗНАЙДІТЬ СВІЙ<br />
                 <span style={{ color: '#DC9666' }}>ІДЕАЛЬНИЙ</span> ВІДПОЧИНОК
               </h1>
@@ -152,6 +162,7 @@ export const HomePage: React.FC = () => {
               </p>
             </div>
 
+            {/* Картинка шале у багатошаровій рамці з Figma */}
             <div className="hero-img-box" style={heroImageFrameStyle}>
               <div style={heroImageBackdrop1} />
               <div style={heroImageBackdrop2} />
@@ -163,6 +174,9 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
+
+
+          {/* ПОШУКОВИЙ ВІДЖЕТ FIGMA */}
           <div style={{ marginTop: '36px', position: 'relative', zIndex: 10 }}>
             <div style={searchTabPillStyle}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6E473B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -174,7 +188,8 @@ export const HomePage: React.FC = () => {
 
             <form onSubmit={handleSearchSubmit} style={searchContainerCardStyle}>
               <div className="search-inputs-grid" style={searchFieldsGridStyle}>
-                
+
+                {/* 1. ПОЛЕ ЛОКАЦІЇ */}
                 <div ref={locationRef} style={{ position: 'relative' }}>
                   <div
                     onClick={() => setLocationOpen(!locationOpen)}
@@ -193,7 +208,7 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {locationOpen && (
-                    <div style={figmaLocationModalStyle}>
+                    <div className="home-figmaLocationModalStyle" style={figmaLocationModalStyle}>
                       <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px' }}>
                         Місце перебування
                       </div>
@@ -231,6 +246,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
+                {/* 2. ПОЛЕ ДАТ */}
                 <div ref={calendarRef} style={{ position: 'relative' }}>
                   <div
                     onClick={() => setCalendarOpen(!calendarOpen)}
@@ -250,12 +266,13 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {calendarOpen && (
-                    <div style={figmaCalendarModalStyle}>
+                    <div className="home-figmaCalendarModalStyle" style={figmaCalendarModalStyle}>
                       <div style={{ color: '#6E473B', fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>
                         Дати поїздки
                       </div>
 
                       <div style={{ display: 'flex', gap: '24px', border: '1px solid #D7C7B1', borderRadius: '16px', padding: '16px' }}>
+                        {/* Грудень 2026 */}
                         <div style={{ flex: 1 }}>
                           <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px', textAlign: 'center' }}>
                             Грудень 2026
@@ -301,6 +318,7 @@ export const HomePage: React.FC = () => {
                           </div>
                         </div>
 
+                        {/* Січень 2027 */}
                         <div style={{ flex: 1 }}>
                           <div style={{ color: '#6E473B', fontSize: '15px', fontWeight: 700, marginBottom: '12px', textAlign: 'center' }}>
                             Січень 2027
@@ -341,6 +359,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
+                {/* 3. КІМНАТИ ТА ГОСТІ */}
                 <div ref={guestsRef} style={{ position: 'relative' }}>
                   <div
                     onClick={() => setGuestsOpen(!guestsOpen)}
@@ -361,10 +380,11 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {guestsOpen && (
-                    <div style={figmaGuestsModalStyle}>
+                    <div className="home-figmaGuestsModalStyle" style={figmaGuestsModalStyle}>
                       <div style={guestSectionHeaderStyle}>Кількість кімнат</div>
                       <div style={modalDividerStyle} />
 
+                      {/* Кімнати */}
                       <div style={stepperRowStyle}>
                         <span style={stepperLabelStyle}>Кімнати</span>
                         <div style={stepperActionsStyle}>
@@ -390,6 +410,7 @@ export const HomePage: React.FC = () => {
                       <div style={guestSectionHeaderStyle}>Кількість людей</div>
                       <div style={modalDividerStyle} />
 
+                      {/* Дорослі */}
                       <div style={stepperRowStyle}>
                         <div>
                           <div style={stepperLabelStyle}>Дорослі</div>
@@ -416,6 +437,7 @@ export const HomePage: React.FC = () => {
 
                       <div style={modalDividerStyle} />
 
+                      {/* Діти */}
                       <div style={stepperRowStyle}>
                         <div>
                           <div style={stepperLabelStyle}>Діти</div>
@@ -442,6 +464,7 @@ export const HomePage: React.FC = () => {
 
                       <div style={modalDividerStyle} />
 
+                      {/* Немовлята */}
                       <div style={stepperRowStyle}>
                         <div>
                           <div style={stepperLabelStyle}>Немовлята</div>
@@ -479,6 +502,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
+                {/* Кнопка відправки пошуку */}
                 <button type="submit" style={searchSubmitBtnStyle}>
                   Пошук
                 </button>
@@ -487,6 +511,7 @@ export const HomePage: React.FC = () => {
           </div>
         </section>
 
+        {/* ================= 2. ЧОМУ МИ? ================= */}
         <section style={{ margin: '70px 0', position: 'relative' }}>
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <h2 style={sectionHeaderTitleStyle}>ЧОМУ МИ?</h2>
@@ -537,9 +562,10 @@ export const HomePage: React.FC = () => {
 
       </div>
 
+      {/* ================= 3. ВИ НЕЩОДАВНО ШУКАЛИ ================= */}
       <section style={darkSectionWrapperStyle}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          
+
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 style={{ ...sectionHeaderTitleStyle, color: '#E1D4C2' }}>
               ВИ НЕЩОДАВНО ШУКАЛИ
@@ -547,56 +573,50 @@ export const HomePage: React.FC = () => {
             <div style={{ ...orangePillDividerStyle, width: '800px', margin: '10px auto 0 auto' }} />
           </div>
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#E1D4C2', fontSize: '18px' }}>
-              Оновлення даних...
-            </div>
-          ) : (
-            <div
-              ref={recentScrollRef}
-              className="custom-scrollbar"
-              style={horizontalCarouselTrackStyle}
-            >
-              {displayRecentItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="figma-card-hover"
-                  onClick={() => navigate(`/routes/${item.id}`)}
-                  style={recentCardItemStyle}
-                >
-                  <div style={{ width: '100%', height: '190px', position: 'relative' }}>
-                    <img
-                      src={item.imageUrls?.[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
-                      alt={item.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '36px', borderTopRightRadius: '36px' }}
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(item.id);
-                      }}
-                      style={cardHeartBadgeStyle}
-                    >
-                      {favorites.includes(item.id) ? '❤️' : '🤍'}
-                    </button>
-                  </div>
+          <div
+            ref={recentScrollRef}
+            className="custom-scrollbar"
+            style={horizontalCarouselTrackStyle}
+          >
+            {displayRecentItems.map((item) => (
+              <div
+                key={item.id}
+                className="figma-card-hover"
+                onClick={() => navigate(`/routes/${item.id}`)}
+                style={recentCardItemStyle}
+              >
+                <div style={{ width: '100%', height: '190px', position: 'relative' }}>
+                  <img
+                    src={item.imageUrls?.[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
+                    alt={item.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderTopLeftRadius: '36px', borderTopRightRadius: '36px' }}
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(item.id);
+                    }}
+                    style={cardHeartBadgeStyle}
+                  >
+                    {favorites.includes(item.id) ? '❤️' : '🤍'}
+                  </button>
+                </div>
 
-                  <div style={{ padding: '16px 20px 20px 20px' }}>
-                    <div className="star-rating">★★★★★</div>
-                    <h4 style={recentCardTitleStyle}>{item.title}</h4>
-                    <span style={recentCardLocationStyle}>{item.location}</span>
+                <div style={{ padding: '16px 20px 20px 20px' }}>
+                  <div className="star-rating">★★★★★</div>
+                  <h4 style={recentCardTitleStyle}>{item.title}</h4>
+                  <span style={recentCardLocationStyle}>{item.location}</span>
 
-                    <div style={recentCardFooterPriceRow}>
-                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#DC9666', fontStyle: 'italic' }}>
-                        {formatPrice(item.price || 0)}
-                      </span>
-                      <span style={recentDetailsLinkStyle}>Дивитися деталі</span>
-                    </div>
+                  <div style={recentCardFooterPriceRow}>
+                    <span style={{ fontSize: '24px', fontWeight: 900, color: '#DC9666', fontStyle: 'italic' }}>
+                      {formatPrice(item.price || 0)}
+                    </span>
+                    <span style={recentDetailsLinkStyle}>Дивитися деталі</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '28px' }}>
             <button
@@ -616,24 +636,26 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ================= ДЕКОРАТИВНА ЛІНІЯ 2 ================= */}
       <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
-        <img 
-          src={Line2} 
-          alt="Decorative line 2" 
+        <img
+          src={Line2}
+          alt="Decorative line 2"
           style={{
             position: 'absolute',
-            left: '-40px',
-            top: '-350px',
-            width: '100%',
-            pointerEvents: 'none',
+            left: '-40px',       /* Крути left або right для зсуву по горизонталі */
+            top: '-350px',      /* Крути top або bottom для зсуву по вертикалі */
+            width: '100%',     /* Якщо треба конкретний розмір, став, наприклад, '1200px' */
+            pointerEvents: 'none', /* Щоб лінія не перекривала кліки по кнопках під нею */
             zIndex: 0
           }}
         />
       </div>
 
+      {/* ================= 4. АКЦІЇ ДЛЯ ВАС ================= */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '70px 20px' }}>
         <section className="deals-flex-box" style={dealsSectionContainerStyle}>
-          
+
           <div style={{ flex: 1, minHeight: '380px', position: 'relative' }}>
             <img
               src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=900&q=80"
@@ -643,15 +665,17 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div style={{ flex: 1.15, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            
+
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               <h2 style={{ ...sectionHeaderTitleStyle, margin: 0 }}>АКЦІЇ ДЛЯ ВАС</h2>
               <div style={{ ...orangePillDividerStyle, margin: '8px auto 0 auto', width: '700px' }} />
             </div>
 
             <div style={dealsListCardWrapperStyle}>
-              
+
+              {/* АКЦІЯ 1 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
+                {/* Світла зірочка */}
                 <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#DC9666" style={{ position: 'absolute', top: 0, left: 0 }}>
                     <path d="M12 1L14.5 4.5L18.5 4L19.5 8L23.5 9.5L21.5 13L23.5 16.5L19.5 18L18.5 22L14.5 21.5L12 25L9.5 21.5L5.5 22L4.5 18L0.5 16.5L2.5 13L0.5 9.5L4.5 8L5.5 4L9.5 4.5L12 1Z" />
@@ -668,7 +692,10 @@ export const HomePage: React.FC = () => {
 
               <div style={dealDividerLineStyle} />
 
+              {/* АКЦІЯ 2 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
+
+                {/* Темна зірочка */}
                 <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#6E473B" style={{ position: 'absolute', top: 0, left: 0 }}>
                     <path d="M12 1L14.5 4.5L18.5 4L19.5 8L23.5 9.5L21.5 13L23.5 16.5L19.5 18L18.5 22L14.5 21.5L12 25L9.5 21.5L5.5 22L4.5 18L0.5 16.5L2.5 13L0.5 9.5L4.5 8L5.5 4L9.5 4.5L12 1Z" />
@@ -685,7 +712,10 @@ export const HomePage: React.FC = () => {
 
               <div style={dealDividerLineStyle} />
 
+              {/* АКЦІЯ 3 */}
               <div onClick={() => navigate('/promotions')} className="figma-card-hover" style={dealItemRowStyle}>
+
+                {/* Світла зірочка */}
                 <div style={{ position: 'relative', width: '56px', height: '56px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="56" height="56" viewBox="-2 -2 30 30" fill="#DC9666" style={{ position: 'absolute', top: 0, left: 0 }}>
                     <path d="M12 1L14.5 4.5L18.5 4L19.5 8L23.5 9.5L21.5 13L23.5 16.5L19.5 18L18.5 22L14.5 21.5L12 25L9.5 21.5L5.5 22L4.5 18L0.5 16.5L2.5 13L0.5 9.5L4.5 8L5.5 4L9.5 4.5L12 1Z" />
@@ -710,10 +740,10 @@ export const HomePage: React.FC = () => {
 
         </section>
       </div>
-
+      {/* ================= 5. ПОПУЛЯРНІ ГОТЕЛІ (8 КАРТОК) ================= */}
       <section style={darkSectionWrapperStyle}>
         <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
-          
+
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <h2 style={{ ...sectionHeaderTitleStyle, color: '#E1D4C2' }}>
               ПОПУЛЯРНІ ГОТЕЛІ
@@ -723,7 +753,7 @@ export const HomePage: React.FC = () => {
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#E1D4C2', fontSize: '18px' }}>
-              Оновлення даних...
+              Завантаження помешкань...
             </div>
           ) : (
             <div style={popularGridStyle}>
@@ -777,24 +807,26 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ================= ДЕКОРАТИВНА ЛІНІЯ (ОКРЕМО) ================= */}
       <div style={{ position: 'relative', width: '100%', maxWidth: '1440px', margin: '0 auto', zIndex: 0 }}>
-        <img 
-          src={promoLineBg} 
-          alt="Decorative line" 
+        <img
+          src={promoLineBg}
+          alt="Decorative line"
           style={{
             position: 'absolute',
-            right: '170px',
-            bottom: '-350px',
-            width: '1200px', 
+            right: '170px',    /* Регулируй сдвиг вправо/влево */
+            bottom: '-350px',  /* Регулируй сдвиг вниз к блоку подписки */
+            width: '1200px',
             pointerEvents: 'none'
           }}
         />
       </div>
 
+      {/* ================= 6. БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ! ================= */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '80px 20px 40px 20px', position: 'relative', zIndex: 1 }}>
-        <section style={{ ...newsletterContainerCardStyle, backgroundColor: 'transparent', boxShadow: 'none' }}>
+        <section className="home-newsletter" style={{ ...newsletterContainerCardStyle, backgroundColor: 'transparent', boxShadow: 'none' }}>
           <div>
-            <h2 style={newsletterHeaderTitleStyle}>БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ!</h2>
+            <h2 className="home-newsletterHeaderTitleStyle" style={newsletterHeaderTitleStyle}>БУДЬТЕ В КУРСІ НАЙКРАЩИХ ПРОПОЗИЦІЙ!</h2>
             <div style={{ ...orangePillDividerStyle, margin: '10px 0 16px 0', width: '720px' }} />
             <p style={newsletterSubTitleStyle}>
               Підписатися на рекламу
@@ -803,7 +835,7 @@ export const HomePage: React.FC = () => {
 
           {subDone ? (
             <div style={newsletterSuccessBoxStyle}>
-              ✓ Дякуємо за підписку! Спеціальний промокод надіслано на вашу пошту.
+              Підписка на розсилку ще не підключена. Лист не надсилався.
             </div>
           ) : (
             <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '16px', maxWidth: '700px' }}>
@@ -826,6 +858,10 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
+
+// ==========================================
+// СТИЛІ FIGMA
+// ==========================================
 
 const heroOuterCardStyle: React.CSSProperties = {
   backgroundColor: '#D7C7B1',
@@ -1270,6 +1306,10 @@ const newsletterSuccessBoxStyle: React.CSSProperties = {
   fontWeight: 700,
   fontFamily: "'Iosevka Charon', sans-serif"
 };
+
+// ==========================================
+// СТИЛІ МОДАЛОК ПОШУКУ
+// ==========================================
 
 const figmaLocationModalStyle: React.CSSProperties = {
   position: 'absolute',

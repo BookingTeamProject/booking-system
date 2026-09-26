@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 
 export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ onNotify }) => {
@@ -7,16 +7,8 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
-  const [bio, setBio] = useState('Завжди на зв’язку!');
+  const bio = '';
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setFirstName(user.firstName || '');
-      setLastName(user.lastName || '');
-      setPhoneNumber(user.phoneNumber || '');
-    }
-  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +25,12 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      await updateAvatar(e.target.files[0]);
-      onNotify('Фотографію успішно оновлено!');
+      setLoading(true);
+      try {
+        await updateAvatar(e.target.files[0]);
+        onNotify('Фотографію успішно оновлено!');
+      } catch { onNotify('Не вдалося зберегти фотографію. Спробуйте ще раз.'); }
+      finally { setLoading(false); }
     }
   };
 
@@ -45,7 +41,7 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
         <p style={styles.subHeading}>Оновіть свою інформацію, щоб подорожі проходили ще комфортніше.</p>
       </header>
 
-      <div style={styles.formVerificationRow}>
+      <div className="mobile-stack" style={styles.formVerificationRow}>
         {/* ========================================================================= */}
         {/* КАРТКА З ФОРМОЮ: ТОЧНА КОПІЯ PersonalFormCard З FIGMA */}
         {/* ========================================================================= */}
@@ -61,14 +57,14 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
                 style={styles.currentPhoto}
               />
               <label style={styles.photoOverlay} title="Завантажити нове фото">
-                <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+                <input type="file" disabled={loading} accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
                 <CameraIconFigma />
               </label>
             </div>
 
             <div style={styles.uploadAction}>
               <label style={styles.btnUpload}>
-                <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+                <input type="file" disabled={loading} accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
                 Завантажити нове фото
               </label>
               <div style={styles.jpgPngHint}>JPG або PNG. Максимум 5MB.</div>
@@ -78,7 +74,7 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
           {/* inputs-grid */}
           <form onSubmit={handleSubmit} style={styles.inputsGrid}>
             {/* row-1: Ім'я та Прізвище */}
-            <div style={styles.rowInputs}>
+            <div className="mobile-stack" style={styles.rowInputs}>
               <div style={styles.fieldItem}>
                 <label style={styles.inputLabel}>Ім’я</label>
                 <div style={styles.inputBox}>
@@ -109,7 +105,7 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
             </div>
 
             {/* row-2: Email з бейджем та Телефон */}
-            <div style={styles.rowInputs}>
+            <div className="mobile-stack" style={styles.rowInputs}>
               <div style={styles.fieldItem}>
                 <label style={styles.inputLabel}>Електронна адреса</label>
                 <div style={styles.inputBoxEmail}>
@@ -121,7 +117,7 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
                   />
                   <div style={styles.verifiedBadge}>
                     <CheckVerifiedIcon />
-                    <span style={styles.verifiedText}>Підтверджено</span>
+                    <span style={styles.verifiedText}>Email акаунта</span>
                   </div>
                 </div>
               </div>
@@ -141,15 +137,15 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
             </div>
 
             {/* row-3: Опис (Біо) */}
-            <div style={styles.rowInputs}>
+            <div className="mobile-stack" style={styles.rowInputs}>
               <div style={styles.fieldItem}>
                 <label style={styles.inputLabel}>Опис</label>
                 <div style={styles.inputBox}>
                   <input
                     type="text"
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Завжди на зв’язку!"
+                    disabled aria-label="Опис профілю — поки недоступний"
+                    placeholder="Збереження опису ще не підключене"
                     style={styles.pureInput}
                   />
                 </div>
@@ -179,8 +175,8 @@ export const EditProfileTab: React.FC<{ onNotify: (msg: string) => void }> = ({ 
               <ShieldIconSuccess />
             </div>
             <div style={styles.statusTextCol}>
-              <div style={styles.statusConfirmedTitle}>Особу підтверджено</div>
-              <div style={styles.statusConfirmedSub}>Документи верифіковано через Дія</div>
+              <div style={styles.statusConfirmedTitle}>Верифікація недоступна</div>
+              <div style={styles.statusConfirmedSub}>Інтеграцію з Дією ще не підключено</div>
             </div>
           </div>
 

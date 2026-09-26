@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TrailsUA.Domain.DTOs.Route;
 using TrailsUA.Domain.Entities;
 using TrailsUA.Infrastructure.Data;
@@ -24,7 +24,7 @@ public class RouteService : IRouteService
             .Include(r => r.Author)
             .Include(r => r.Reviews)
             .Include(r => r.Images)
-            .AsQueryable();
+            .Where(r => !r.Author.IsBlocked && !r.Author.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -55,7 +55,7 @@ public class RouteService : IRouteService
             .Include(r => r.Author)
             .Include(r => r.Reviews)
             .Include(r => r.Images)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .FirstOrDefaultAsync(r => r.Id == id && !r.Author.IsBlocked && !r.Author.IsDeleted);
 
         if (route != null)
         {
@@ -84,6 +84,14 @@ public class RouteService : IRouteService
         return null;
     }
 
+    public async Task<List<RouteDto>> GetMyRoutesAsync(Guid userId)
+    {
+        var routes = await _context.Routes.AsNoTracking().Where(r => r.AuthorId == userId)
+            .Include(r => r.Category).Include(r => r.Author).Include(r => r.Reviews).Include(r => r.Images)
+            .OrderByDescending(r => r.CreatedAt).ToListAsync();
+        return routes.Select(MapToDto).ToList();
+    }
+
     public async Task<RouteDto> CreateRouteAsync(CreateRouteDto dto, Guid authorId)
     {
         var route = new Route
@@ -92,6 +100,7 @@ public class RouteService : IRouteService
             Description = dto.Description,
             Location = dto.Location,
             Price = dto.Price,
+            MaxGuests = dto.MaxGuests,
             CategoryId = dto.CategoryId,
             AuthorId = authorId,
             Amenities = dto.Amenities
@@ -116,6 +125,9 @@ public class RouteService : IRouteService
         var route = await _context.Routes.FirstOrDefaultAsync(r => r.Id == id && r.AuthorId == authorId);
         if (route == null) return false;
 
+        if (await _context.Bookings.AnyAsync(b => b.RouteId == id))
+            throw new TrailsUA.Domain.Exceptions.RequestException(409, "Помешкання має бронювання. Видалення історії недоступне.");
+
         _context.Routes.Remove(route);
         await _context.SaveChangesAsync();
         return true;
@@ -133,6 +145,7 @@ public class RouteService : IRouteService
         route.Description = dto.Description;
         route.Location = dto.Location;
         route.Price = dto.Price;
+        route.MaxGuests = dto.MaxGuests;
         route.CategoryId = dto.CategoryId;
         route.Amenities = dto.Amenities;
 
@@ -158,6 +171,9 @@ public class RouteService : IRouteService
         return new RouteDto
         {
             Id = r.Id,
+            AuthorId = r.AuthorId,
+            CategoryId = r.CategoryId,
+            MaxGuests = r.MaxGuests,
             Title = r.Title,
             Description = r.Description,
             Location = r.Location,

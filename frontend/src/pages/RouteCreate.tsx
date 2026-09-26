@@ -1,12 +1,14 @@
+import { isAxiosError } from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { routesApi, categoriesApi } from '../services/api.service';
 import { syncService } from '../services/sync.service';
-import type { RouteItem } from '../types';
 import treesBg from '../assets/trees-bg.png';
 import birdsBg from '../assets/birds.png';
+
+// ======================== SVG ІКОНКИ З FIGMA ========================
 
 const SparklesIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -191,6 +193,7 @@ export const RouteCreate: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
 
+  // Стан зміни ролі
   const [roleCheckbox, setRoleCheckbox] = useState(false);
   const [roleError, setRoleError] = useState('');
 
@@ -273,6 +276,7 @@ export const RouteCreate: React.FC = () => {
     try {
       await switchRole('Landlord');
     } catch {
+      // Фолбек
     } finally {
       setLoading(false);
     }
@@ -304,7 +308,6 @@ export const RouteCreate: React.FC = () => {
 
     setLoading(true);
 
-    const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     let targetCategoryId = formData.categoryId;
     const selectedTypeObj = ACCOMMODATION_TYPES.find((t) => t.id === formData.type);
 
@@ -320,13 +323,17 @@ export const RouteCreate: React.FC = () => {
       console.warn('Не вдалося отримати категорії з API:', e);
     }
 
-    if (!guidRegex.test(targetCategoryId)) {
+    if (!targetCategoryId) {
       alert('⚠️ Не вдалося зв’язатися з категоріями в базі даних. Переконайтеся, що бекенд запущено.');
       setLoading(false);
       return;
     }
 
-    const finalImages = formData.imageUrls;
+    const cleanImageUrls = formData.imageUrls.filter((url) => !url.startsWith('data:'));
+    const finalImages = cleanImageUrls.length > 0 ? cleanImageUrls : [
+      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
+    ];
 
     try {
       const serverResponse = await routesApi.create({
@@ -334,6 +341,7 @@ export const RouteCreate: React.FC = () => {
         description: formData.description.trim(),
         location: formData.location.trim(),
         price: Number(formData.pricePerNight),
+        maxGuests: formData.maxGuests,
         categoryId: targetCategoryId,
         imageUrls: finalImages,
         amenities: formData.amenities,
@@ -342,32 +350,14 @@ export const RouteCreate: React.FC = () => {
       console.log('✅ Успішно збережено в базі даних:', serverResponse);
       syncService.invalidate('routes_');
 
-      const newRouteItem: RouteItem = {
-        id: String(serverResponse?.id || Date.now()),
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        location: formData.location.trim(),
-        price: Number(formData.pricePerNight),
-        categoryId: targetCategoryId,
-        categoryName: selectedTypeObj?.label || 'Шале',
-        authorName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Господар' : 'Господар',
-        averageRating: 5.0,
-        imageUrls: finalImages,
-        amenities: formData.amenities,
-        createdAt: new Date().toISOString(),
-      };
-
-      const local: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
-      local.unshift(newRouteItem);
-      localStorage.setItem('custom_routes', JSON.stringify(local));
-
-      alert('🎉 Помешкання успішно зареєстровано та збережено в базі даних!');
+      alert('🎉 Помешкання успішно збережено!');
       navigate('/host/properties');
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Помилка сервера при публікації:', err);
 
-      const status = err.response?.status;
-      const errorData = err.response?.data;
+      const response = isAxiosError<{ message?: string; title?: string; errors?: Record<string, string[]> }>(err) ? err.response : undefined;
+      const status = response?.status;
+      const errorData = response?.data;
 
       if (status === 403) {
         alert('⛔ Помилка 403: Ваш акаунт не має ролі "Landlord". Натисніть кнопку зміни ролі на першому кроці.');
@@ -390,6 +380,9 @@ export const RouteCreate: React.FC = () => {
     }
   };
 
+  // =========================================================================
+  // 0. ЯКЩО НЕ ХОСТ — ЕКРАН ЗМІНИ РОЛІ
+  // =========================================================================
   if (!isLandlord) {
     return (
       <main style={styles.changeRoleWrapper}>
@@ -521,10 +514,14 @@ export const RouteCreate: React.FC = () => {
     );
   }
 
+  // =========================================================================
+  // 1. ОСНОВНИЙ ФЛОУ: 6 КРОКІВ РЕЄСТРАЦІЇ ЖИТЛА ДЛЯ ОРЕНДОДАВЦЯ
+  // =========================================================================
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
+    <div className="property-editor" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
 
-      <div style={{ ...styles.stepperBarContainer, zIndex: 50 }}>
+      {/* 1. ГОРИЗОНТАЛЬНИЙ СТЕППЕР З FIGMA */}
+      <div className="property-editor-stepper" style={{ ...styles.stepperBarContainer, zIndex: 50 }}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
             Створення нового оголошення
@@ -572,8 +569,10 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
+      {/* 2. ТІЛО СТОРІНКИ (Гнучкий контейнер з фоновими ялинками та пташками) */}
       <div style={{ flex: 1, position: 'relative', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
         
+        {/* ФОНОВІ ЯЛИНКИ ТА ПТАШКИ */}
         <div style={{ position: 'absolute', right: '-20px', bottom: '-140px', zIndex: 0, pointerEvents: 'none', width: '500px' }}>
           <img 
             src={birdsBg} 
@@ -589,8 +588,10 @@ export const RouteCreate: React.FC = () => {
           <img src={treesBg} alt="Декоративні ялинки" style={{ width: '100%', height: 'auto', display: 'block', opacity: 0.9 }} />
         </div>
 
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
+        {/* ОСНОВНИЙ КОНТЕНТ ФОРМИ */}
+        <div className="property-editor-form" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
           
+          {/* КРОК 1 */}
           {step === 1 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -651,6 +652,7 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
+          {/* КРОК 2 */}
           {step === 2 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -745,6 +747,7 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
+          {/* КРОК 3 */}
           {step === 3 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -806,6 +809,7 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
+          {/* КРОК 4 */}
           {step === 4 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -852,7 +856,7 @@ export const RouteCreate: React.FC = () => {
 
               {formData.imageUrls.length === 0 && (
                 <div style={{ color: '#C62828', fontSize: '14px', marginBottom: '16px', fontWeight: 600 }}>
-                  Увага: для створення оголошення необхідно додати мінімум одну фотографію.
+                  ⚠️ Увага: для створення оголошення необхідно додати мінімум одну фотографію.
                 </div>
               )}
 
@@ -874,6 +878,7 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
+          {/* КРОК 5 */}
           {step === 5 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '28px' }}>
@@ -967,6 +972,7 @@ export const RouteCreate: React.FC = () => {
             </div>
           )}
 
+          {/* КРОК 6 */}
           {step === 6 && (
             <div style={styles.stepCardMain}>
               <div style={{ marginBottom: '24px' }}>
@@ -1116,6 +1122,7 @@ export const RouteCreate: React.FC = () => {
         </div>
       </div>
 
+      {/* 3. БІЛА ПАНЕЛЬ НАВІГАЦІЇ */}
       <div style={styles.stickyBottomBar}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -14,7 +14,7 @@ namespace TrailsUA.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260918095930_AddBookings")]
-    partial class AddBookings
+    partial class AddBookingsLegacy
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

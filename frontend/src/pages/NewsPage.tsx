@@ -2,52 +2,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  date: string;
-  author: string;
-  image: string;
-}
-
-export const BLOG_ARTICLES: Article[] = [
-  {
-    id: '1',
-    title: 'Як організувати ідеальний вікенд у Карпатах: автентичні маршрути 2026 року',
-    excerpt: 'Поради щодо вибору житла з чаном, найкращі оглядові вершини без натовпів туристів та списки необхідного спорядження.',
-    category: 'Поради мандрівникам',
-    readTime: '5 хв читання',
-    date: '28 Серпня 2026',
-    author: 'Тарас Гринишин',
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '2',
-    title: 'Топ-5 карпатських чанів на дровах з панорамою на Чорногору',
-    excerpt: 'Огляд найтепліших колиб та шале з карпатськими чанами просто неба для ідеального релаксу.',
-    category: 'Гіди по житлу',
-    readTime: '4 хв читання',
-    date: '22 Серпня 2026',
-    author: 'Марія Коваль',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '3',
-    title: 'Еко-туризм в Україні: як подорожувати без шкоди для дикої природи',
-    excerpt: 'Правила свідомого мандрівника: відсортування сміття на стежці, підтримка локальних громад та еко-садиб.',
-    category: 'Екологія та свідомість',
-    readTime: '6 хв читання',
-    date: '15 Серпня 2026',
-    author: 'Олександр Петренко',
-    image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80',
-  },
-];
+import { useAppData } from '../context/AppDataContext';
 
 export const NewsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { news } = useAppData();
 
   return (
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', paddingTop: '30px' }}>
@@ -63,10 +22,10 @@ export const NewsPage: React.FC = () => {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '28px' }}>
-          {BLOG_ARTICLES.map((art) => (
+          {news.map((art) => (
             <div key={art.id} style={articleCardStyle} onClick={() => navigate(`/news/${art.id}`)}>
               <div style={{ height: '220px', overflow: 'hidden' }}>
-                <img src={art.image} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={art.thumbnail} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
 
               <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1 }}>

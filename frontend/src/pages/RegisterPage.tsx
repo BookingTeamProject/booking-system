@@ -1,7 +1,10 @@
+import { PhoneInput } from '../components/PhoneInput';
+import { internationalPhone } from '../config/phoneCountries';
 // src/pages/RegisterPage.tsx
+import { isAxiosError } from 'axios';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api.service';
 
@@ -52,6 +55,8 @@ export const RegisterPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [identifier, setIdentifier] = useState('');
+  const [country, setCountry] = useState('UA');
+  const [contactEmail, setContactEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -76,26 +81,27 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const email = authMode === 'email' ? identifier.trim() : `${identifier.replace(/\D/g, '')}@trails.ua`;
+      const email = authMode === 'email' ? identifier.trim() : contactEmail.trim();
       const res = await authApi.register({
         email,
+        phoneNumber: authMode === 'phone' ? internationalPhone(country, identifier) : undefined,
         password,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        role: 'User',
+        role: 0,
       });
 
       login(res.user, res.accessToken, res.refreshToken);
       navigate('/select-role');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Помилка при реєстрації. Спробуйте ще раз.');
+    } catch (err) {
+      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : err instanceof Error ? err.message : undefined) || 'Помилка при реєстрації. Спробуйте ще раз.');
     } finally {
       setLoading(false);
     }
   };
 
   // 2. Реєстрація / Вхід через Google з захистом від надсилання undefined
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse?.credential) {
       setError('Не вдалося отримати токен Google');
       return;
@@ -111,20 +117,20 @@ export const RegisterPage: React.FC = () => {
 
       login(res.user, res.accessToken, res.refreshToken);
       navigate('/select-role');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Помилка реєстрації через Google:', err);
-      setError(err.response?.data?.message || 'Помилка авторизації Google');
+      setError((isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Помилка авторизації Google');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={pageBackgroundStyle}>
-      <div style={layoutContainerStyle}>
+    <div className="auth-pageBackgroundStyle" style={pageBackgroundStyle}>
+      <div className="auth-layoutContainerStyle" style={layoutContainerStyle}>
         
         {/* ЛІВА ЧАСТИНА: ТОЧНО ТАКІ САМІ 3 ШАРИ, ЯК У LOGINPAGE */}
-        <div style={leftVisualColumnStyle}>
+        <div className="auth-leftVisualColumnStyle" style={leftVisualColumnStyle}>
           <div style={layeredBackBrownStyle} />
           <div style={layeredMiddleOrangeStyle} />
           <div style={layeredTopImageWrapperStyle}>
@@ -137,12 +143,12 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         {/* ПРАВА ЧАСТИНА: ФОРМА РЕЄСТРАЦІЇ */}
-        <div style={rightFormColumnStyle}>
+        <div className="auth-rightFormColumnStyle" style={rightFormColumnStyle}>
           <div style={{ maxWidth: '699px', width: '100%', margin: '0 auto' }}>
             
             {/* Заголовок "Реєстрація" */}
             <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-              <h1 style={headingTitleStyle}>Реєстрація</h1>
+              <h1 className="auth-headingTitleStyle" style={headingTitleStyle}>Реєстрація</h1>
               <div style={orangeTitleUnderlineStyle} />
             </div>
 
@@ -172,20 +178,7 @@ export const RegisterPage: React.FC = () => {
 
               {/* Email / Номер телефону */}
               {authMode === 'phone' ? (
-                <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
-                  <div style={phonePrefixBoxStyle}>
-                    <span style={{ fontSize: '18px' }}>🇺🇦</span>
-                    <span style={{ fontWeight: 700, color: '#6E473B', fontSize: '16px' }}>+380</span>
-                  </div>
-                  <input
-                    type="tel"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Номер телефону..."
-                    required
-                    style={{ ...customFigmaInputStyle, flex: 1 }}
-                  />
-                </div>
+                <PhoneInput country={country} onCountry={setCountry} value={identifier} onChange={setIdentifier} />
               ) : (
                 <input
                   type="email"
@@ -197,6 +190,11 @@ export const RegisterPage: React.FC = () => {
                 />
               )}
 
+              {authMode === 'phone' && <>
+                <input type="email" aria-label="Email акаунта" autoComplete="email" required placeholder="Email акаунта..."
+                  value={contactEmail} onChange={e => setContactEmail(e.target.value)} style={customFigmaInputStyle} />
+                <p style={{ margin: 0, color: '#6e473b' }}>Для акаунта також потрібен email. Вхід — за email або номером і паролем. SMS-підтвердження не підключене.</p>
+              </>}
               {/* Пароль з іконкою ока */}
               <div style={{ position: 'relative', width: '100%' }}>
                 <input
@@ -257,11 +255,11 @@ export const RegisterPage: React.FC = () => {
               {/* Дисклеймер умов */}
               <div style={disclaimerStyle}>
                 Вибираючи «Зареєструватися», ви погоджуєтеся з{' '}
-                <Link to="/legal?sub=terms" style={disclaimerLinkStyle}>
+                <Link to="/profile?tab=legal&sub=terms" style={disclaimerLinkStyle}>
                   Умовами надання послуг
                 </Link>{' '}
                 та приймаєте умови{' '}
-                <Link to="/legal?sub=privacy" style={disclaimerLinkStyle}>
+                <Link to="/profile?tab=legal&sub=privacy" style={disclaimerLinkStyle}>
                   Політики конфіденційності
                 </Link>.
               </div>
@@ -421,17 +419,6 @@ const customFigmaInputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-const phonePrefixBoxStyle: React.CSSProperties = {
-  height: '60px',
-  backgroundColor: '#E1D4C2',
-  borderRadius: '10px',
-  outline: '4px solid #A78D78',
-  padding: '0 16px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  flexShrink: 0,
-};
 
 const eyeButtonWrapperStyle: React.CSSProperties = {
   position: 'absolute',

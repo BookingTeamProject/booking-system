@@ -1,132 +1,56 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { syncService } from '../services/sync.service';
-import { routesApi, favoriteApi } from '../services/api.service';
-import { storage } from '../services/storage.service';
-import type { RouteItem, Booking } from '../types';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useAppData } from './AppDataContext';
+import { useAuth } from './AuthContext';
+import type { RouteItem } from '../types';
+import { requestError } from '../services/bookings.service';
 
-interface RoutesContextType {
+interface RoutesContextValue {
   routes: RouteItem[];
   favorites: string[];
-  bookings: Booking[];
   loading: boolean;
-  addRoute: (route: RouteItem) => Promise<void>;
-  deleteRoute: (routeId: string) => Promise<void>;
-  toggleFavorite: (routeId: string) => Promise<void>;
-  addBooking: (booking: Booking) => void;
-  refreshRoutes: (searchQuery?: string, forceRefresh?: boolean) => Promise<void>;
+  toggleFavorite: (id: string) => Promise<void>;
+}
+const RoutesContext = createContext<RoutesContextValue | null>(null);
+
+export function RoutesProvider({ children }: { children: ReactNode }) {
+  const source = useAppData();
+  const { user } = useAuth();
+  const userId = user?.id;
+  const [routes, setRoutes] = useState<RouteItem[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
+  useEffect(() => source.subscribeProperties?.(() => {
+    setLoading(true);
+    setRevision(value => value + 1);
+  }), [source]);
+  useEffect(() => {
+    let active = true;
+    Promise.all([source.properties.getAll(), userId ? source.favorites.getMyFavorites() : Promise.resolve([])])
+      .then(([properties, favoriteItems]) => {
+        if (!active) return;
+        setRoutes(properties);
+        setFavorites(favoriteItems.map(item => typeof item === 'string' ? item : item.id));
+      }).catch(err => { if (active) setError(requestError(err)); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [source, userId, revision]);
+  const toggleFavorite = async (id: string) => {
+    try {
+      const result = await source.favorites.toggle(id);
+      setFavorites(items => result.isFavorite ? [...new Set([...items, id])] : items.filter(item => item !== id));
+    } catch (err) { setError(requestError(err)); }
+  };
+  return <RoutesContext.Provider value={{ routes, favorites, loading, toggleFavorite }}>
+    {error && <div role="alert" style={{ padding: 12, color: '#a42626' }}>{error} <button onClick={() => { setError(''); setLoading(true); setRevision(v => v + 1); }}>Повторити</button></div>}
+    {children}
+  </RoutesContext.Provider>;
 }
 
-const RoutesContext = createContext<RoutesContextType | undefined>(undefined);
-
-export const RoutesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [routes, setRoutes] = useState<RouteItem[]>(() => storage.routes.getCustom());
-  const [favorites, setFavorites] = useState<string[]>(() => storage.favorites.get());
-  const [bookings, setBookings] = useState<Booking[]>(() => storage.bookings.get());
-  const [loading, setLoading] = useState(false);
-
-  const refreshRoutes = async (searchQuery = '', forceRefresh = true) => {
-    setLoading(true);
-    try {
-      const syncedRoutes = await syncService.syncRoutes(
-        searchQuery ? { search: searchQuery } : undefined,
-        forceRefresh
-      );
-      setRoutes(syncedRoutes);
-
-      const syncedFavs = await syncService.syncFavorites(forceRefresh);
-      setFavorites(syncedFavs);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshRoutes('', true);
-
-    const handleFocus = () => {
-      refreshRoutes('', true);
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
-
-  const addRoute = async (newRoute: RouteItem) => {
-    storage.routes.addCustom(newRoute);
-    setRoutes((prev) => [newRoute, ...prev.filter((r) => r.id !== newRoute.id)]);
-
-    try {
-      await routesApi.create({
-        title: newRoute.title,
-        description: newRoute.description,
-        location: newRoute.location,
-        price: newRoute.price,
-        categoryId: newRoute.categoryId,
-        imageUrls: newRoute.imageUrls,
-        amenities: newRoute.amenities,
-      });
-      syncService.invalidate('routes_');
-      await refreshRoutes('', true);
-    } catch (e) {
-      console.warn('Error saving route to server:', e);
-    }
-  };
-
-  const deleteRoute = async (routeId: string) => {
-    setRoutes((prev) => prev.filter((r) => String(r.id) !== String(routeId)));
-    storage.routes.removeCustom(routeId);
-    syncService.invalidate('routes_');
-
-    try {
-      await routesApi.delete(routeId);
-      await refreshRoutes('', true);
-    } catch (e) {
-      console.warn('Error deleting route from server:', e);
-    }
-  };
-
-  const toggleFavorite = async (routeId: string) => {
-    const nextFavs = storage.favorites.toggle(routeId);
-    setFavorites(nextFavs);
-
-    try {
-      await favoriteApi.toggle(routeId);
-      syncService.invalidate('user_favorites');
-    } catch (e) {
-      console.warn('Error toggling favorite on server:', e);
-    }
-  };
-
-  const addBooking = (booking: Booking) => {
-    const updated = storage.bookings.add(booking);
-    setBookings(updated);
-  };
-
-  return (
-    <RoutesContext.Provider
-      value={{
-        routes,
-        favorites,
-        bookings,
-        loading,
-        addRoute,
-        deleteRoute,
-        toggleFavorite,
-        addBooking,
-        refreshRoutes,
-      }}
-    >
-      {children}
-    </RoutesContext.Provider>
-  );
-};
-
-export const useRoutes = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useRoutes() {
   const context = useContext(RoutesContext);
-  if (!context) {
-    throw new Error('useRoutes must be used within a RoutesProvider');
-  }
+  if (!context) throw new Error('useRoutes must be used within RoutesProvider');
   return context;
-};
+}
