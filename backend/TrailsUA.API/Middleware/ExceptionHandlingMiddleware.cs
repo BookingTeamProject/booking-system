@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using TrailsUA.Domain.Exceptions;
 
 namespace TrailsUA.API.Middleware;
 
@@ -30,12 +31,13 @@ public class ExceptionHandlingMiddleware
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.StatusCode = exception is RequestException request
+            ? request.StatusCode : (int)HttpStatusCode.InternalServerError;
 
         var response = new
         {
             statusCode = context.Response.StatusCode,
-            message = exception.Message,
+            message = exception is RequestException ? exception.Message : "Внутрішня помилка сервера.",
             timestamp = DateTime.UtcNow
         };
 

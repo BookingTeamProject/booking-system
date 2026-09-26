@@ -1,0 +1,10 @@
+.admin-page { max-width:1200px; margin:24px auto; padding:16px; }
+.admin-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; margin:24px 0; }
+.admin-metrics article, .admin-account { background:#fff; border:1px solid #d7c7b1; border-radius:16px; padding:18px; }
+.admin-metrics strong { display:block; font-size:28px; margin-top:8px; }
+.admin-filters { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin:20px 0; }
+.admin-filters label { flex:1; min-width:160px; }
+.admin-page input,.admin-page select { display:block; width:100%; padding:10px; margin:6px 0; border:1px solid #bca38a; border-radius:8px; background:white; color:#291c0e; }
+.admin-account { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:12px 0; overflow-wrap:anywhere; }
+.admin-account h2 { font-size:20px; }.admin-account p { margin:8px 0; }
+@media(max-width:640px) { .admin-account { grid-template-columns:1fr; }.admin-page { margin:0; }.admin-filters label { min-width:100%; } }

@@ -2,28 +2,25 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
-import {
-  MOCK_BLOG_POSTS,
-  MOCK_POPULAR_ARTICLES,
-  type BlogPost,
-} from '../data/mockData';
+import { useAppData } from '../context/AppDataContext';
 
 export const NewsDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { news } = useAppData();
   const { formatPrice } = useSettings();
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
 
-  const article: BlogPost =
-    MOCK_BLOG_POSTS.find((p) => p.id === id) || MOCK_BLOG_POSTS[0];
+  const article = news.find(p => p.id === id);
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsletterEmail.trim()) return;
-    alert('🎉 Дякуємо! Ви підписалися на секретні маршрути.');
-    setNewsletterEmail('');
+    alert('Розсилка ще не реалізована. Email не збережено, підписку не оформлено.');
   };
+
+  if (!article) return <main><h1>Статтю не знайдено</h1><Link to="/news">До списку статей</Link></main>;
 
   return (
     <div style={{ backgroundColor: '#E1D4C2', minHeight: '100vh', fontFamily: "'Iosevka Charon', sans-serif" }}>
@@ -170,16 +167,16 @@ export const NewsDetailsPage: React.FC = () => {
             <div style={styles.horizontalDivider} />
 
             <div style={styles.popularListCol}>
-              {MOCK_POPULAR_ARTICLES.map((item, idx) => (
+              {news.filter(p => p.id !== article.id).slice(0, 3).map((item, idx) => (
                 <React.Fragment key={item.id}>
                   {idx > 0 && <div style={styles.horizontalDivider} />}
                   <div
-                    onClick={() => navigate('/news/1')}
+                    onClick={() => navigate(`/news/${item.id}`)}
                     style={styles.popularItemRow}
                   >
                     <img src={item.thumbnail} alt={item.title} style={styles.popularThumb80} />
                     <div style={styles.popularTextCol}>
-                      <span style={styles.popularTagPill}>{item.tag}</span>
+                      <span style={styles.popularTagPill}>{item.category}</span>
                       <span style={styles.popularHeadline}>{item.title}</span>
                     </div>
                   </div>

@@ -39,7 +39,10 @@ public class UserService : IUserService
 
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
-        user.PhoneNumber = dto.PhoneNumber;
+        var phone = TrailsUA.Domain.DTOs.Auth.PhoneNumberFormat.Normalize(dto.PhoneNumber);
+        if (phone != null && await _context.Users.AnyAsync(u => u.Id != userId && u.PhoneNumber == phone))
+            throw new ArgumentException("Цей номер уже використовується іншим акаунтом.");
+        user.PhoneNumber = phone;
         user.AvatarUrl = dto.AvatarUrl;
         user.UpdatedAt = DateTime.UtcNow;
 

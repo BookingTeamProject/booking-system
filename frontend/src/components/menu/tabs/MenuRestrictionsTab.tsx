@@ -1,38 +1,32 @@
 import React, { useState } from 'react';
-import {
-  MOCK_RESTRICTION_HISTORY,
-  MOCK_PLATFORM_RULES,
-  type RestrictionHistoryItem,
-} from '../../../data/mockData';
+import { AssistanceGate } from '../AssistanceGate';
+import { useAppData } from '../../../context/AppDataContext';
+import type { AssistanceSnapshot } from '../../../data/contracts';
+import { requestError } from '../../../services/bookings.service';
 
-export const MenuRestrictionsTab: React.FC = () => {
+export const MenuRestrictionsTab: React.FC = () => <AssistanceGate>{snapshot => <RestrictionsContent snapshot={snapshot} />}</AssistanceGate>;
+
+const RestrictionsContent: React.FC<{ snapshot: AssistanceSnapshot }> = ({ snapshot }) => {
+  const { assistance } = useAppData();
+  const [feedback, setFeedback] = useState('');
   const [appealText, setAppealText] = useState('');
-  const [historyList, setHistoryList] = useState<RestrictionHistoryItem[]>(MOCK_RESTRICTION_HISTORY);
+  const [historyList, setHistoryList] = useState(snapshot.restrictions);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSendAppeal = (e: React.FormEvent) => {
+  const handleSendAppeal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!appealText.trim()) return;
-
-    setIsSubmitting(true);
-    setTimeout(() => {
-      const newEntry: RestrictionHistoryItem = {
-        id: `rh-${Date.now()}`,
-        date: 'Сьогодні',
-        type: 'Апеляція модератору',
-        reason: appealText.trim(),
-        status: 'На розгляді',
-      };
-
-      setHistoryList([newEntry, ...historyList]);
-      setAppealText('');
-      setIsSubmitting(false);
-      alert('📩 Вашу апеляцію успішно надіслано! Служба модерації TrailsUA розгляне її протягом 24 годин.');
-    }, 500);
+    if (isSubmitting || !appealText.trim()) return;
+    setIsSubmitting(true); setFeedback('');
+    try {
+      setHistoryList(await assistance.submitAppeal(appealText));
+      setAppealText(''); setFeedback('Демонстраційну апеляцію збережено у браузері. Модератору нічого не надіслано.');
+    } catch (error) { setFeedback(requestError(error)); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
     <div style={styles.container}>
+      {feedback && <p role="status">{feedback}</p>}
       {/* 1. ЗАГОЛОВОК СТОРІНКИ З FIGMA */}
       <header style={styles.pageHeader}>
         <div style={styles.headerTitlesCol}>
@@ -147,7 +141,7 @@ export const MenuRestrictionsTab: React.FC = () => {
             </p>
 
             <div style={styles.rulesStack}>
-              {MOCK_PLATFORM_RULES.map((rule) => (
+              {snapshot.rules.map((rule) => (
                 <div key={rule.id} style={styles.ruleWhiteItemCard}>
                   <div style={styles.ruleHeaderRow}>
                     <div style={styles.smallTerracottaDot} />

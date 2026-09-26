@@ -27,9 +27,18 @@ public class RoutesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var route = await _routeService.GetRouteByIdAsync(id);
+        var viewerId = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "";
+        var route = await _routeService.GetRouteByIdAsync(id, viewerId);
         if (route == null) return NotFound(new { message = "Маршрут не найден" });
         return Ok(route);
+    }
+
+    [Authorize(Roles = "Landlord,Admin")]
+    [HttpGet("mine")]
+    public async Task<IActionResult> Mine()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        return Ok(await _routeService.GetMyRoutesAsync(userId));
     }
 
     [Authorize(Roles = "Landlord,Admin")]
@@ -57,16 +66,17 @@ public class RoutesController : ControllerBase
 
         return Ok(new { message = "Маршрут успешно удален" });
     }
+
     [Authorize(Roles = "Landlord,Admin")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRouteDto dto)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
-        return Unauthorized();
+            return Unauthorized();
 
         var updatedRoute = await _routeService.UpdateRouteAsync(id, dto, userId);
-        if (updatedRoute == null) 
+        if (updatedRoute == null)
             return BadRequest(new { message = "Маршрут не найден или вы не являетесь владельцем маршрута" });
         return Ok(updatedRoute);
     }

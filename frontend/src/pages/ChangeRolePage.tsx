@@ -26,8 +26,7 @@ export const ChangeRolePage: React.FC = () => {
       navigate('/routes/create');
     } catch (err: unknown) {
       console.error('Помилка активації ролі:', err);
-      // Локальний перехід у разі збою мережі
-      navigate('/routes/create');
+      setError('Не вдалося підтвердити роль на сервері. Спробуйте ще раз або увійдіть повторно.');
     } finally {
       setLoading(false);
     }

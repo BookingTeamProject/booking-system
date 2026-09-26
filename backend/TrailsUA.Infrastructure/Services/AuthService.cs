@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,18 +25,23 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
+        if (dto.Role is not (UserRole.User or UserRole.Landlord))
+            throw new ArgumentException("Під час реєстрації можна обрати лише роль гостя або орендодавця.");
         if (await _context.Users.AnyAsync(u => u.Email == dto.Email.ToLower()))
         {
             throw new Exception("Пользователь с таким Email уже существует");
         }
 
+        var phone = PhoneNumberFormat.Normalize(dto.PhoneNumber);
+        if (phone != null && await _context.Users.AnyAsync(u => u.PhoneNumber == phone))
+            throw new ArgumentException("Цей номер уже використовується іншим акаунтом.");
         var user = new User
         {
             Email = dto.Email.ToLower(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FirstName = dto.FirstName,
             LastName = dto.LastName,
-            PhoneNumber = dto.PhoneNumber,
+            PhoneNumber = phone,
             Role = dto.Role
         };
 
@@ -48,7 +53,13 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower());
+        var phone = PhoneNumberFormat.Normalize(dto.PhoneNumber);
+        var email = dto.Email?.Trim().ToLowerInvariant();
+        if ((phone == null) == string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Вкажіть email або телефон.");
+        var user = phone != null
+            ? await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone)
+            : await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null || string.IsNullOrEmpty(user.PasswordHash) || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
         {
             throw new Exception("Неверный Email или пароль");
@@ -118,6 +129,7 @@ public class AuthService : IAuthService
     // Генерация пачки Access + Refresh токены
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(User user)
     {
+        if (user.IsBlocked || user.IsDeleted) throw new Exception("Обліковий запис недоступний.");
         var accessToken = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
 
@@ -138,6 +150,7 @@ public class AuthService : IAuthService
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
                 Role = user.Role.ToString(),
                 AvatarUrl = user.AvatarUrl
             }
@@ -153,6 +166,7 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
+            new Claim("auth_version", user.AuthVersion.ToString()),
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 

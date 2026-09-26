@@ -5,10 +5,13 @@ namespace TrailsUA.Domain.Entities;
 
 public class Route : BaseEntity
 {
+    public int MaxGuests { get; set; } = 4;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty; // Например: "Карпаты, Яремче"
     public decimal? Price { get; set; }                  // Цена (если это платный тур или аренда)
+    public int ViewsCount { get; set; } = 0;
+    public List<string>? Amenities { get; set; }
 
     // Связь с автором (Арендодателем)
     public Guid AuthorId { get; set; }

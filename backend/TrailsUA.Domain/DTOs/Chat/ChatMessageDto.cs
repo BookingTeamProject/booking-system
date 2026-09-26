@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace TrailsUA.Domain.DTOs.Chat;
 
@@ -14,6 +15,8 @@ public class ChatMessageDto
 
 public class SendMessageDto
 {
-    public string DialogId { get; set; } = "c1";
+    [Required, MaxLength(36)]
+    public string DialogId { get; set; } = string.Empty;
+    [Required, MaxLength(4000)]
     public string Text { get; set; } = string.Empty;
 }

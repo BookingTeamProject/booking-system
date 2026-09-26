@@ -1,15 +1,14 @@
+import { parseLanguage, parseCurrency, type AppLanguage, type AppCurrency } from '../config/locales';
+export type { AppLanguage, AppCurrency } from '../config/locales';
 import type { User, RouteItem, Booking, Review, UserRole } from '../types';
 import {
   MOCK_BOOKINGS,
   MOCK_MESSAGES,
   MOCK_BLACKLIST,
   MOCK_DEFAULT_REVIEWS,
-  MOCK_INITIAL_TRANSACTIONS,
   type HostBookingRequest,
   type ChatMessage,
   type BlacklistGuest,
-  type FinancialTransaction,
-  type PayoutSettings,
 } from '../data/mockData';
 
 // Реекспортуємо типи для інших компонентів
@@ -17,8 +16,6 @@ export type {
   HostBookingRequest,
   ChatMessage,
   BlacklistGuest,
-  FinancialTransaction,
-  PayoutSettings,
 };
 
 const STORAGE_KEYS = {
@@ -34,13 +31,8 @@ const STORAGE_KEYS = {
   MESSAGES: 'chat_messages',
   LANGUAGE: 'app_language',
   CURRENCY: 'app_currency',
-  FINANCE_BALANCE: 'tu_finance_balance',
-  FINANCE_TRANSACTIONS: 'tu_finance_tx',
-  FINANCE_PAYOUT: 'tu_finance_payout_settings',
 } as const;
 
-export type AppLanguage = 'UA' | 'EN' | 'DE' | 'PL';
-export type AppCurrency = 'UAH' | 'USD' | 'EUR' | 'PLN';
 
 export const checkIsLandlord = (role?: UserRole | string | null): boolean => {
   if (!role) return false;
@@ -163,7 +155,7 @@ export const storage = {
       localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(updated));
       return updated;
     },
-    cancel: (bookingId: string | number, _reason?: string): Booking[] => {
+    cancel: (bookingId: string | number): Booking[] => {
       const current = storage.bookings.get();
       const updated: Booking[] = current.map((b) =>
         String(b.id) === String(bookingId) ? { ...b, status: 'Скасовано' } : b
@@ -248,59 +240,17 @@ export const storage = {
   // 10. НАЛАШТУВАННЯ МОВИ ТА ВАЛЮТИ
   locale: {
     getLanguage: (): AppLanguage => {
-      return (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as AppLanguage) || 'UA';
+      return parseLanguage(localStorage.getItem(STORAGE_KEYS.LANGUAGE));
     },
     setLanguage: (lang: AppLanguage) => {
       localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
     },
     getCurrency: (): AppCurrency => {
-      return (localStorage.getItem(STORAGE_KEYS.CURRENCY) as AppCurrency) || 'UAH';
+      return parseCurrency(localStorage.getItem(STORAGE_KEYS.CURRENCY));
     },
     setCurrency: (curr: AppCurrency) => {
       localStorage.setItem(STORAGE_KEYS.CURRENCY, curr);
     },
   },
 
-  // 11. ФІНАНСИ ТА ПЛАТЕЖІ
-  finance: {
-    getBalance: (): number => {
-      const raw = localStorage.getItem(STORAGE_KEYS.FINANCE_BALANCE);
-      return raw !== null ? Number(raw) : 14250;
-    },
-    setBalance: (amount: number) => {
-      localStorage.setItem(STORAGE_KEYS.FINANCE_BALANCE, String(amount));
-    },
-    getTransactions: (): FinancialTransaction[] => {
-      const raw = localStorage.getItem(STORAGE_KEYS.FINANCE_TRANSACTIONS);
-      if (!raw) return MOCK_INITIAL_TRANSACTIONS;
-      try {
-        return JSON.parse(raw) as FinancialTransaction[];
-      } catch {
-        return MOCK_INITIAL_TRANSACTIONS;
-      }
-    },
-    setTransactions: (txs: FinancialTransaction[]) => {
-      localStorage.setItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, JSON.stringify(txs));
-    },
-    getPayoutSettings: (): PayoutSettings => {
-      const raw = localStorage.getItem(STORAGE_KEYS.FINANCE_PAYOUT);
-      if (!raw) {
-        return {
-          iban: 'UA49 3052 9900 0000 0260 0123 4567',
-          frequency: 'Щотижня',
-        };
-      }
-      try {
-        return JSON.parse(raw) as PayoutSettings;
-      } catch {
-        return {
-          iban: 'UA49 3052 9900 0000 0260 0123 4567',
-          frequency: 'Щотижня',
-        };
-      }
-    },
-    setPayoutSettings: (settings: PayoutSettings) => {
-      localStorage.setItem(STORAGE_KEYS.FINANCE_PAYOUT, JSON.stringify(settings));
-    },
-  },
 };

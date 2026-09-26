@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import {
-  MOCK_SUPPORT_CATEGORIES,
-  MOCK_SUPPORT_TICKETS,
-  type SupportTicketItem,
-} from '../../../data/mockData';
+import { AssistanceGate } from '../AssistanceGate';
+import { useAppData } from '../../../context/AppDataContext';
+import type { AssistanceSnapshot } from '../../../data/contracts';
+import { requestError } from '../../../services/bookings.service';
 
 type PriorityLevel = 'Низький' | 'Середній' | 'Високий';
 type ContactMethod = 'email' | 'phone';
 
-export const MenuSupportTab: React.FC = () => {
+export const MenuSupportTab: React.FC = () => <AssistanceGate>{snapshot => <SupportContent snapshot={snapshot} />}</AssistanceGate>;
+
+const SupportContent: React.FC<{ snapshot: AssistanceSnapshot }> = ({ snapshot }) => {
+  const { assistance } = useAppData();
+  const [feedback, setFeedback] = useState('');
   // Стан форми
-  const [category, setCategory] = useState<string>(MOCK_SUPPORT_CATEGORIES[0]);
-  const [bookingCode, setBookingCode] = useState('TR-9482-UA');
+  const [category, setCategory] = useState<string>(snapshot.categories[0]);
+  const [bookingCode, setBookingCode] = useState('');
   const [priority, setPriority] = useState<PriorityLevel>('Низький');
   const [contactMethod, setContactMethod] = useState<ContactMethod>('phone');
   const [description, setDescription] = useState(
@@ -23,7 +26,7 @@ export const MenuSupportTab: React.FC = () => {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // Список тікетів
-  const [tickets, setTickets] = useState<SupportTicketItem[]>(MOCK_SUPPORT_TICKETS);
+  const [tickets, setTickets] = useState(snapshot.tickets);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Обробка файлу
@@ -33,31 +36,21 @@ export const MenuSupportTab: React.FC = () => {
     }
   };
 
-  const handleSendTicket = (e: React.FormEvent) => {
+  const handleSendTicket = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim()) return;
-
-    setIsSubmitting(true);
-    setTimeout(() => {
-      const newTicket: SupportTicketItem = {
-        id: `st-${Date.now()}`,
-        ticketNumber: `#${Math.floor(10000 + Math.random() * 90000)}`,
-        category: category,
-        title: description.slice(0, 42) + (description.length > 42 ? '...' : ''),
-        dateText: 'Створено: Сьогодні',
-        status: 'В роботі',
-      };
-
-      setTickets([newTicket, ...tickets]);
-      setIsSubmitting(false);
-      setDescription('');
-      setSelectedFileName(null);
-      alert('🎉 Ваше звернення зареєстровано! Оператор служби турботи TrailsUA зв’яжеться з вами.');
-    }, 400);
+    if (isSubmitting || !description.trim()) return;
+    setIsSubmitting(true); setFeedback('');
+    try {
+      setTickets(await assistance.submitTicket({ category, description, bookingCode, priority, contactMethod, attachmentName: selectedFileName }));
+      setDescription(''); setSelectedFileName(null);
+      setFeedback('Демонстраційне звернення збережено у браузері. Оператору нічого не надіслано.');
+    } catch (error) { setFeedback(requestError(error)); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
     <div style={styles.container}>
+      {feedback && <p role="status">{feedback}</p>}
       {/* 1. ШАПКА РОЗДІЛУ З FIGMA */}
       <header style={styles.pageHeader}>
         <div style={styles.headerTitlesCol}>
@@ -100,7 +93,7 @@ export const MenuSupportTab: React.FC = () => {
                 {/* ========================================================================= */}
                 {isCategoryDropdownOpen && (
                   <div style={styles.frame342DropdownMenu}>
-                    {MOCK_SUPPORT_CATEGORIES.map((item) => {
+                    {snapshot.categories.map((item) => {
                       const isSelected = item === category;
                       return (
                         <div

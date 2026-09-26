@@ -1,11 +1,15 @@
 # Архитектура проекта "Trails UA"
 
+> Историческое описание первоначального проекта. Актуальные источники данных,
+> бронирования и администрирование описаны в [DEFENSE_GUIDE.md](DEFENSE_GUIDE.md),
+> [DATA_SOURCES.md](DATA_SOURCES.md), [BOOKINGS.md](BOOKINGS.md) и [ADMIN.md](ADMIN.md).
+
 ## 1. Общий обзор системы
 
-Проект **Trails UA** построен по принципам трехслойной монолитной архитектуры (Layered Architecture / Clean Architecture) с четким разделением ответственности компонентов.
+Проект **Trails UA** использует слоистую монолитную архитектуру. Строгая Clean Architecture не соблюдается во всех модулях.
 
 ### Технологический стек:
-* **Frontend:** React 18+, TypeScript, Vite, React Router, Axios.
+* **Frontend:** React 19, TypeScript 6, Vite 8, React Router 7, Axios.
 * **Backend:** C# / .NET 10 Web API, Entity Framework Core 9.
 * **Database:** PostgreSQL 16+, запущенная в изоляции через Docker Compose.
 * **Security:** JWT (JSON Web Tokens), BCrypt.Net, Google OAuth 2.0, RBAC.

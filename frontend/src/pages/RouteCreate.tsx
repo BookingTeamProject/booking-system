@@ -1,10 +1,10 @@
+import { isAxiosError } from 'axios';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { routesApi, categoriesApi } from '../services/api.service';
 import { syncService } from '../services/sync.service';
-import type { RouteItem } from '../types';
 import treesBg from '../assets/trees-bg.png';
 import birdsBg from '../assets/birds.png';
 
@@ -308,7 +308,6 @@ export const RouteCreate: React.FC = () => {
 
     setLoading(true);
 
-    const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     let targetCategoryId = formData.categoryId;
     const selectedTypeObj = ACCOMMODATION_TYPES.find((t) => t.id === formData.type);
 
@@ -324,7 +323,7 @@ export const RouteCreate: React.FC = () => {
       console.warn('Не вдалося отримати категорії з API:', e);
     }
 
-    if (!guidRegex.test(targetCategoryId)) {
+    if (!targetCategoryId) {
       alert('⚠️ Не вдалося зв’язатися з категоріями в базі даних. Переконайтеся, що бекенд запущено.');
       setLoading(false);
       return;
@@ -342,6 +341,7 @@ export const RouteCreate: React.FC = () => {
         description: formData.description.trim(),
         location: formData.location.trim(),
         price: Number(formData.pricePerNight),
+        maxGuests: formData.maxGuests,
         categoryId: targetCategoryId,
         imageUrls: finalImages,
         amenities: formData.amenities,
@@ -350,32 +350,14 @@ export const RouteCreate: React.FC = () => {
       console.log('✅ Успішно збережено в базі даних:', serverResponse);
       syncService.invalidate('routes_');
 
-      const newRouteItem: RouteItem = {
-        id: String(serverResponse?.id || Date.now()),
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        location: formData.location.trim(),
-        price: Number(formData.pricePerNight),
-        categoryId: targetCategoryId,
-        categoryName: selectedTypeObj?.label || 'Шале',
-        authorName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Господар' : 'Господар',
-        averageRating: 5.0,
-        imageUrls: finalImages,
-        amenities: formData.amenities,
-        createdAt: new Date().toISOString(),
-      };
-
-      const local: RouteItem[] = JSON.parse(localStorage.getItem('custom_routes') || '[]');
-      local.unshift(newRouteItem);
-      localStorage.setItem('custom_routes', JSON.stringify(local));
-
-      alert('🎉 Помешкання успішно зареєстровано та збережено в базі даних!');
+      alert('🎉 Помешкання успішно збережено!');
       navigate('/host/properties');
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Помилка сервера при публікації:', err);
 
-      const status = err.response?.status;
-      const errorData = err.response?.data;
+      const response = isAxiosError<{ message?: string; title?: string; errors?: Record<string, string[]> }>(err) ? err.response : undefined;
+      const status = response?.status;
+      const errorData = response?.data;
 
       if (status === 403) {
         alert('⛔ Помилка 403: Ваш акаунт не має ролі "Landlord". Натисніть кнопку зміни ролі на першому кроці.');
@@ -536,10 +518,10 @@ export const RouteCreate: React.FC = () => {
   // 1. ОСНОВНИЙ ФЛОУ: 6 КРОКІВ РЕЄСТРАЦІЇ ЖИТЛА ДЛЯ ОРЕНДОДАВЦЯ
   // =========================================================================
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
+    <div className="property-editor" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
 
       {/* 1. ГОРИЗОНТАЛЬНИЙ СТЕППЕР З FIGMA */}
-      <div style={{ ...styles.stepperBarContainer, zIndex: 50 }}>
+      <div className="property-editor-stepper" style={{ ...styles.stepperBarContainer, zIndex: 50 }}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
             Створення нового оголошення
@@ -607,7 +589,7 @@ export const RouteCreate: React.FC = () => {
         </div>
 
         {/* ОСНОВНИЙ КОНТЕНТ ФОРМИ */}
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
+        <div className="property-editor-form" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
           
           {/* КРОК 1 */}
           {step === 1 && (

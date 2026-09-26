@@ -91,17 +91,18 @@ export const RouteEdit: React.FC = () => {
           }
         }
 
-        setFormData({
-          ...formData,
+        setFormData(previous => ({
+          ...previous,
           type: typeId,
           categoryId: routeData.categoryId || '',
           title: routeData.title || '',
           description: routeData.description || '',
           location: routeData.location || '',
           pricePerNight: routeData.price || 0,
+          maxGuests: routeData.maxGuests || 4,
           amenities: Array.isArray(routeData.amenities) ? routeData.amenities : [],
           imageUrls: Array.isArray(routeData.imageUrls) ? routeData.imageUrls : [],
-        });
+        }));
       } catch (error) {
         console.error('Помилка завантаження маршруту:', error);
         alert('Не вдалося завантажити дані для редагування.');
@@ -166,9 +167,7 @@ export const RouteEdit: React.FC = () => {
       console.warn('Не вдалося оновити категорію:', e);
     }
 
-    const finalImages = formData.imageUrls.length > 0 ? formData.imageUrls : [
-  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1000&q=80'
-];
+    const finalImages = formData.imageUrls;
 
     try {
       await routesApi.update(id!, {
@@ -176,30 +175,20 @@ export const RouteEdit: React.FC = () => {
         description: formData.description.trim(),
         location: formData.location.trim(),
         price: Number(formData.pricePerNight),
+        maxGuests: formData.maxGuests,
         categoryId: targetCategoryId,
         imageUrls: finalImages,
         amenities: formData.amenities,
       });
 
-      // ====================================================
-      // АВТОМАТИЧНА ЧИСТКА КЕШУ (ЩОБ БЕЗ F12 І МИЛИЦЬ)
-      // Видаляємо всі збережені дані браузера, ОКРІМ токена авторизації та юзера.
-      // Тепер Головна сторінка БУДЕ ЗМУШЕНА стягнути свіжі дані з бекенду.
-      // ====================================================
-      Object.keys(localStorage).forEach(key => {
-        const k = key.toLowerCase();
-        if (!k.includes('token') && !k.includes('user') && !k.includes('auth')) {
-          localStorage.removeItem(key);
-        }
-      });
       syncService.invalidate('routes_');
 
       alert('✅ Помешкання успішно оновлено!');
       
       // Повне перезавантаження сторінки з переходом в меню
-      window.location.href = '/menu?tab=properties';
+      navigate('/menu?tab=properties');
       
-    } catch (err: any) {
+    } catch (err) {
       console.error('Помилка оновлення:', err);
       alert('⚠️ Не вдалося оновити оголошення. Перевірте консоль.');
     } finally {
@@ -216,10 +205,10 @@ export const RouteEdit: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
+    <div className="property-editor" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#E1D4C2', fontFamily: "'Iosevka Charon', 'Manrope', sans-serif" }}>
       
       {/* СТЕППЕР */}
-      <div style={styles.stepperBarContainer}>
+      <div className="property-editor-stepper" style={styles.stepperBarContainer}>
         <div style={{ maxWidth: '1720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <h1 style={{ color: '#291C0E', fontSize: '22px', fontFamily: "'Alegreya', serif", fontWeight: 800, margin: 0 }}>
             Редагування оголошення
@@ -250,7 +239,7 @@ export const RouteEdit: React.FC = () => {
           <img src={treesBg} alt="Декоративні ялинки" style={{ width: '100%', opacity: 0.9 }} />
         </div>
 
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
+        <div className="property-editor-form" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '850px', padding: '48px 40px 60px 40px' }}>
           
           {/* КРОК 1 */}
           {step === 1 && (
@@ -286,6 +275,11 @@ export const RouteEdit: React.FC = () => {
           {step === 3 && (
             <div style={styles.stepCardMain}>
               <h2 style={styles.stepTitle}>Крок 3. Зручності</h2>
+              <label style={styles.formLabel}>Максимальна кількість гостей
+                <input type="number" min={1} max={100} value={formData.maxGuests}
+                  onChange={e => setFormData({ ...formData, maxGuests: Number(e.target.value) })}
+                  style={styles.formInput} />
+              </label>
               {AMENITIES_BY_CATEGORY.map((sec, i) => (
                 <div key={i} style={{ marginBottom: '20px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#6E473B', marginBottom: '10px' }}>{sec.category}</h3>

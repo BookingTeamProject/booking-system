@@ -39,13 +39,13 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div style={styles.pageWrapper}>
-      <div style={styles.container}>
+    <div className="r-pageWrapper" style={styles.pageWrapper}>
+      <div className="r-container" style={styles.container}>
         {/* Сайдбар з навігацією */}
         <ProfileSidebar activeTab={currentTab} onSelectTab={handleTabChange} />
 
         {/* Контент активної вкладки */}
-        <div style={styles.contentArea}>
+        <div className="r-contentArea" style={styles.contentArea}>
           {feedbackMessage && <div style={styles.feedbackBanner}>{feedbackMessage}</div>}
 
           {currentTab === 'account' && <AccountTab />}

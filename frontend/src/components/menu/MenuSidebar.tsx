@@ -1,3 +1,4 @@
+import { Avatar } from '../Avatar';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -10,12 +11,6 @@ interface MenuSidebarProps {
   onTabChange: (tab: MenuTab) => void;
 }
 
-const formatAvatar = (url?: string | null): string => {
-  if (!url) return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=140&q=80';
-  if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) return url;
-  const baseUrl = window.location.hostname !== 'localhost' ? 'https://trailsua.pp.ua' : 'http://localhost:5238';
-  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-};
 
 export const MenuSidebar: React.FC<MenuSidebarProps> = ({ activeTab, onTabChange }) => {
   const { user, isLandlord, logout } = useAuth();
@@ -32,32 +27,26 @@ export const MenuSidebar: React.FC<MenuSidebarProps> = ({ activeTab, onTabChange
   const userRoleBadge = isLandlord ? 'Господар з 2026' : 'Орендар з 2025';
 
   // Підтвердження виходу
-  const handleConfirmLogout = (_allDevices: boolean) => {
+  const handleConfirmLogout = () => {
     setIsLogoutModalOpen(false);
     logout();
     navigate('/login');
   };
 
   // Підтвердження видалення акаунта
-  const handleConfirmDelete = (_reason: string) => {
+  const handleConfirmDelete = () => {
     setIsDeleteModalOpen(false);
-    logout();
-    alert('Запит на видалення облікового запису успішно прийнято в обробку.');
-    navigate('/');
+    alert('Видалення облікового запису ще не реалізовано. Запит не надсилався.');
   };
 
   return (
     <>
-      <aside style={styles.sidebarContainer}>
+      <aside className="r-sidebarContainer" style={styles.sidebarContainer}>
         {/* ВЕРХНЯ ЧАСТИНА: МІНІ-КАРТКА ТА НАВІГАЦІЯ */}
         <div style={styles.topSection}>
           {/* Міні-картка користувача з Figma */}
           <div style={styles.userMiniCard}>
-            <img
-              src={formatAvatar(user?.avatarUrl)}
-              alt="Аватар користувача"
-              style={styles.userAvatarImg}
-            />
+            <Avatar src={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} />
             <div style={styles.userInfoCol}>
               <div style={styles.userNameText}>{userName}</div>
               <span style={styles.roleBadgePill}>{userRoleBadge}</span>

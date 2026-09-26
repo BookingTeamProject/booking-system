@@ -1,34 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api/axios';
+import { useRoutes } from '../context/RoutesContext';
 
 export const FavoritesPage: React.FC = () => {
-  const [favorites, setFavorites] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
-  const loadFavorites = async () => {
-    try {
-      const res = await api.get('/favorite');
-      setFavorites(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFavorite = async (routeId: string) => {
-    try {
-      await api.post(`/favorite/${routeId}`);
-      setFavorites(favorites.filter(f => f.id !== routeId));
-    } catch (e) {
-      alert('Ошибка при удалении');
-    }
-  };
+  const { routes, favorites: ids, loading, toggleFavorite } = useRoutes();
+  const favorites = routes.filter(route => ids.includes(route.id));
+  const removeFavorite = toggleFavorite;
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
