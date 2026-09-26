@@ -33,6 +33,8 @@ const STORAGE_KEYS = {
   CURRENCY: 'app_currency',
 } as const;
 
+export const AUTH_SESSION_CLEARED_EVENT = 'trailsua:auth-session-cleared';
+
 
 export const checkIsLandlord = (role?: UserRole | string | null): boolean => {
   if (!role) return false;
@@ -53,6 +55,9 @@ export const storage = {
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.ROLE_OVERRIDE);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(AUTH_SESSION_CLEARED_EVENT));
+      }
     },
   },
 

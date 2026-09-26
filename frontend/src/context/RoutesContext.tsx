@@ -32,6 +32,7 @@ export function RoutesProvider({ children }: { children: ReactNode }) {
         if (!active) return;
         setRoutes(properties);
         setFavorites(favoriteItems.map(item => typeof item === 'string' ? item : item.id));
+        setError('');
       }).catch(err => { if (active) setError(requestError(err)); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
